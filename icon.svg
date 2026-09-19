@@ -1,74 +1,145 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
-    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#141923" />
-      <stop offset="70%" stop-color="#0b0e14" />
-      <stop offset="100%" stop-color="#05070a" />
+    <!-- Background Gradient: Deep Royal Kuberan Maroon -->
+    <radialGradient id="bgVastu" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b0918" />
+      <stop offset="60%" stop-color="#1e040c" />
+      <stop offset="100%" stop-color="#0b0104" />
     </radialGradient>
-    <linearGradient id="metalRing" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#384358" />
-      <stop offset="25%" stop-color="#1f2533" />
-      <stop offset="50%" stop-color="#4a5773" />
-      <stop offset="75%" stop-color="#181e2b" />
-      <stop offset="100%" stop-color="#2d374a" />
+
+    <!-- Gold Bezel Gradients -->
+    <linearGradient id="goldBezel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fae092" />
+      <stop offset="25%" stop-color="#b88628" />
+      <stop offset="50%" stop-color="#fdf1c2" />
+      <stop offset="75%" stop-color="#8c6014" />
+      <stop offset="100%" stop-color="#d4a359" />
     </linearGradient>
-    <linearGradient id="needleNorth" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff3b30" />
-      <stop offset="50%" stop-color="#ff6961" />
-      <stop offset="100%" stop-color="#d32f2f" />
+
+    <linearGradient id="goldNeedle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff2b3" />
+      <stop offset="40%" stop-color="#f59e0b" />
+      <stop offset="80%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#78350f" />
     </linearGradient>
-    <linearGradient id="needleSouth" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#8e99a8" />
-      <stop offset="50%" stop-color="#ffffff" />
-      <stop offset="100%" stop-color="#64748b" />
+
+    <linearGradient id="rubyNorth" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff334b" />
+      <stop offset="50%" stop-color="#ff6b81" />
+      <stop offset="100%" stop-color="#b91c1c" />
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6" result="blur" />
+
+    <radialGradient id="centerGem" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffedd5" />
+      <stop offset="30%" stop-color="#f59e0b" />
+      <stop offset="70%" stop-color="#9a3412" />
+      <stop offset="100%" stop-color="#451a03" />
+    </radialGradient>
+
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
 
-  <!-- Outer Housing -->
-  <rect width="512" height="512" rx="112" fill="#07090e" />
-  <circle cx="256" cy="256" r="236" fill="url(#metalRing)" stroke="#4fc3f7" stroke-opacity="0.25" stroke-width="2" />
-  <circle cx="256" cy="256" r="218" fill="url(#bgGrad)" stroke="#1e293b" stroke-width="4" />
+  <!-- Base App Tile (iOS / Android rounded square housing) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgVastu)" />
+  <rect x="12" y="12" width="488" height="488" rx="100" fill="none" stroke="url(#goldBezel)" stroke-width="3" stroke-opacity="0.45" />
 
-  <!-- Outer Ring Degree Ticks -->
-  <g stroke="#475569" stroke-width="2" opacity="0.6">
-    <line x1="256" y1="46" x2="256" y2="60" />
-    <line x1="361" y1="74" x2="354" y2="86" />
-    <line x1="438" y1="151" x2="426" y2="158" />
-    <line x1="466" y1="256" x2="452" y2="256" />
-    <line x1="438" y1="361" x2="426" y2="354" />
-    <line x1="361" y1="438" x2="354" y2="426" />
-    <line x1="256" y1="466" x2="256" y2="452" />
-    <line x1="151" y1="438" x2="158" y2="426" />
-    <line x1="74" y1="361" x2="86" y2="354" />
-    <line x1="46" y1="256" x2="60" y2="256" />
-    <line x1="74" y1="151" x2="86" y2="158" />
-    <line x1="151" y1="74" x2="158" y2="86" />
+  <!-- Outer Sacred Geometry Ring -->
+  <circle cx="256" cy="256" r="226" fill="none" stroke="url(#goldBezel)" stroke-width="6" />
+  <circle cx="256" cy="256" r="214" fill="none" stroke="#d4a359" stroke-width="1.5" stroke-dasharray="3,4" opacity="0.6" />
+  <circle cx="256" cy="256" r="184" fill="none" stroke="url(#goldBezel)" stroke-width="2" opacity="0.8" />
+
+  <!-- Pancha Bhoota 8 Elemental Sectors Ring -->
+  <!-- North & North-East: Water (Cyan/Blue) -->
+  <path d="M 256 72 A 184 184 0 0 1 386 126" fill="none" stroke="#00b4d8" stroke-width="10" stroke-linecap="round" filter="url(#goldGlow)" opacity="0.85"/>
+  <!-- East: Air/Wood (Emerald Green) -->
+  <path d="M 386 126 A 184 184 0 0 1 440 256" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <!-- South-East: Fire (Crimson Red) -->
+  <path d="M 440 256 A 184 184 0 0 1 386 386" fill="none" stroke="#ef4444" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <!-- South & South-West: Earth (Amber/Gold) -->
+  <path d="M 386 386 A 184 184 0 0 1 256 440" fill="none" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 256 440 A 184 184 0 0 1 126 386" fill="none" stroke="#d97706" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <!-- West & North-West: Space (Silver/Slate) -->
+  <path d="M 126 386 A 184 184 0 0 1 72 256" fill="none" stroke="#94a3b8" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 72 256 A 184 184 0 0 1 126 126" fill="none" stroke="#2dd4bf" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 126 126 A 184 184 0 0 1 256 72" fill="none" stroke="#0284c7" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Ashta Dikpala 8 Sacred Rays (Spokes) -->
+  <g stroke="url(#goldBezel)" stroke-width="2" opacity="0.75">
+    <line x1="256" y1="72" x2="256" y2="440" />
+    <line x1="72" y1="256" x2="440" y2="256" />
+    <line x1="126" y1="126" x2="386" y2="386" />
+    <line x1="386" y1="126" x2="126" y2="386" />
   </g>
 
-  <!-- Crosshairs -->
-  <line x1="256" y1="70" x2="256" y2="442" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,6" />
-  <line x1="70" y1="256" x2="442" y2="256" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,6" />
+  <!-- 16-Petal Sacred Vastu Lotus Dial -->
+  <g fill="none" stroke="url(#goldBezel)" stroke-width="1.2" opacity="0.4">
+    <circle cx="256" cy="180" r="76" />
+    <circle cx="256" cy="332" r="76" />
+    <circle cx="180" cy="256" r="76" />
+    <circle cx="332" cy="256" r="76" />
+    <circle cx="202" cy="202" r="76" />
+    <circle cx="310" cy="202" r="76" />
+    <circle cx="202" cy="310" r="76" />
+    <circle cx="310" cy="310" r="76" />
+  </g>
 
-  <!-- Compass Needle North (Red) -->
-  <polygon points="256,66 280,256 256,238 232,256" fill="url(#needleNorth)" filter="url(#glow)" />
-  <polygon points="256,66 256,238 232,256" fill="#ff7961" opacity="0.4" />
+  <!-- Inner Concentric Dial Ring -->
+  <circle cx="256" cy="256" r="134" fill="#140308" stroke="url(#goldBezel)" stroke-width="2" />
+  <circle cx="256" cy="256" r="126" fill="none" stroke="#d4a359" stroke-width="1" stroke-dasharray="2,3" opacity="0.6" />
 
-  <!-- Compass Needle South (Silver/White) -->
-  <polygon points="256,446 280,256 256,274 232,256" fill="url(#needleSouth)" />
-  <polygon points="256,446 256,274 232,256" fill="#ffffff" opacity="0.35" />
+  <!-- 8-Point Royal Vastu Needle Star -->
+  <!-- Diagonal Gold Points (NE, SE, SW, NW) -->
+  <g opacity="0.9">
+    <polygon points="256,256 244,244 330,182 256,244" fill="url(#goldNeedle)" />
+    <polygon points="256,256 256,244 330,182 268,244" fill="#fae092" opacity="0.8" />
 
-  <!-- Pivot Cap -->
-  <circle cx="256" cy="256" r="26" fill="#0f172a" stroke="#00e5ff" stroke-width="3" />
-  <circle cx="256" cy="256" r="14" fill="#38bdf8" />
-  <circle cx="252" cy="252" r="4" fill="#ffffff" opacity="0.8" />
+    <polygon points="256,256 268,244 330,330 268,256" fill="url(#goldNeedle)" />
+    <polygon points="256,256 268,256 330,330 256,268" fill="#fae092" opacity="0.8" />
 
-  <!-- Cardinal Letters -->
-  <text x="256" y="96" fill="#ff453a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="28" text-anchor="middle">N</text>
-  <text x="430" y="265" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="24" text-anchor="middle">E</text>
-  <text x="256" y="434" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="24" text-anchor="middle">S</text>
-  <text x="82" y="265" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="24" text-anchor="middle">W</text>
+    <polygon points="256,256 256,268 182,330 244,268" fill="url(#goldNeedle)" />
+    <polygon points="256,256 244,268 182,330 244,256" fill="#fae092" opacity="0.8" />
+
+    <polygon points="256,256 244,256 182,182 244,244" fill="url(#goldNeedle)" />
+    <polygon points="256,256 244,244 182,182 256,244" fill="#fae092" opacity="0.8" />
+  </g>
+
+  <!-- Primary North Needle (Ruby Red + Gold Finials) -->
+  <polygon points="256,58 284,256 256,236 228,256" fill="url(#rubyNorth)" filter="url(#goldGlow)" />
+  <polygon points="256,58 256,236 228,256" fill="#ff798e" opacity="0.5" />
+  <!-- Needle Gold Spine -->
+  <line x1="256" y1="58" x2="256" y2="236" stroke="#fff" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- South Needle (Royal Gold + Bronze) -->
+  <polygon points="256,454 284,256 256,276 228,256" fill="url(#goldNeedle)" />
+  <polygon points="256,454 256,276 228,256" fill="#fae092" opacity="0.4" />
+
+  <!-- East & West Needles -->
+  <polygon points="454,256 256,284 276,256 256,228" fill="url(#goldNeedle)" opacity="0.9" />
+  <polygon points="58,256 256,284 236,256 256,228" fill="url(#goldNeedle)" opacity="0.9" />
+
+  <!-- Center Boss / Pivot Housing -->
+  <circle cx="256" cy="256" r="36" fill="url(#goldBezel)" filter="url(#goldGlow)" />
+  <circle cx="256" cy="256" r="30" fill="#1e040c" stroke="#fae092" stroke-width="2" />
+  <circle cx="256" cy="256" r="22" fill="url(#centerGem)" />
+  <circle cx="250" cy="250" r="5" fill="#ffffff" opacity="0.8" />
+
+  <!-- Sacred Sanskrit Om (?) Center Glyph in Brilliant Gold -->
+  <text x="256" y="263" fill="#ffffff" font-family="'Noto Sans Devanagari', 'Mangal', 'Segoe UI', serif" font-weight="900" font-size="20" text-anchor="middle" filter="url(#goldGlow)">?</text>
+
+  <!-- Cardinal Letter "N" with Sacred Crown -->
+  <text x="256" y="44" fill="#fae092" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="26" text-anchor="middle" filter="url(#goldGlow)">N</text>
+  <circle cx="256" cy="20" r="4" fill="#ff334b" />
+
+  <!-- Sanskrit Directional Calligraphy around Ring -->
+  <text x="256" y="104" fill="#fae092" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="14" text-anchor="middle">?????</text>
+  <text x="358" y="146" fill="#00b4d8" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="12" text-anchor="middle">??????</text>
+  <text x="408" y="260" fill="#10b981" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="13" text-anchor="middle">?????</text>
+  <text x="358" y="372" fill="#ef4444" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="12" text-anchor="middle">??????</text>
+  <text x="256" y="416" fill="#f59e0b" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="13" text-anchor="middle">??????</text>
+  <text x="154" y="372" fill="#d97706" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="12" text-anchor="middle">??????</text>
+  <text x="104" y="260" fill="#94a3b8" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="13" text-anchor="middle">??????</text>
+  <text x="154" y="146" fill="#2dd4bf" font-family="'Noto Sans Devanagari', sans-serif" font-weight="700" font-size="12" text-anchor="middle">??????</text>
 </svg>
