@@ -4,8 +4,9 @@ A sleek, downloadable **Vedic Vastu Shastra & Precision Inclinometer Progressive
 
 Official edition presented by [Kuberan Silks](https://kuberansilks.com/).
 
-📱 **Official Store & Heritage:** [https://kuberansilks.com/](https://kuberansilks.com/)  
-🐙 **GitHub Repository & Source:** [https://github.com/Jee1VK/compass-app](https://github.com/Jee1VK/compass-app)
+📱 **Live Web App & Mobile Install:** [https://jee1vk.github.io/kuberan-vastu-compass-app/](https://jee1vk.github.io/kuberan-vastu-compass-app/)  
+🏪 **Official Store:** [https://kuberansilks.com/](https://kuberansilks.com/)  
+🐙 **GitHub Repository & Source:** [https://github.com/Jee1VK/kuberan-vastu-compass-app](https://github.com/Jee1VK/kuberan-vastu-compass-app)
 
 ---
 
