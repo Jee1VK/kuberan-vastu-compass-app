@@ -1,6 +1,7 @@
 /**
- * KUBERAN Compass App - High Precision Mobile Compass & Inclinometer
+ * KUBERAN VASTU COMPASS APP - High Precision Vedic Architecture & Mobile Compass
  * Built for iOS Safari, Android Chrome, and Desktop Browsers.
+ * Features: True North Default, 8/16/32 Zones, Room Finder, Plot Tilt (Vidisha), Camera AR, Trilingual + Tamil + Telugu
  */
 
 (function() {
@@ -10,7 +11,7 @@
   let currentHeading = 0;
   let rawMagneticHeading = 0;
   let targetHeading = null;
-  let isTrueNorth = false;
+  let isTrueNorth = true; // TRUE NORTH BY DEFAULT per requirements
   let magneticDeclination = 0;
   let pitch = 0;
   let roll = 0;
@@ -19,16 +20,30 @@
   let deferredPrompt = null;
   let lastVibrateTime = 0;
   let lastVibratedCardinal = -1;
+  let lastVibratedPada = null;
 
-  // Themes list (Marine Brass is default)
-  const THEMES = ['theme-marine', 'theme-tactical', 'theme-minimal', 'theme-night'];
-  let currentThemeIndex = 0;
+  // App Modes & Vastu State
+  let compassMode = 'vastu'; // 'vastu' or 'simple'
+  let zoneSystem = '8';      // '8', '16', or '32'
+  let dialTheme = 'elemental'; // 'elemental', 'chakra', or 'gold'
+  let currentLang = 'en';    // 'en', 'hi', 'kn', 'ta', 'te'
+  let activeRoom = null;     // Selected room object from VASTU_DATA.ROOMS
+  let plotTiltReading = null;// Locked wall alignment data
+  let cameraStream = null;   // MediaStream for Camera AR
+
+  // Visual Themes List (Marine Brass is base palette)
+  const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
+  let currentDialThemeIndex = 0;
 
   // DOM Elements
   const compassCard = document.getElementById('compassCard');
   const dialSvg = document.getElementById('dialSvg');
+  const compassViewport = document.getElementById('compassViewport');
+  const cameraFeed = document.getElementById('cameraFeed');
+  const cameraScrim = document.getElementById('cameraScrim');
   const headingDegrees = document.getElementById('headingDegrees');
   const headingCardinal = document.getElementById('headingCardinal');
+  const headingSanskrit = document.getElementById('headingSanskrit');
   const milsValue = document.getElementById('milsValue');
   const backAzimuthValue = document.getElementById('backAzimuthValue');
   const targetValue = document.getElementById('targetValue');
@@ -41,7 +56,9 @@
   const btnToggleNorth = document.getElementById('btnToggleNorth');
   const northPill = document.getElementById('northPill');
   const northModeLabel = document.getElementById('northModeLabel');
-  const btnTheme = document.getElementById('btnTheme');
+  const btnDialTheme = document.getElementById('btnDialTheme');
+  const btnLanguage = document.getElementById('btnLanguage');
+  const langPill = document.getElementById('langPill');
   const btnInfo = document.getElementById('btnInfo');
   const infoModal = document.getElementById('infoModal');
   const btnCloseModal = document.getElementById('btnCloseModal');
@@ -68,742 +85,1239 @@
   const toast = document.getElementById('toast');
   const githubRepoLink = document.getElementById('githubRepoLink');
 
-  // --- Initialize Vector Compass Dial SVG ---
+  // Vastu Mode Switcher & Controls Elements
+  const btnModeVastu = document.getElementById('btnModeVastu');
+  const btnModeSimple = document.getElementById('btnModeSimple');
+  const vastuSubcontrols = document.getElementById('vastuSubcontrols');
+  const btnZone8 = document.getElementById('btnZone8');
+  const btnZone16 = document.getElementById('btnZone16');
+  const btnZone32 = document.getElementById('btnZone32');
+  const btnToolRoomFinder = document.getElementById('btnToolRoomFinder');
+  const btnToolPlotTilt = document.getElementById('btnToolPlotTilt');
+  const btnToolCamera = document.getElementById('btnToolCamera');
+  const btnToolAudit = document.getElementById('btnToolAudit');
+  const vastuInspectorSection = document.getElementById('vastuInspectorSection');
+  const inspZoneBadge = document.getElementById('inspZoneBadge');
+  const inspZoneName = document.getElementById('inspZoneName');
+  const inspSanskrit = document.getElementById('inspSanskrit');
+  const inspElementDot = document.getElementById('inspElementDot');
+  const inspElementName = document.getElementById('inspElementName');
+  const inspDeityVal = document.getElementById('inspDeityVal');
+  const inspSummaryText = document.getElementById('inspSummaryText');
+  const favorableTags = document.getElementById('favorableTags');
+  const avoidTags = document.getElementById('avoidTags');
+  const inspTipText = document.getElementById('inspTipText');
+  const padaEntranceCard = document.getElementById('padaEntranceCard');
+  const padaIdBadge = document.getElementById('padaIdBadge');
+  const padaDevataName = document.getElementById('padaDevataName');
+  const padaGradePill = document.getElementById('padaGradePill');
+  const padaEffectText = document.getElementById('padaEffectText');
+
+  // Guidance Banner Elements
+  const roomGuidanceBanner = document.getElementById('roomGuidanceBanner');
+  const guideRoomIcon = document.getElementById('guideRoomIcon');
+  const guideRoomName = document.getElementById('guideRoomName');
+  const guideTargetBadge = document.getElementById('guideTargetBadge');
+  const guideStatusText = document.getElementById('guideStatusText');
+  const btnCloseRoomGuide = document.getElementById('btnCloseRoomGuide');
+
+  // Modals Elements
+  const langModal = document.getElementById('langModal');
+  const btnCloseLangModal = document.getElementById('btnCloseLangModal');
+  const langOptionsList = document.getElementById('langOptionsList');
+  const roomFinderModal = document.getElementById('roomFinderModal');
+  const btnCloseRoomModal = document.getElementById('btnCloseRoomModal');
+  const roomsGrid = document.getElementById('roomsGrid');
+  const plotTiltModal = document.getElementById('plotTiltModal');
+  const btnCloseTiltModal = document.getElementById('btnCloseTiltModal');
+  const plotHeadingVal = document.getElementById('plotHeadingVal');
+  const plotDeviationVal = document.getElementById('plotDeviationVal');
+  const plotStatusBanner = document.getElementById('plotStatusBanner');
+  const plotStatusTitle = document.getElementById('plotStatusTitle');
+  const plotStatusDesc = document.getElementById('plotStatusDesc');
+  const btnLockPlotTilt = document.getElementById('btnLockPlotTilt');
+  const auditModal = document.getElementById('auditModal');
+  const btnCloseAuditModal = document.getElementById('btnCloseAuditModal');
+  const reportTimestamp = document.getElementById('reportTimestamp');
+  const reportHeading = document.getElementById('reportHeading');
+  const reportZone = document.getElementById('reportZone');
+  const reportElement = document.getElementById('reportElement');
+  const reportDeity = document.getElementById('reportDeity');
+  const reportGps = document.getElementById('reportGps');
+  const reportDoor = document.getElementById('reportDoor');
+  const reportPlot = document.getElementById('reportPlot');
+  const reportAdvice = document.getElementById('reportAdvice');
+  const btnCopyAuditReport = document.getElementById('btnCopyAuditReport');
+  const btnShareAuditReport = document.getElementById('btnShareAuditReport');
+
+  // --- Helper: Degree Normalizer ---
+  function normalizeAngle(angle) {
+    let a = angle % 360;
+    return a < 0 ? a + 360 : a;
+  }
+
+  // --- Helper: WGS84 Declination Estimator ---
+  function estimateMagneticDeclination(latitude, longitude) {
+    if (isNaN(latitude) || isNaN(longitude)) return 0;
+    // World Magnetic Model approximation for Indian subcontinent & global fallback
+    if (latitude >= 6 && latitude <= 38 && longitude >= 68 && longitude <= 98) {
+      // In India, magnetic declination ranges between -2.0° to +1.5°
+      const latFraction = (latitude - 8) / 30;
+      const lngFraction = (longitude - 77) / 20;
+      return parseFloat((-0.5 + latFraction * 0.8 - lngFraction * 1.2).toFixed(1));
+    }
+    return 0.0;
+  }
+
+  // --- Helper: Format Degrees to DMS ---
+  function formatDMS(dec, isLat) {
+    if (isNaN(dec)) return '--° --\' --"';
+    const dir = isLat ? (dec >= 0 ? 'N' : 'S') : (dec >= 0 ? 'E' : 'W');
+    const absVal = Math.abs(dec);
+    const deg = Math.floor(absVal);
+    const minDec = (absVal - deg) * 60;
+    const min = Math.floor(minDec);
+    const sec = Math.round((minDec - min) * 60);
+    return `${deg}° ${min}' ${sec}" ${dir}`;
+  }
+
+  // --- Helper: Format Milliseconds / Date ---
+  function formatCurrentTimestamp() {
+    const now = new Date();
+    return now.toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'medium'
+    });
+  }
+
+  // --- Vastu Calculations Engine ---
+  function getActiveZone8(heading) {
+    const h = normalizeAngle(heading);
+    for (const z of VASTU_DATA.ZONES_8) {
+      if (z.startDeg > z.endDeg) {
+        // Wrap-around North (337.5° to 22.5°)
+        if (h >= z.startDeg || h < z.endDeg) return z;
+      } else {
+        if (h >= z.startDeg && h < z.endDeg) return z;
+      }
+    }
+    return VASTU_DATA.ZONES_8[0];
+  }
+
+  function getActiveZone16(heading) {
+    const h = normalizeAngle(heading);
+    for (const z of VASTU_DATA.ZONES_16) {
+      if (z.startDeg > z.endDeg) {
+        if (h >= z.startDeg || h < z.endDeg) return z;
+      } else {
+        if (h >= z.startDeg && h < z.endDeg) return z;
+      }
+    }
+    return VASTU_DATA.ZONES_16[0];
+  }
+
+  function getActivePada32(heading) {
+    const h = normalizeAngle(heading);
+    for (const p of VASTU_DATA.PADAS_32) {
+      if (p.startDeg > p.endDeg) {
+        if (h >= p.startDeg || h < p.endDeg) return p;
+      } else {
+        if (h >= p.startDeg && h < p.endDeg) return p;
+      }
+    }
+    return VASTU_DATA.PADAS_32[0];
+  }
+
+  // --- Build Dial Vector SVG ---
   function buildDialSvg() {
     const cx = 250;
     const cy = 250;
     const rOuter = 240;
     let svgContent = '';
 
-    // Outer decorative ring
-    svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-width="2"/>`;
-    svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter - 18}" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="1"/>`;
-    svgContent += `<circle cx="${cx}" cy="${cy}" r="116" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="4,4"/>`;
+    if (compassMode === 'simple') {
+      // -------------------------------------------------------------
+      // SIMPLE COMPASS DIAL (Authentic Nautical Precision Dial)
+      // -------------------------------------------------------------
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="currentColor" stroke-opacity="0.25" stroke-width="2"/>`;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter - 18}" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-width="1"/>`;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="116" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="4,4"/>`;
 
-    // Degree Ticks (Every 2°, 10°, 30°)
-    for (let deg = 0; deg < 360; deg += 2) {
-      const rad = (deg - 90) * (Math.PI / 180);
-      const is30 = deg % 30 === 0;
-      const is10 = deg % 10 === 0;
+      // Degree Ticks (Every 2°, 10°, 30°)
+      for (let deg = 0; deg < 360; deg += 2) {
+        const rad = (deg - 90) * (Math.PI / 180);
+        const is30 = deg % 30 === 0;
+        const is10 = deg % 10 === 0;
 
-      let tickLen = 7;
-      let strokeWidth = 1;
-      let strokeOpacity = 0.35;
+        let tickLen = 7;
+        let strokeWidth = 1;
+        let strokeOpacity = 0.35;
 
-      if (is30) {
-        tickLen = 16;
-        strokeWidth = 2.5;
-        strokeOpacity = 0.9;
-      } else if (is10) {
-        tickLen = 12;
-        strokeWidth = 1.5;
-        strokeOpacity = 0.6;
+        if (is30) {
+          tickLen = 16;
+          strokeWidth = 2.5;
+          strokeOpacity = 0.9;
+        } else if (is10) {
+          tickLen = 12;
+          strokeWidth = 1.5;
+          strokeOpacity = 0.6;
+        }
+
+        const x1 = cx + (rOuter - 2) * Math.cos(rad);
+        const y1 = cy + (rOuter - 2) * Math.sin(rad);
+        const x2 = cx + (rOuter - 2 - tickLen) * Math.cos(rad);
+        const y2 = cy + (rOuter - 2 - tickLen) * Math.sin(rad);
+
+        const strokeColor = (deg === 0) ? 'var(--accent-north)' : 'currentColor';
+        svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}"/>`;
+
+        // Degree Numbers (every 30°, skipping cardinal positions)
+        if (is30 && deg % 90 !== 0) {
+          const textR = rOuter - 29;
+          const tx = cx + textR * Math.cos(rad);
+          const ty = cy + textR * Math.sin(rad);
+          svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="currentColor" fill-opacity="0.7" transform="rotate(${deg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${deg}</text>`;
+        }
       }
 
-      const x1 = cx + (rOuter - 4) * Math.cos(rad);
-      const y1 = cy + (rOuter - 4) * Math.sin(rad);
-      const x2 = cx + (rOuter - 4 - tickLen) * Math.cos(rad);
-      const y2 = cy + (rOuter - 4 - tickLen) * Math.sin(rad);
+      // Compass Rose 8-Point Star
+      svgContent += `
+        <g class="compass-rose-star" opacity="0.85">
+          <polygon points="${cx},${cy - 120} ${cx + 12},${cy - 20} ${cx},${cy}" fill="var(--accent-north)" />
+          <polygon points="${cx},${cy - 120} ${cx - 12},${cy - 20} ${cx},${cy}" fill="rgba(239, 68, 68, 0.4)" />
+          <polygon points="${cx},${cy + 120} ${cx - 12},${cy + 20} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.9" />
+          <polygon points="${cx},${cy + 120} ${cx + 12},${cy + 20} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.4" />
+          <polygon points="${cx + 120},${cy} ${cx + 20},${cy + 12} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.9" />
+          <polygon points="${cx + 120},${cy} ${cx + 20},${cy - 12} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.4" />
+          <polygon points="${cx - 120},${cy} ${cx - 20},${cy - 12} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.9" />
+          <polygon points="${cx - 120},${cy} ${cx - 20},${cy + 12} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.4" />
+          <polygon points="${cx + 80},${cy - 80} ${cx + 14},${cy - 14} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.65" />
+          <polygon points="${cx + 80},${cy + 80} ${cx + 14},${cy + 14} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.65" />
+          <polygon points="${cx - 80},${cy + 80} ${cx - 14},${cy + 14} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.65" />
+          <polygon points="${cx - 80},${cy - 80} ${cx - 14},${cy - 14} ${cx},${cy}" fill="var(--accent-cyan)" opacity="0.65" />
+        </g>
+      `;
 
-      const color = (deg === 0) ? 'var(--accent-north)' : 'currentColor';
-      svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${color}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"/>`;
+      // Cardinal & Intercardinal Typography
+      const cardinals = [
+        { label: 'N', deg: 0, r: rOuter - 32, size: 24, weight: '800', color: 'var(--accent-north)', hasDeg: false },
+        { label: 'E', deg: 90, r: rOuter - 32, size: 22, weight: '700', color: 'currentColor', hasDeg: true, degNum: '90' },
+        { label: 'S', deg: 180, r: rOuter - 32, size: 22, weight: '700', color: 'currentColor', hasDeg: true, degNum: '180' },
+        { label: 'W', deg: 270, r: rOuter - 32, size: 22, weight: '700', color: 'currentColor', hasDeg: true, degNum: '270' },
+        { label: 'NE', deg: 45, r: rOuter - 29, size: 13, weight: '600', color: 'currentColor', hasDeg: false },
+        { label: 'SE', deg: 135, r: rOuter - 29, size: 13, weight: '600', color: 'currentColor', hasDeg: false },
+        { label: 'SW', deg: 225, r: rOuter - 29, size: 13, weight: '600', color: 'currentColor', hasDeg: false },
+        { label: 'NW', deg: 315, r: rOuter - 29, size: 13, weight: '600', color: 'currentColor', hasDeg: false }
+      ];
 
-      // Numbers for 30° increments
-      if (is30 && deg !== 0) {
-        const isCardinalAngle = (deg === 90 || deg === 180 || deg === 270);
-        const textR = isCardinalAngle ? (rOuter - 46) : (rOuter - 30);
-        const tx = cx + textR * Math.cos(rad);
-        const ty = cy + textR * Math.sin(rad);
-        svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="var(--dial-text)" font-size="13" font-weight="700" font-family="var(--font-mono)" text-anchor="middle" dominant-baseline="central" transform="rotate(${deg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${deg}</text>`;
+      cardinals.forEach(c => {
+        const rad = (c.deg - 90) * (Math.PI / 180);
+        const tx = cx + c.r * Math.cos(rad);
+        const ty = cy + c.r * Math.sin(rad);
+        svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${c.size}" font-weight="${c.weight}" fill="${c.color}" transform="rotate(${c.deg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${c.label}</text>`;
+        if (c.hasDeg) {
+          const numR = c.r - 18;
+          const nx = cx + numR * Math.cos(rad);
+          const ny = cy + numR * Math.sin(rad);
+          svgContent += `<text x="${nx.toFixed(1)}" y="${ny.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="currentColor" fill-opacity="0.7" transform="rotate(${c.deg}, ${nx.toFixed(1)}, ${ny.toFixed(1)})">${c.degNum}</text>`;
+        }
+      });
+
+    } else {
+      // -------------------------------------------------------------
+      // VASTU COMPASS DIAL (8 Zones / 16 Zones / 32 Padas)
+      // -------------------------------------------------------------
+      const rInnerVastu = 130;
+      const rOuterVastu = 236;
+
+      // Concentric Rings
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="currentColor" stroke-opacity="0.25" stroke-width="2"/>`;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuterVastu}" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.5"/>`;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${rInnerVastu}" fill="none" stroke="currentColor" stroke-opacity="0.25" stroke-width="1.5"/>`;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="116" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="4,4"/>`;
+
+      if (zoneSystem === '8') {
+        // --- 8 ZONES (Ashta Dikpala) ---
+        VASTU_DATA.ZONES_8.forEach((zone) => {
+          const elem = VASTU_DATA.ELEMENTS[zone.element];
+          const startRad = (zone.startDeg - 90) * (Math.PI / 180);
+          const endRad = (zone.endDeg - 90) * (Math.PI / 180);
+          const centerRad = (zone.centerDeg - 90) * (Math.PI / 180);
+
+          // Sector divider ray
+          const sx = cx + rOuterVastu * Math.cos(startRad);
+          const sy = cy + rOuterVastu * Math.sin(startRad);
+          const ex = cx + rInnerVastu * Math.cos(startRad);
+          const ey = cy + rInnerVastu * Math.sin(startRad);
+          svgContent += `<line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${sx.toFixed(1)}" y2="${sy.toFixed(1)}" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.2"/>`;
+
+          // Sector arc band (outer rim)
+          const arcX1 = cx + (rOuterVastu - 4) * Math.cos(startRad);
+          const arcY1 = cy + (rOuterVastu - 4) * Math.sin(startRad);
+          const arcX2 = cx + (rOuterVastu - 4) * Math.cos(endRad);
+          const arcY2 = cy + (rOuterVastu - 4) * Math.sin(endRad);
+          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 4} ${rOuterVastu - 4} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${elem.color}" stroke-width="5" stroke-opacity="0.8" class="vastu-sector-ring"/>`;
+
+          // Sector fill for Chakra Theme
+          if (dialTheme === 'chakra') {
+            const ix1 = cx + rInnerVastu * Math.cos(startRad);
+            const iy1 = cy + rInnerVastu * Math.sin(startRad);
+            const ix2 = cx + rInnerVastu * Math.cos(endRad);
+            const iy2 = cy + rInnerVastu * Math.sin(endRad);
+            svgContent += `<path d="M ${ix1.toFixed(1)} ${iy1.toFixed(1)} L ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 4} ${rOuterVastu - 4} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)} L ${ix2.toFixed(1)} ${iy2.toFixed(1)} A ${rInnerVastu} ${rInnerVastu} 0 0 0 ${ix1.toFixed(1)} ${iy1.toFixed(1)} Z" fill="${elem.color}" fill-opacity="0.22" class="vastu-sector-fill"/>`;
+          }
+
+          // Direction Label & Sanskrit Name
+          const textR = rOuterVastu - 24;
+          const tx = cx + textR * Math.cos(centerRad);
+          const ty = cy + textR * Math.sin(centerRad);
+          const textColor = (zone.code === 'N') ? 'var(--accent-north)' : 'currentColor';
+
+          svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="800" fill="${textColor}" class="vastu-zone-text" transform="rotate(${zone.centerDeg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${zone.code}</text>`;
+
+          const sanskritR = textR - 18;
+          const sxTxt = cx + sanskritR * Math.cos(centerRad);
+          const syTxt = cy + sanskritR * Math.sin(centerRad);
+          const sanskritShort = zone.sanskrit.split(' ')[0]; // E.g., 'Īśānya'
+          svgContent += `<text x="${sxTxt.toFixed(1)}" y="${syTxt.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="600" fill="${elem.color}" transform="rotate(${zone.centerDeg}, ${sxTxt.toFixed(1)}, ${syTxt.toFixed(1)})">${sanskritShort}</text>`;
+        });
+
+      } else if (zoneSystem === '16') {
+        // --- 16 MAHAVASTU ZONES (22.5° each) ---
+        VASTU_DATA.ZONES_16.forEach((zone) => {
+          const elem = VASTU_DATA.ELEMENTS[zone.element];
+          const startRad = (zone.startDeg - 90) * (Math.PI / 180);
+          const endRad = (zone.endDeg - 90) * (Math.PI / 180);
+          const centerRad = (zone.centerDeg - 90) * (Math.PI / 180);
+
+          // Divider
+          const sx = cx + rOuterVastu * Math.cos(startRad);
+          const sy = cy + rOuterVastu * Math.sin(startRad);
+          const ex = cx + rInnerVastu * Math.cos(startRad);
+          const ey = cy + rInnerVastu * Math.sin(startRad);
+          svgContent += `<line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${sx.toFixed(1)}" y2="${sy.toFixed(1)}" stroke="currentColor" stroke-opacity="0.3" stroke-width="1"/>`;
+
+          // Outer colored arc
+          const arcX1 = cx + (rOuterVastu - 3) * Math.cos(startRad);
+          const arcY1 = cy + (rOuterVastu - 3) * Math.sin(startRad);
+          const arcX2 = cx + (rOuterVastu - 3) * Math.cos(endRad);
+          const arcY2 = cy + (rOuterVastu - 3) * Math.sin(endRad);
+          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 3} ${rOuterVastu - 3} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${elem.color}" stroke-width="4.5" stroke-opacity="0.8" class="vastu-sector-ring"/>`;
+
+          if (dialTheme === 'chakra') {
+            const ix1 = cx + rInnerVastu * Math.cos(startRad);
+            const iy1 = cy + rInnerVastu * Math.sin(startRad);
+            const ix2 = cx + rInnerVastu * Math.cos(endRad);
+            const iy2 = cy + rInnerVastu * Math.sin(endRad);
+            svgContent += `<path d="M ${ix1.toFixed(1)} ${iy1.toFixed(1)} L ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 3} ${rOuterVastu - 3} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)} L ${ix2.toFixed(1)} ${iy2.toFixed(1)} A ${rInnerVastu} ${rInnerVastu} 0 0 0 ${ix1.toFixed(1)} ${iy1.toFixed(1)} Z" fill="${elem.color}" fill-opacity="0.22" class="vastu-sector-fill"/>`;
+          }
+
+          // Zone text
+          const textR = rOuterVastu - 22;
+          const tx = cx + textR * Math.cos(centerRad);
+          const ty = cy + textR * Math.sin(centerRad);
+          const textColor = (zone.id === 'N') ? 'var(--accent-north)' : 'currentColor';
+          svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="10.5" font-weight="700" fill="${textColor}" class="vastu-zone-text" transform="rotate(${zone.centerDeg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${zone.id}</text>`;
+        });
+
+      } else if (zoneSystem === '32') {
+        // --- 32 PADA DEVATA CHAKRA (11.25° each) ---
+        VASTU_DATA.PADAS_32.forEach((pada) => {
+          const startRad = (pada.startDeg - 90) * (Math.PI / 180);
+          const endRad = (pada.endDeg - 90) * (Math.PI / 180);
+          const centerDeg = (pada.startDeg + pada.endDeg) / 2;
+          const centerRad = (centerDeg - 90) * (Math.PI / 180);
+
+          // Grade color: Green for Grade A, Yellow for Grade B, Red for Grade C
+          let gradeColor = '#ef4444';
+          if (pada.grade === 'A') gradeColor = '#22c55e';
+          else if (pada.grade === 'B') gradeColor = '#eab308';
+
+          // Divider
+          const sx = cx + rOuterVastu * Math.cos(startRad);
+          const sy = cy + rOuterVastu * Math.sin(startRad);
+          const ex = cx + rInnerVastu * Math.cos(startRad);
+          const ey = cy + rInnerVastu * Math.sin(startRad);
+          svgContent += `<line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${sx.toFixed(1)}" y2="${sy.toFixed(1)}" stroke="currentColor" stroke-opacity="0.2" stroke-width="0.8"/>`;
+
+          // Outer arc with grade color
+          const arcX1 = cx + (rOuterVastu - 2) * Math.cos(startRad);
+          const arcY1 = cy + (rOuterVastu - 2) * Math.sin(startRad);
+          const arcX2 = cx + (rOuterVastu - 2) * Math.cos(endRad);
+          const arcY2 = cy + (rOuterVastu - 2) * Math.sin(endRad);
+          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 2} ${rOuterVastu - 2} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${gradeColor}" stroke-width="4" stroke-opacity="0.85" class="vastu-sector-ring"/>`;
+
+          if (dialTheme === 'chakra') {
+            const ix1 = cx + rInnerVastu * Math.cos(startRad);
+            const iy1 = cy + rInnerVastu * Math.sin(startRad);
+            const ix2 = cx + rInnerVastu * Math.cos(endRad);
+            const iy2 = cy + rInnerVastu * Math.sin(endRad);
+            svgContent += `<path d="M ${ix1.toFixed(1)} ${iy1.toFixed(1)} L ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 2} ${rOuterVastu - 2} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)} L ${ix2.toFixed(1)} ${iy2.toFixed(1)} A ${rInnerVastu} ${rInnerVastu} 0 0 0 ${ix1.toFixed(1)} ${iy1.toFixed(1)} Z" fill="${gradeColor}" fill-opacity="0.18" class="vastu-sector-fill"/>`;
+          }
+
+          // Pada ID text (e.g. E3, N4)
+          const textR = rOuterVastu - 16;
+          const tx = cx + textR * Math.cos(centerRad);
+          const ty = cy + textR * Math.sin(centerRad);
+          svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="700" fill="${gradeColor}" class="vastu-zone-text" transform="rotate(${centerDeg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${pada.id}</text>`;
+
+          // Devata short name
+          const devataR = textR - 16;
+          const dx = cx + devataR * Math.cos(centerRad);
+          const dy = cy + devataR * Math.sin(centerRad);
+          const devataShort = pada.devata.split(' ')[0];
+          svgContent += `<text x="${dx.toFixed(1)}" y="${dy.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="600" fill="currentColor" opacity="0.75" transform="rotate(${centerDeg}, ${dx.toFixed(1)}, ${dy.toFixed(1)})">${devataShort}</text>`;
+        });
+      }
+
+      // Room-to-Direction Finder Target Highlight Arc Overlay
+      if (activeRoom) {
+        activeRoom.idealZones.forEach(zoneCode => {
+          const z = VASTU_DATA.ZONES_8.find(item => item.code === zoneCode);
+          if (z) {
+            const startRad = (z.startDeg - 90) * (Math.PI / 180);
+            const endRad = (z.endDeg - 90) * (Math.PI / 180);
+            const ax1 = cx + (rOuterVastu + 1) * Math.cos(startRad);
+            const ay1 = cy + (rOuterVastu + 1) * Math.sin(startRad);
+            const ax2 = cx + (rOuterVastu + 1) * Math.cos(endRad);
+            const ay2 = cy + (rOuterVastu + 1) * Math.sin(endRad);
+            svgContent += `<path d="M ${ax1.toFixed(1)} ${ay1.toFixed(1)} A ${rOuterVastu + 1} ${rOuterVastu + 1} 0 0 1 ${ax2.toFixed(1)} ${ay2.toFixed(1)}" fill="none" stroke="#22c55e" stroke-width="7" stroke-linecap="round" filter="drop-shadow(0 0 8px rgba(34,197,94,0.8))"/>`;
+          }
+        });
+      }
+
+      // Degree Ticks (Every 5° and 15° around outer edge)
+      for (let deg = 0; deg < 360; deg += 5) {
+        const rad = (deg - 90) * (Math.PI / 180);
+        const is15 = deg % 15 === 0;
+        const tickLen = is15 ? 8 : 4;
+        const strokeWidth = is15 ? 1.5 : 0.8;
+        const strokeOpacity = is15 ? 0.7 : 0.35;
+        const x1 = cx + (rOuter - 1) * Math.cos(rad);
+        const y1 = cy + (rOuter - 1) * Math.sin(rad);
+        const x2 = cx + (rOuter - 1 - tickLen) * Math.cos(rad);
+        const y2 = cy + (rOuter - 1 - tickLen) * Math.sin(rad);
+        const strokeColor = (deg === 0) ? 'var(--accent-north)' : 'currentColor';
+        svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}"/>`;
       }
     }
-
-    // Cardinal & Intercardinal Headings
-    const cardinals = [
-      { label: 'N', deg: 0, r: rOuter - 30, size: 26, weight: 900, color: 'var(--accent-north)' },
-      { label: 'NE', deg: 45, r: rOuter - 26, size: 12, weight: 800, color: 'var(--dial-ticks-major)' },
-      { label: 'E', deg: 90, r: rOuter - 25, size: 22, weight: 800, color: 'var(--dial-ticks-major)' },
-      { label: 'SE', deg: 135, r: rOuter - 26, size: 12, weight: 800, color: 'var(--dial-ticks-major)' },
-      { label: 'S', deg: 180, r: rOuter - 25, size: 22, weight: 800, color: 'var(--dial-ticks-major)' },
-      { label: 'SW', deg: 225, r: rOuter - 26, size: 12, weight: 800, color: 'var(--dial-ticks-major)' },
-      { label: 'W', deg: 270, r: rOuter - 25, size: 22, weight: 800, color: 'var(--dial-ticks-major)' },
-      { label: 'NW', deg: 315, r: rOuter - 26, size: 12, weight: 800, color: 'var(--dial-ticks-major)' }
-    ];
-
-    cardinals.forEach(c => {
-      const rad = (c.deg - 90) * (Math.PI / 180);
-      const tx = cx + c.r * Math.cos(rad);
-      const ty = cy + c.r * Math.sin(rad);
-      svgContent += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="${c.color}" font-size="${c.size}" font-weight="${c.weight}" font-family="var(--font-sans)" text-anchor="middle" dominant-baseline="central" transform="rotate(${c.deg}, ${tx.toFixed(1)}, ${ty.toFixed(1)})">${c.label}</text>`;
-    });
-
-    // Mils Indicators on inner circle (NATO 0-64 mils in 800 mils steps)
-    for (let mil = 0; mil < 64; mil += 8) {
-      const deg = (mil / 64) * 360;
-      const rad = (deg - 90) * (Math.PI / 180);
-      const mr = 132;
-      const mx = cx + mr * Math.cos(rad);
-      const my = cy + mr * Math.sin(rad);
-      svgContent += `<text x="${mx.toFixed(1)}" y="${my.toFixed(1)}" fill="var(--text-dim)" font-size="9" font-weight="700" font-family="var(--font-mono)" text-anchor="middle" dominant-baseline="central" transform="rotate(${deg}, ${mx.toFixed(1)}, ${my.toFixed(1)})">${mil}</text>`;
-    }
-
-    // --- 8-Point Vintage Nautical Compass Rose ---
-    const primaryPoints = [0, 90, 180, 270];
-    primaryPoints.forEach(deg => {
-      const tipRad = (deg - 90) * (Math.PI / 180);
-      const leftRad = (deg - 90 - 14) * (Math.PI / 180);
-      const rightRad = (deg - 90 + 14) * (Math.PI / 180);
-      const rTip = 125;
-      const rBase = 58;
-
-      const tipX = cx + rTip * Math.cos(tipRad);
-      const tipY = cy + rTip * Math.sin(tipRad);
-      const leftX = cx + rBase * Math.cos(leftRad);
-      const leftY = cy + rBase * Math.sin(leftRad);
-      const rightX = cx + rBase * Math.cos(rightRad);
-      const rightY = cy + rBase * Math.sin(rightRad);
-
-      const isNorth = (deg === 0);
-      const colA = isNorth ? 'var(--accent-north)' : 'var(--accent-cyan)';
-      const colB = isNorth ? '#991b1b' : 'var(--dial-ticks)';
-
-      svgContent += `<polygon points="${cx},${cy} ${tipX.toFixed(1)},${tipY.toFixed(1)} ${rightX.toFixed(1)},${rightY.toFixed(1)}" fill="${colA}" fill-opacity="0.85"/>`;
-      svgContent += `<polygon points="${cx},${cy} ${tipX.toFixed(1)},${tipY.toFixed(1)} ${leftX.toFixed(1)},${leftY.toFixed(1)}" fill="${colB}" fill-opacity="0.55"/>`;
-    });
-
-    const secondaryPoints = [45, 135, 225, 315];
-    secondaryPoints.forEach(deg => {
-      const tipRad = (deg - 90) * (Math.PI / 180);
-      const leftRad = (deg - 90 - 11) * (Math.PI / 180);
-      const rightRad = (deg - 90 + 11) * (Math.PI / 180);
-      const rTip = 100;
-      const rBase = 58;
-
-      const tipX = cx + rTip * Math.cos(tipRad);
-      const tipY = cy + rTip * Math.sin(tipRad);
-      const leftX = cx + rBase * Math.cos(leftRad);
-      const leftY = cy + rBase * Math.sin(leftRad);
-      const rightX = cx + rBase * Math.cos(rightRad);
-      const rightY = cy + rBase * Math.sin(rightRad);
-
-      svgContent += `<polygon points="${cx},${cy} ${tipX.toFixed(1)},${tipY.toFixed(1)} ${rightX.toFixed(1)},${rightY.toFixed(1)}" fill="var(--accent-cyan)" fill-opacity="0.55"/>`;
-      svgContent += `<polygon points="${cx},${cy} ${tipX.toFixed(1)},${tipY.toFixed(1)} ${leftX.toFixed(1)},${leftY.toFixed(1)}" fill="var(--dial-ticks)" fill-opacity="0.45"/>`;
-    });
-
-    // Center Crosshairs Accent
-    svgContent += `<line x1="${cx}" y1="${cy - 70}" x2="${cx}" y2="${cy - 120}" stroke="currentColor" stroke-opacity="0.2" stroke-width="1.5"/>`;
-    svgContent += `<line x1="${cx}" y1="${cy + 70}" x2="${cx}" y2="${cy + 120}" stroke="currentColor" stroke-opacity="0.2" stroke-width="1.5"/>`;
-    svgContent += `<line x1="${cx - 70}" y1="${cy}" x2="${cx - 120}" y2="${cy}" stroke="currentColor" stroke-opacity="0.2" stroke-width="1.5"/>`;
-    svgContent += `<line x1="${cx + 70}" y1="${cy}" x2="${cx + 120}" y2="${cy}" stroke="currentColor" stroke-opacity="0.2" stroke-width="1.5"/>`;
 
     dialSvg.innerHTML = svgContent;
   }
 
-  // --- Cardinal Direction Helper ---
-  function getCardinal(deg) {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    const idx = Math.round(deg / 22.5) % 16;
-    return directions[idx];
+  // --- Dynamic Live Vastu Inspector Updates ---
+  function updateVastuInspector(heading) {
+    if (compassMode !== 'vastu') return;
+
+    const activeZone8 = getActiveZone8(heading);
+    const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
+    const dict = VASTU_DATA.UI[currentLang] || VASTU_DATA.UI.en;
+
+    // Header Zone Badge & Name
+    inspZoneBadge.textContent = activeZone8.code;
+    inspZoneName.textContent = activeZone8.names[currentLang] || activeZone8.names.en;
+    inspSanskrit.textContent = activeZone8.sanskrit;
+
+    // Element Badge
+    inspElementDot.style.background = elem.color;
+    inspElementDot.style.boxShadow = `0 0 8px ${elem.color}`;
+    inspElementName.textContent = elem.names[currentLang] || elem.names.en;
+
+    // Ruling Deity & Classical Summary
+    inspDeityVal.textContent = activeZone8.deityNames[currentLang] || activeZone8.deityNames.en;
+    inspSummaryText.textContent = activeZone8.summary[currentLang] || activeZone8.summary.en;
+
+    // Favorable & Avoid Placements Cloud
+    let favHtml = '';
+    activeZone8.recommendedRooms.forEach(roomId => {
+      const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+      const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+      const icon = roomObj ? roomObj.icon : '✨';
+      favHtml += `<span class="room-tag">${icon} ${name}</span>`;
+    });
+    favorableTags.innerHTML = favHtml || '<span class="room-tag">General</span>';
+
+    let avoidHtml = '';
+    activeZone8.prohibitedRooms.forEach(roomId => {
+      const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+      const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+      avoidHtml += `<span class="room-tag tag-avoid">❌ ${name}</span>`;
+    });
+    avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Heavy Clutter</span>';
+
+    // Tip
+    inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+
+    // 32-Pada Entrance Card
+    if (zoneSystem === '32') {
+      padaEntranceCard.classList.remove('hidden');
+      const activePada = getActivePada32(heading);
+      padaIdBadge.textContent = activePada.id;
+      padaDevataName.textContent = activePada.devata;
+
+      // Grade Pill
+      padaGradePill.className = 'pada-grade-pill';
+      if (activePada.grade === 'A') {
+        padaGradePill.classList.add('grade-a');
+        padaGradePill.textContent = dict.entranceGradeA || '🌟 Highly Auspicious';
+      } else if (activePada.grade === 'B') {
+        padaGradePill.classList.add('grade-b');
+        padaGradePill.textContent = dict.entranceGradeB || '⚠️ Neutral';
+      } else {
+        padaGradePill.classList.add('grade-c');
+        padaGradePill.textContent = dict.entranceGradeC || '❌ Inauspicious';
+      }
+
+      // Effect text in selected language
+      const effectProp = 'effect' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
+      padaEffectText.textContent = activePada[effectProp] || activePada.effectEn;
+
+      // Auspicious entrance haptic tick
+      if (hapticsEnabled && activePada.grade === 'A' && lastVibratedPada !== activePada.id) {
+        lastVibratedPada = activePada.id;
+        triggerHapticTick(25);
+      }
+    } else {
+      padaEntranceCard.classList.add('hidden');
+    }
+
+    // Check Room Finder Alignment
+    if (activeRoom) {
+      const isAligned = activeRoom.idealZones.includes(activeZone8.code);
+      if (isAligned) {
+        roomGuidanceBanner.classList.add('aligned');
+        guideStatusText.textContent = `🎯 ${dict.targetBearing || 'Target'}: ${inspZoneName.textContent} (${dict.entranceGradeA || 'Auspicious'})`;
+        if (hapticsEnabled && lastVibratedCardinal !== activeZone8.centerDeg) {
+          lastVibratedCardinal = activeZone8.centerDeg;
+          triggerHapticTick(35);
+        }
+      } else {
+        roomGuidanceBanner.classList.remove('aligned');
+        guideStatusText.textContent = `Rotate device toward: ${activeRoom.idealZones.join(', ')}`;
+      }
+    }
   }
 
-  // --- Update Compass Orientation ---
-  function updateHeading(rawHeading) {
-    if (typeof rawHeading === 'number' && !isNaN(rawHeading)) {
-      rawMagneticHeading = ((rawHeading % 360) + 360) % 360;
+  // --- Haptic Feedback ---
+  function triggerHapticTick(duration = 20) {
+    if (hapticsEnabled && 'vibrate' in navigator) {
+      const now = Date.now();
+      if (now - lastVibrateTime > 250) {
+        lastVibrateTime = now;
+        try {
+          navigator.vibrate(duration);
+        } catch (e) {}
+      }
     }
+  }
 
-    let trueHeading = rawMagneticHeading;
-    if (isTrueNorth) {
-      trueHeading = ((rawMagneticHeading + magneticDeclination) % 360 + 360) % 360;
-    }
+  // --- Update Primary Orientation & Telemetry UI ---
+  function updateHeadingUI(heading) {
+    currentHeading = heading;
+    const rounded = Math.round(heading);
 
-    currentHeading = trueHeading;
-    const rounded = Math.round(trueHeading);
-
-    // Rotate compass dial card (negative rotation so 0° points up to lubber line)
-    compassCard.style.transform = `rotate(${-trueHeading}deg)`;
-
-    // Update telemetry readouts
+    // Degrees display
     headingDegrees.textContent = rounded;
-    headingCardinal.textContent = getCardinal(trueHeading);
-    milsValue.textContent = Math.round((trueHeading / 360) * 6400);
-    backAzimuthValue.textContent = `${Math.round((trueHeading + 180) % 360)}°`;
 
-    // Target Deviation logic
+    // Cardinal Heading calculation
+    const cardinals = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const cardIndex = Math.round(heading / 45) % 8;
+    const activeZone8 = VASTU_DATA.ZONES_8[cardIndex];
+    headingCardinal.textContent = cardinals[cardIndex];
+
+    // Subtitle Sanskrit
+    headingSanskrit.textContent = activeZone8.sanskrit;
+
+    // Mils (6400 NATO Mils scale)
+    const mils = Math.round((heading / 360) * 6400);
+    milsValue.textContent = mils;
+
+    // Back Azimuth
+    const backAzimuth = Math.round((heading + 180) % 360);
+    backAzimuthValue.textContent = `${backAzimuth}°`;
+
+    // Rotate Compass Card
+    compassCard.style.transform = `rotate(${-heading}deg)`;
+
+    // Target Deviation Bar
     if (targetHeading !== null) {
-      targetMarkerRing.style.transform = `rotate(${targetHeading - trueHeading}deg)`;
-      let diff = (targetHeading - trueHeading + 540) % 360 - 180;
-      const absDiff = Math.abs(Math.round(diff));
+      let diff = heading - targetHeading;
+      while (diff < -180) diff += 360;
+      while (diff > 180) diff -= 360;
+
+      const absDiff = Math.abs(diff);
+      targetDeviationBar.classList.remove('hidden');
 
       if (absDiff <= 2) {
         devArrow.textContent = '🎯';
         devText.textContent = 'ON TARGET';
-        targetDeviationBar.style.borderColor = 'var(--accent-level)';
-        targetDeviationBar.style.background = 'rgba(34, 197, 94, 0.15)';
-      } else if (diff > 0) {
+        targetDeviationBar.classList.add('on-target');
+      } else if (diff < 0) {
         devArrow.textContent = '▶';
-        devText.textContent = `${absDiff}° RIGHT`;
-        targetDeviationBar.style.borderColor = 'var(--accent-target)';
-        targetDeviationBar.style.background = 'rgba(245, 158, 11, 0.15)';
+        devText.textContent = `${Math.round(absDiff)}° RIGHT`;
+        targetDeviationBar.classList.remove('on-target');
       } else {
         devArrow.textContent = '◀';
-        devText.textContent = `${absDiff}° LEFT`;
-        targetDeviationBar.style.borderColor = 'var(--accent-target)';
-        targetDeviationBar.style.background = 'rgba(245, 158, 11, 0.15)';
+        devText.textContent = `${Math.round(absDiff)}° LEFT`;
+        targetDeviationBar.classList.remove('on-target');
       }
+    } else {
+      targetDeviationBar.classList.add('hidden');
     }
 
-    // Haptic feedback on cardinal points (0°, 90°, 180°, 270°) - single pulse upon crossing
-    if (hapticsEnabled && 'vibrate' in navigator) {
-      const cardinalIndex = [0, 90, 180, 270].findIndex(c => Math.abs(rounded - c) <= 1 || (c === 0 && rounded === 360));
-      const now = Date.now();
-      if (cardinalIndex !== -1 && cardinalIndex !== lastVibratedCardinal && (now - lastVibrateTime > 400)) {
-        navigator.vibrate(cardinalIndex === 0 ? [30, 40, 30] : 18);
-        lastVibrateTime = now;
-        lastVibratedCardinal = cardinalIndex;
-      } else if (cardinalIndex === -1) {
-        lastVibratedCardinal = -1;
-      }
+    // Cardinal Haptic Tick (exact 0°, 90°, 180°, 270° within 1.5°)
+    const cardinalAngles = [0, 90, 180, 270];
+    const isExactCardinal = cardinalAngles.some(ang => Math.abs(heading - ang) <= 1.2 || Math.abs(heading - 360) <= 1.2);
+    if (isExactCardinal && lastVibratedCardinal !== rounded) {
+      lastVibratedCardinal = rounded;
+      triggerHapticTick(20);
+    } else if (!isExactCardinal) {
+      lastVibratedCardinal = -1;
+    }
+
+    // Update Vastu Inspector Card
+    updateVastuInspector(heading);
+
+    // If Plot Tilt Modal is open, update its real-time angle
+    if (!plotTiltModal.classList.contains('hidden')) {
+      updatePlotTiltUI(heading);
     }
   }
 
-  // --- Dual-Axis Inclinometer / Bubble Level ---
-  function updateOrientation(p, r) {
+  // --- Bubble Level & Inclinometer ---
+  function updateInclinometer(p, r) {
     pitch = p;
     roll = r;
 
-    // Pitch is front-to-back tilt (-90 to +90)
-    // Roll is left-to-right tilt (-180 to +180)
-    const pitchDeg = Math.round(p);
-    const rollDeg = Math.round(r);
+    pitchValue.textContent = `${Math.round(pitch)}°`;
+    rollValue.textContent = `${Math.round(roll)}°`;
 
-    pitchValue.textContent = `${pitchDeg}°`;
-    rollValue.textContent = `${rollDeg}°`;
+    // Gauge bars
+    const maxTilt = 45;
+    const pitchPct = Math.min(100, (Math.abs(pitch) / maxTilt) * 100);
+    const rollPct = Math.min(100, (Math.abs(roll) / maxTilt) * 100);
+    pitchGauge.style.width = `${pitchPct}%`;
+    rollGauge.style.width = `${rollPct}%`;
 
-    // Bar gauges (normalized from -45° to +45°)
-    const pitchNorm = Math.min(Math.max((p + 45) / 90 * 100, 0), 100);
-    const rollNorm = Math.min(Math.max((r + 45) / 90 * 100, 0), 100);
-    pitchGauge.style.width = `${pitchNorm}%`;
-    rollGauge.style.width = `${rollNorm}%`;
+    // Center bubble position inside housing (housing radius ~65px)
+    const maxBubbleDisp = 40;
+    const bx = Math.max(-maxBubbleDisp, Math.min(maxBubbleDisp, (roll / 30) * maxBubbleDisp));
+    const by = Math.max(-maxBubbleDisp, Math.min(maxBubbleDisp, (pitch / 30) * maxBubbleDisp));
+    levelBubble.style.transform = `translate(${bx}px, ${by}px)`;
 
-    // Center Level Bubble physics
-    // Housing radius ~ 55px, max bubble offset ~ 40px
-    const maxOffset = 38;
-    const sensFactor = 2.4; // 15° reaches edge
-    const offsetX = Math.min(Math.max(r * sensFactor, -maxOffset), maxOffset);
-    const offsetY = Math.min(Math.max(p * sensFactor, -maxOffset), maxOffset);
-
-    levelBubble.style.transform = `translate(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px)`;
-
-    const totalTilt = Math.sqrt(p * p + r * r);
-    if (totalTilt <= 1.5) {
-      levelHousing.classList.add('is-level');
+    // Level status check (<= 1.5° = perfectly level)
+    const isLevel = Math.abs(pitch) <= 1.5 && Math.abs(roll) <= 1.5;
+    if (isLevel) {
+      levelHousing.classList.add('level-locked');
       levelStatusCard.classList.add('level-locked');
       levelStatusText.textContent = 'PERFECTLY LEVEL';
-
-      if (hapticsEnabled && 'vibrate' in navigator && (Date.now() - lastVibrateTime > 1000)) {
-        navigator.vibrate(25);
-        lastVibrateTime = Date.now();
-      }
     } else {
-      levelHousing.classList.remove('is-level');
+      levelHousing.classList.remove('level-locked');
       levelStatusCard.classList.remove('level-locked');
-      if (totalTilt <= 5) {
-        levelStatusText.textContent = 'NEARLY LEVEL';
-      } else {
-        levelStatusText.textContent = 'TILTED';
-      }
+      levelStatusText.textContent = `${Math.max(Math.abs(pitch), Math.abs(roll)).toFixed(1)}° TILT`;
     }
   }
 
-  // --- Device Motion & Orientation Listeners ---
-  function initSensors() {
-    let previouslyGranted = false;
-    try {
-      previouslyGranted = localStorage.getItem('kuberan-sensors-enabled') === 'true';
-    } catch(e) {}
-
-    // Always attach sensor listeners right away
-    attachSensorListeners();
-
-    // 1. Check for iOS 13+ permission requirement
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      // If not previously granted, display the floating hover banner
-      if (!previouslyGranted) {
-        iosPermissionBanner.classList.remove('hidden');
-      }
-
-      btnGrantSensor.addEventListener('click', async () => {
-        try {
-          const response = await DeviceOrientationEvent.requestPermission();
-          if (response === 'granted') {
-            iosPermissionBanner.classList.add('hidden');
-            try { localStorage.setItem('kuberan-sensors-enabled', 'true'); } catch(e) {}
-            attachSensorListeners();
-            showToast('Compass Sensors Activated');
-          } else {
-            showToast('Permission denied for sensors');
-          }
-        } catch (err) {
-          console.error(err);
-          // If already granted in a previous prompt or gesture error, attach listeners and hide
-          attachSensorListeners();
-          iosPermissionBanner.classList.add('hidden');
-          try { localStorage.setItem('kuberan-sensors-enabled', 'true'); } catch(e) {}
-        }
-      });
-    }
-  }
-
-  function attachSensorListeners() {
-    // Primary: deviceorientationabsolute (W3C standard for true/absolute magnetic heading)
-    if ('ondeviceorientationabsolute' in window) {
-      window.addEventListener('deviceorientationabsolute', handleDeviceOrientation, true);
-    } else if ('ondeviceorientation' in window) {
-      window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-    }
-
-    // Fallback manual touch/mouse control if sensors aren't firing on desktop
-    initDesktopDragSimulation();
-  }
-
-  function handleDeviceOrientation(event) {
-    const hasValidOrientation = (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) ||
-                                (event.alpha !== null && event.alpha !== undefined) ||
-                                (event.beta !== null && event.beta !== undefined);
-
-    if (!hasValidOrientation) {
-      return; // Ignore empty dummy events from desktop browsers without hardware sensors
-    }
-
+  // --- Sensor Orientation Handler ---
+  function handleOrientation(e) {
     hasSensorData = true;
-    sensorStatus.textContent = 'Hardware active';
-    // Ensure permission banner is dismissed and saved as enabled once data arrives
-    if (iosPermissionBanner && !iosPermissionBanner.classList.contains('hidden')) {
-      iosPermissionBanner.classList.add('hidden');
+    iosPermissionBanner.classList.add('hidden');
+
+    let heading = null;
+
+    // iOS WebKit compass heading
+    if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+      heading = e.webkitCompassHeading;
+      rawMagneticHeading = heading;
+    } else if (e.alpha !== null) {
+      // Android / W3C standard: alpha is CCW from 0 to 360
+      heading = 360 - e.alpha;
+      rawMagneticHeading = heading;
     }
-    try { localStorage.setItem('kuberan-sensors-enabled', 'true'); } catch(e) {}
 
-    let heading = 0;
+    if (heading !== null) {
+      // Screen orientation compensation
+      const orientation = window.screen.orientation ? window.screen.orientation.angle : (window.orientation || 0);
+      heading = (heading + orientation) % 360;
 
-    // iOS provides direct calibrated magnetic heading
-    if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
-      heading = event.webkitCompassHeading;
-    } else if (event.alpha !== null && event.alpha !== undefined) {
-      // Android: alpha goes 0-360 counter-clockwise
-      heading = ((360 - event.alpha) % 360 + 360) % 360;
-      if (event.absolute === false) {
-        sensorStatus.textContent = 'Relative gyro';
+      // True North calculation (Default = True North)
+      if (isTrueNorth) {
+        heading = (heading + magneticDeclination) % 360;
       }
+
+      updateHeadingUI(normalizeAngle(heading));
     }
 
-    // Handle landscape/portrait orientation adjustments (modern standard + legacy fallback)
-    const orientationAngle = (screen.orientation && typeof screen.orientation.angle === 'number')
-      ? screen.orientation.angle
-      : (typeof window.orientation === 'number' ? window.orientation : 0);
-
-    // Compensate compass heading for device rotation (e.g. landscape mode)
-    if (orientationAngle) {
-      heading = ((heading + orientationAngle) % 360 + 360) % 360;
-    }
-
-    updateHeading(heading);
-
-    // Pitch & Roll for bubble level
-    let p = event.beta || 0;  // Front-to-back tilt in [-180, 180]
-    let r = event.gamma || 0; // Left-to-right tilt in [-90, 90]
-
-    if (orientationAngle === 90) {
-      const temp = p; p = -r; r = temp;
-    } else if (orientationAngle === -90 || orientationAngle === 270) {
-      const temp = p; p = r; r = -temp;
-    } else if (orientationAngle === 180) {
-      p = -p; r = -r;
-    }
-
-    updateOrientation(p, r);
+    // Pitch & Roll
+    const p = e.beta !== null ? e.beta : 0;
+    const r = e.gamma !== null ? e.gamma : 0;
+    updateInclinometer(p, r);
   }
 
-  // --- Desktop / Fallback Drag Simulation ---
-  function initDesktopDragSimulation() {
-    let isDragging = false;
-    let startAngle = 0;
-    let startHeading = 0;
-
-    function getAngle(e) {
-      const rect = compassCard.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const clientX = e.touches && e.touches.length ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
-      return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
-    }
-
-    function onStart(e) {
-      if (hasSensorData) return;
-      isDragging = true;
-      startAngle = getAngle(e);
-      startHeading = rawMagneticHeading;
-    }
-
-    function onMove(e) {
-      if (!isDragging) return;
-      const currentAngle = getAngle(e);
-      const diff = currentAngle - startAngle;
-      const newHeading = (startHeading - diff + 360) % 360;
-      updateHeading(newHeading);
-    }
-
-    function onEnd() {
-      isDragging = false;
-    }
-
-    compassCard.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
-
-    compassCard.addEventListener('touchstart', onStart, { passive: true });
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('touchend', onEnd, { passive: true });
-  }
-
-  // --- GPS Geolocation Engine ---
-  function updateGpsReadouts(position) {
-    const coords = position.coords;
-    const lat = coords.latitude;
-    const lng = coords.longitude;
-    const alt = coords.altitude;
-    const acc = coords.accuracy;
-
-    // Formatted DMS
-    gpsLat.textContent = toDMS(lat, 'lat');
-    gpsLng.textContent = toDMS(lng, 'lng');
-
-    // Decimal Degrees
-    gpsLatDec.textContent = `${lat.toFixed(5)}°`;
-    gpsLngDec.textContent = `${lng.toFixed(5)}°`;
-
-    // Altitude
-    gpsAlt.textContent = (alt !== null && alt !== undefined && !isNaN(alt)) ? `${Math.round(alt)} m` : '-- m';
-    gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
-
-    // Approximate Magnetic Declination (Simple model)
-    calculateDeclination(lat, lng);
-  }
-
+  // --- GPS Location & Telemetry ---
   function initGPS() {
     if (!('geolocation' in navigator)) {
-      gpsLat.textContent = 'GPS Unavailable';
-      gpsLng.textContent = 'No GPS hardware';
+      gpsLatDec.textContent = 'GPS not supported';
       return;
     }
 
-    const options = {
-      enableHighAccuracy: true,
-      maximumAge: 5000,
-      timeout: 10000
-    };
-
     navigator.geolocation.watchPosition(
-      updateGpsReadouts,
-      (error) => {
-        console.warn('GPS error:', error.message);
-        gpsLatDec.textContent = 'Location disabled';
-        gpsLngDec.textContent = 'Enable GPS in settings';
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const alt = pos.coords.altitude;
+        const acc = pos.coords.accuracy;
+
+        gpsLat.textContent = formatDMS(lat, true);
+        gpsLatDec.textContent = `${lat.toFixed(6)}°`;
+        gpsLng.textContent = formatDMS(lng, false);
+        gpsLngDec.textContent = `${lng.toFixed(6)}°`;
+
+        gpsAlt.textContent = alt !== null ? `${Math.round(alt)} m` : '-- m';
+        gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
+
+        // Compute magnetic declination for True North
+        magneticDeclination = estimateMagneticDeclination(lat, lng);
+        gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
+        sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
       },
-      options
+      (err) => {
+        gpsLatDec.textContent = 'Location access denied';
+        sensorStatus.textContent = 'Using standard calibration';
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
     );
-
-    // Allow user to tap telemetry panel to re-fetch GPS
-    const telemetryGrid = document.querySelector('.telemetry-grid');
-    if (telemetryGrid) {
-      telemetryGrid.addEventListener('click', () => {
-        showToast('Refreshing GPS Position...');
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            updateGpsReadouts(pos);
-            showToast('GPS Position Updated');
-          },
-          (err) => {
-            console.warn('GPS refresh error:', err);
-            showToast('Could not refresh GPS');
-          },
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-        );
-      });
-    }
   }
 
-  function toDMS(deg, type) {
-    if (typeof deg !== 'number' || isNaN(deg)) return '--° --\' --"';
-    const absolute = Math.abs(deg);
-    const degrees = Math.floor(absolute);
-    const minutesNotTruncated = (absolute - degrees) * 60;
-    const minutes = Math.min(Math.floor(minutesNotTruncated), 59);
-    const seconds = Math.min(Math.floor((minutesNotTruncated - minutes) * 60), 59);
+  // --- Plot Tilt / Vidisha Diagnostic Logic ---
+  function updatePlotTiltUI(heading) {
+    const roundedHeading = parseFloat(heading.toFixed(1));
+    plotHeadingVal.textContent = `${roundedHeading}°`;
 
-    const direction = type === 'lat'
-      ? (deg >= 0 ? 'N' : 'S')
-      : (deg >= 0 ? 'E' : 'W');
+    // Nearest cardinal axis (0, 90, 180, 270)
+    let deviation = ((roundedHeading % 90) + 45) % 90 - 45;
+    const absDev = Math.abs(deviation).toFixed(1);
 
-    return `${degrees}° ${minutes}' ${seconds}" ${direction}`;
-  }
+    plotDeviationVal.textContent = `${absDev}° Deviation from Cardinal Axis`;
 
-  // Approximation formula for Magnetic Declination
-  function calculateDeclination(lat, lng) {
-    // World Magnetic Model approximation for rough declination estimation
-    const decl = (lng - 80) * Math.sin(lat * Math.PI / 180) * 0.15;
-    let rounded = Math.round(decl * 10) / 10;
-    if (Object.is(rounded, -0) || Math.abs(rounded) === 0) rounded = 0;
-    magneticDeclination = rounded;
-    gpsDeclination.textContent = `${magneticDeclination > 0 ? '+' : ''}${magneticDeclination.toFixed(1)}°`;
-    if (isTrueNorth) {
-      updateHeading(rawMagneticHeading);
-    }
-  }
-
-  // --- Target Bearing Lock ---
-  btnBearingLock.addEventListener('click', () => {
-    if (targetHeading === null) {
-      targetHeading = Math.round(currentHeading);
-      targetValue.textContent = `${targetHeading}°`;
-      targetMarkerRing.style.display = 'block';
-      targetDeviationBar.classList.remove('hidden');
-      btnBearingLock.style.borderColor = 'var(--accent-target)';
-      btnBearingLock.style.color = 'var(--accent-target)';
-      btnBearingLock.setAttribute('aria-pressed', 'true');
-      btnBearingLock.setAttribute('aria-label', `Unlock Target Bearing (Currently locked to ${targetHeading}°)`);
-      showToast(`Bearing Locked: ${targetHeading}°`);
+    if (absDev <= 3.0) {
+      plotStatusBanner.className = 'plot-status-banner aligned';
+      plotStatusTitle.textContent = 'SAMA-SUTRA (Aligned Plot)';
+      plotStatusDesc.textContent = 'The property is naturally aligned with the cardinal magnetic axis (within ±3°). Highly auspicious and energetically balanced.';
     } else {
-      clearTarget();
+      plotStatusBanner.className = 'plot-status-banner tilted';
+      plotStatusTitle.textContent = `VIDISHA (Tilted Plot by ${absDev}°)`;
+      plotStatusDesc.textContent = 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, mandir, and bed axes towards Cardinal North.';
     }
-  });
-
-  function clearTarget() {
-    targetHeading = null;
-    targetValue.textContent = '--';
-    targetMarkerRing.style.display = 'none';
-    targetDeviationBar.classList.add('hidden');
-    btnBearingLock.style.borderColor = '';
-    btnBearingLock.style.color = '';
-    btnBearingLock.setAttribute('aria-pressed', 'false');
-    btnBearingLock.setAttribute('aria-label', 'Lock Bearing');
   }
 
-  btnClearTarget.addEventListener('click', clearTarget);
-
-  // --- True North vs Magnetic North Toggle ---
-  btnToggleNorth.addEventListener('click', () => {
-    isTrueNorth = !isTrueNorth;
-    if (isTrueNorth) {
-      northPill.textContent = 'TRUE';
-      northModeLabel.textContent = 'TRUE NORTH';
-      btnToggleNorth.style.borderColor = 'var(--accent-cyan)';
-      btnToggleNorth.setAttribute('aria-label', 'Current: True North. Tap to switch to Magnetic North');
-      showToast('Switched to True North');
+  // --- Camera AR Mode ---
+  async function toggleCameraAR() {
+    if (cameraStream) {
+      // Turn OFF
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+      cameraFeed.classList.add('hidden');
+      cameraScrim.classList.add('hidden');
+      compassViewport.classList.remove('camera-active');
+      btnToolCamera.classList.remove('active');
+      showToast('Camera AR disabled');
     } else {
-      northPill.textContent = 'MAG';
-      northModeLabel.textContent = 'MAGNETIC NORTH';
-      btnToggleNorth.style.borderColor = '';
-      btnToggleNorth.setAttribute('aria-label', 'Current: Magnetic North. Tap to switch to True North');
-      showToast('Switched to Magnetic North');
-    }
-    updateHeading(rawMagneticHeading);
-  });
-
-  // --- Theme Switcher (Defaults to Marine Brass) ---
-  const THEME_COLORS = {
-    'theme-marine': '#08111e',
-    'theme-tactical': '#07090e',
-    'theme-minimal': '#09090b',
-    'theme-night': '#050000'
-  };
-
-  function applyThemeMetaColor(themeName) {
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme && THEME_COLORS[themeName]) {
-      metaTheme.setAttribute('content', THEME_COLORS[themeName]);
-    }
-  }
-
-  btnTheme.addEventListener('click', () => {
-    document.body.classList.remove(THEMES[currentThemeIndex]);
-    currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
-    const newTheme = THEMES[currentThemeIndex];
-    document.body.classList.add(newTheme);
-    applyThemeMetaColor(newTheme);
-    try {
-      localStorage.setItem('kuberan-theme-v3', newTheme);
-    } catch(e) {}
-    buildDialSvg(); // Re-render dial to match theme accent
-    showToast(`Theme: ${newTheme.replace('theme-', '').toUpperCase()}`);
-  });
-
-  // Clear older stored theme to ensure Marine Brass is active by default for everyone
-  try {
-    localStorage.removeItem('aerocompass-theme');
-    localStorage.removeItem('compass-theme');
-  } catch(e) {}
-
-  // Restore Theme: defaults to Marine Brass (theme-marine)
-  let savedTheme = null;
-  try {
-    savedTheme = localStorage.getItem('kuberan-theme-v3');
-  } catch(e) {}
-
-  THEMES.forEach(t => document.body.classList.remove(t));
-  if (savedTheme && THEMES.includes(savedTheme)) {
-    document.body.classList.add(savedTheme);
-    currentThemeIndex = THEMES.indexOf(savedTheme);
-    applyThemeMetaColor(savedTheme);
-  } else {
-    document.body.classList.add('theme-marine');
-    currentThemeIndex = 0;
-    applyThemeMetaColor('theme-marine');
-  }
-
-
-  // --- Copy Coordinates ---
-  btnCopyCoords.addEventListener('click', async () => {
-    const textToCopy = `Coordinates: ${gpsLat.textContent}, ${gpsLng.textContent} (${gpsLatDec.textContent}, ${gpsLngDec.textContent}) | Altitude: ${gpsAlt.textContent}`;
-    try {
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        await navigator.clipboard.writeText(textToCopy);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = textToCopy;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
+      // Turn ON
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } }
+        });
+        cameraStream = stream;
+        cameraFeed.srcObject = stream;
+        cameraFeed.classList.remove('hidden');
+        cameraScrim.classList.remove('hidden');
+        compassViewport.classList.add('camera-active');
+        btnToolCamera.classList.add('active');
+        showToast('Camera AR active: Align phone with room walls');
+      } catch (err) {
+        showToast('Camera access permission denied or unavailable');
       }
-      showToast('Coordinates Copied to Clipboard!');
-    } catch (e) {
-      showToast('Could not copy coordinates');
     }
-  });
+  }
 
-  // --- Info / Install Modal & QR Code ---
-  btnInfo.addEventListener('click', () => {
-    infoModal.classList.remove('hidden');
-    drawQRCode();
-  });
+  // --- UI Multi-Language Updating ---
+  function setLanguage(langCode) {
+    if (!VASTU_DATA.UI[langCode]) return;
+    currentLang = langCode;
+    langPill.textContent = langCode.toUpperCase();
 
-  btnCloseModal.addEventListener('click', () => {
-    infoModal.classList.add('hidden');
-  });
+    const dict = VASTU_DATA.UI[langCode];
 
-  infoModal.addEventListener('click', (e) => {
-    if (e.target === infoModal) infoModal.classList.add('hidden');
-  });
+    // Update Header
+    document.getElementById('lblModeVastu').textContent = dict.vastuMode || 'Vastu Compass';
+    document.getElementById('lblModeSimple').textContent = dict.simpleMode || 'Simple Compass';
+    btnZone8.textContent = dict.zones8 || '8 Zones';
+    btnZone16.textContent = dict.zones16 || '16 Zones';
+    btnZone32.textContent = dict.zones32 || '32 Padas';
+
+    document.getElementById('lblToolRoom').textContent = dict.toolsRoomFinder || 'Room Finder';
+    document.getElementById('lblToolTilt').textContent = dict.toolsPlotTilt || 'Plot Tilt';
+    document.getElementById('lblToolCam').textContent = dict.toolsCamera || 'Camera AR';
+    document.getElementById('lblToolAudit').textContent = dict.toolsAudit || 'Vastu Report';
+
+    document.getElementById('lblDeity').textContent = dict.deity || 'Ruling Deity';
+    document.getElementById('lblFavorable').textContent = dict.favorableRooms || 'Favorable';
+    document.getElementById('lblAvoid').textContent = dict.avoidPlacements || 'Avoid';
+
+    document.getElementById('lblPitch').textContent = dict.pitch || 'PITCH';
+    document.getElementById('lblRoll').textContent = dict.roll || 'ROLL';
+    document.getElementById('lblCopyCoords').textContent = dict.copyReport ? 'Copy Coords' : 'Copy Coords';
+    document.getElementById('lblInstallApp').textContent = dict.installApp || 'Install App';
+
+    // Re-render Dial and Inspector
+    buildDialSvg();
+    updateVastuInspector(currentHeading);
+    renderRoomsGrid();
+    renderLangModal();
+
+    showToast(`Language switched: ${VASTU_DATA.LANGUAGES.find(l => l.code === langCode).native}`);
+  }
+
+  function renderLangModal() {
+    let html = '';
+    VASTU_DATA.LANGUAGES.forEach(l => {
+      const activeClass = l.code === currentLang ? 'active' : '';
+      html += `
+        <button class="lang-btn ${activeClass}" data-lang="${l.code}">
+          <span>${l.native}</span>
+          <span style="font-size:0.75rem; opacity:0.7;">${l.label}</span>
+        </button>
+      `;
+    });
+    langOptionsList.innerHTML = html;
+
+    langOptionsList.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setLanguage(btn.dataset.lang);
+        langModal.classList.add('hidden');
+      });
+    });
+  }
+
+  // --- Room Finder Modal & Grid ---
+  function renderRoomsGrid() {
+    let html = '';
+    VASTU_DATA.ROOMS.forEach(room => {
+      const isSelected = activeRoom && activeRoom.id === room.id ? 'active' : '';
+      const name = room.names[currentLang] || room.names.en;
+      html += `
+        <button class="room-card-btn ${isSelected}" data-room-id="${room.id}">
+          <span class="room-card-icon">${room.icon}</span>
+          <span class="room-card-name">${name}</span>
+          <span class="room-card-zones">Best: ${room.idealZones.join(', ')}</span>
+        </button>
+      `;
+    });
+    roomsGrid.innerHTML = html;
+
+    roomsGrid.querySelectorAll('.room-card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const roomId = btn.dataset.roomId;
+        selectRoom(roomId);
+        roomFinderModal.classList.add('hidden');
+      });
+    });
+  }
+
+  function selectRoom(roomId) {
+    const room = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+    if (!room) return;
+
+    activeRoom = room;
+    btnToolRoomFinder.classList.add('active');
+    roomGuidanceBanner.classList.remove('hidden');
+
+    guideRoomIcon.textContent = room.icon;
+    guideRoomName.textContent = room.names[currentLang] || room.names.en;
+    guideTargetBadge.textContent = `Ideal: ${room.idealZones.join(', ')}`;
+    guideStatusText.textContent = 'Rotate device toward auspicious zone';
+
+    buildDialSvg();
+    updateVastuInspector(currentHeading);
+    showToast(`Highlighting auspicious directions for ${room.names[currentLang] || room.names.en}`);
+  }
+
+  function clearActiveRoom() {
+    activeRoom = null;
+    btnToolRoomFinder.classList.remove('active');
+    roomGuidanceBanner.classList.add('hidden');
+    buildDialSvg();
+    showToast('Room Finder cleared');
+  }
+
+  // --- Vastu Inspection Audit Report Generator ---
+  function openAuditModal() {
+    const activeZone8 = getActiveZone8(currentHeading);
+    const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
+    const rounded = Math.round(currentHeading);
+
+    reportTimestamp.textContent = `Generated: ${formatCurrentTimestamp()}`;
+    reportHeading.textContent = `${rounded}° ${headingCardinal.textContent} (${isTrueNorth ? 'True North' : 'Magnetic'})`;
+    reportZone.textContent = `${activeZone8.names[currentLang] || activeZone8.names.en} • ${activeZone8.sanskrit}`;
+    reportElement.textContent = elem.names[currentLang] || elem.names.en;
+    reportDeity.textContent = activeZone8.deityNames[currentLang] || activeZone8.deityNames.en;
+
+    const lat = gpsLat.textContent;
+    const lng = gpsLng.textContent;
+    reportGps.textContent = `${lat}, ${lng}`;
+
+    if (zoneSystem === '32') {
+      const activePada = getActivePada32(currentHeading);
+      reportDoor.textContent = `${activePada.id} ${activePada.devata} (${activePada.grade === 'A' ? 'Auspicious' : 'Neutral/Avoid'})`;
+    } else {
+      reportDoor.textContent = 'Switch to 32-Pada mode for door analysis';
+    }
+
+    if (plotTiltReading) {
+      reportPlot.textContent = `${plotTiltReading.type} (${plotTiltReading.dev}° tilt)`;
+    } else {
+      reportPlot.textContent = 'Standard Cardinal Inspection';
+    }
+
+    reportAdvice.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+
+    auditModal.classList.remove('hidden');
+  }
+
+  function generateAuditTextReport() {
+    const activeZone8 = getActiveZone8(currentHeading);
+    const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
+    const activePada = getActivePada32(currentHeading);
+
+    return `🏛️ KUBERAN VASTU COMPASS AUDIT REPORT
+-----------------------------------------
+Official Vedic Architecture Report
+Presented by KUBERAN Silks (https://kuberansilks.com/)
+
+📅 Date & Time: ${formatCurrentTimestamp()}
+🧭 Heading: ${Math.round(currentHeading)}° (${isTrueNorth ? 'True North' : 'Magnetic North'})
+🕉️ Vastu Zone: ${activeZone8.names[currentLang] || activeZone8.names.en} (${activeZone8.sanskrit})
+🌊 Element: ${elem.names[currentLang] || elem.names.en}
+👑 Ruling Deity: ${activeZone8.deityNames[currentLang] || activeZone8.deityNames.en}
+🚪 32-Pada Devata: ${activePada.id} - ${activePada.devata} [Grade ${activePada.grade}]
+📍 GPS Coordinates: ${gpsLat.textContent}, ${gpsLng.textContent}
+⛰️ Altitude: ${gpsAlt.textContent}
+
+💡 Vedic Recommendation:
+${activeZone8.tips[currentLang] || activeZone8.tips.en}
+
+Explore official luxury silk & spiritual collections at:
+https://kuberansilks.com/`;
+  }
 
   // --- Toast Notification ---
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.remove('hidden');
-    setTimeout(() => {
-      toast.classList.add('hidden');
-    }, 2200);
+    toast.classList.remove('fade');
+    void toast.offsetWidth;
+    setTimeout(() => toast.classList.add('fade'), 2200);
+    setTimeout(() => toast.classList.add('hidden'), 2600);
   }
 
-  // --- PWA Installation Banner Handling ---
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    btnInstallApp.classList.remove('hidden');
-  });
-
-  btnInstallApp.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        showToast('Thank you for installing KUBERAN Compass App!');
-      }
-      deferredPrompt = null;
-      btnInstallApp.classList.add('hidden');
-    }
-  });
-
-  // --- Register Service Worker for Offline PWA ---
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js?v=3.7.0')
-        .then((reg) => {
-          console.log('KUBERAN Compass ServiceWorker registered:', reg.scope);
-          // Check for immediate update
-          reg.update();
-        })
-        .catch((err) => console.log('ServiceWorker registration error:', err));
+  // --- Event Listeners Setup ---
+  function setupEventListeners() {
+    // Mode Switcher (Vastu vs Simple Compass)
+    btnModeVastu.addEventListener('click', () => {
+      compassMode = 'vastu';
+      btnModeVastu.classList.add('active');
+      btnModeSimple.classList.remove('active');
+      vastuSubcontrols.classList.remove('hidden');
+      vastuInspectorSection.classList.remove('hidden');
+      buildDialSvg();
+      updateVastuInspector(currentHeading);
+      showToast('Switched to KUBERAN Vastu Compass');
     });
 
-    let refreshing = false;
-    const hadController = Boolean(navigator.serviceWorker.controller);
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      // Only reload if the client was already controlled by an older worker (prevent first-install reload)
-      if (!refreshing && hadController) {
-        refreshing = true;
-        window.location.reload();
-      }
+    btnModeSimple.addEventListener('click', () => {
+      compassMode = 'simple';
+      btnModeSimple.classList.add('active');
+      btnModeVastu.classList.remove('active');
+      vastuSubcontrols.classList.add('hidden');
+      vastuInspectorSection.classList.add('hidden');
+      roomGuidanceBanner.classList.add('hidden');
+      buildDialSvg();
+      showToast('Switched to Simple Compass');
     });
-  }
 
-  // --- QR Code Generator using QRCode.js ---
-  let qrcodeInstance = null;
-  function drawQRCode() {
-    const qrcodeBox = document.getElementById('qrcodeBox');
-    if (!qrcodeBox) return;
+    // Zone Switcher (8 / 16 / 32)
+    btnZone8.addEventListener('click', () => {
+      zoneSystem = '8';
+      btnZone8.classList.add('active');
+      btnZone16.classList.remove('active');
+      btnZone32.classList.remove('active');
+      buildDialSvg();
+      updateVastuInspector(currentHeading);
+    });
 
-    // Use live GitHub Pages URL if running locally so phone scans open the live app
-    let url = 'https://jee1vk.github.io/compass-app/';
-    if (window.location.protocol.startsWith('http') && 
-        !window.location.hostname.includes('localhost') && 
-        !window.location.hostname.includes('127.0.0.1')) {
-      url = window.location.origin + window.location.pathname;
-    }
+    btnZone16.addEventListener('click', () => {
+      zoneSystem = '16';
+      btnZone16.classList.add('active');
+      btnZone8.classList.remove('active');
+      btnZone32.classList.remove('active');
+      buildDialSvg();
+      updateVastuInspector(currentHeading);
+    });
 
-    qrcodeBox.innerHTML = '';
-    
-    if (typeof QRCode !== 'undefined') {
+    btnZone32.addEventListener('click', () => {
+      zoneSystem = '32';
+      btnZone32.classList.add('active');
+      btnZone8.classList.remove('active');
+      btnZone16.classList.remove('active');
+      buildDialSvg();
+      updateVastuInspector(currentHeading);
+    });
+
+    // Dial Visual Theme Switcher (Elemental / Chakra / Royal Gold)
+    btnDialTheme.addEventListener('click', () => {
+      currentDialThemeIndex = (currentDialThemeIndex + 1) % DIAL_THEMES.length;
+      dialTheme = DIAL_THEMES[currentDialThemeIndex];
+
+      document.body.classList.remove('theme-elemental', 'theme-chakra', 'theme-gold');
+      document.body.classList.add(`theme-${dialTheme}`);
+
+      buildDialSvg();
+      const themeNames = { elemental: 'Pancha Bhoota Elemental', chakra: 'Vastu Chakra Wheel', gold: 'Royal Gold' };
+      showToast(`Dial Style: ${themeNames[dialTheme]}`);
+    });
+
+    // Language Switcher Trigger
+    btnLanguage.addEventListener('click', () => {
+      renderLangModal();
+      langModal.classList.remove('hidden');
+    });
+    btnCloseLangModal.addEventListener('click', () => langModal.classList.add('hidden'));
+
+    // North Mode Toggle (True North default)
+    btnToggleNorth.addEventListener('click', () => {
+      isTrueNorth = !isTrueNorth;
+      if (isTrueNorth) {
+        btnToggleNorth.classList.add('active');
+        northPill.textContent = 'TRU';
+        northModeLabel.textContent = 'TRUE NORTH • VASTU SHASTRA';
+        showToast('True North mode active (Magnetic declination applied)');
+      } else {
+        btnToggleNorth.classList.remove('active');
+        northPill.textContent = 'MAG';
+        northModeLabel.textContent = 'MAGNETIC NORTH';
+        showToast('Magnetic North mode active');
+      }
+      sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
+      updateHeadingUI(currentHeading);
+    });
+
+    // Target Bearing Lock
+    btnBearingLock.addEventListener('click', () => {
+      if (targetHeading === null) {
+        targetHeading = Math.round(currentHeading);
+        targetValue.textContent = `${targetHeading}°`;
+        btnBearingLock.classList.add('active');
+        targetMarkerRing.style.transform = `rotate(${targetHeading}deg)`;
+        targetMarkerRing.classList.remove('hidden');
+        showToast(`Target bearing locked: ${targetHeading}°`);
+      } else {
+        targetHeading = null;
+        targetValue.textContent = '--';
+        btnBearingLock.classList.remove('active');
+        targetMarkerRing.classList.add('hidden');
+        targetDeviationBar.classList.add('hidden');
+        showToast('Target bearing cleared');
+      }
+      updateHeadingUI(currentHeading);
+    });
+
+    btnClearTarget.addEventListener('click', () => {
+      targetHeading = null;
+      targetValue.textContent = '--';
+      btnBearingLock.classList.remove('active');
+      targetMarkerRing.classList.add('hidden');
+      targetDeviationBar.classList.add('hidden');
+    });
+
+    // Vastu Tool: Room Finder
+    btnToolRoomFinder.addEventListener('click', () => {
+      renderRoomsGrid();
+      roomFinderModal.classList.remove('hidden');
+    });
+    btnCloseRoomModal.addEventListener('click', () => roomFinderModal.classList.add('hidden'));
+    btnCloseRoomGuide.addEventListener('click', clearActiveRoom);
+
+    // Vastu Tool: Plot Tilt Detector
+    btnToolPlotTilt.addEventListener('click', () => {
+      updatePlotTiltUI(currentHeading);
+      plotTiltModal.classList.remove('hidden');
+    });
+    btnCloseTiltModal.addEventListener('click', () => plotTiltModal.classList.add('hidden'));
+
+    btnLockPlotTilt.addEventListener('click', () => {
+      const heading = parseFloat(currentHeading.toFixed(1));
+      let dev = ((heading % 90) + 45) % 90 - 45;
+      const absDev = Math.abs(dev).toFixed(1);
+      plotTiltReading = {
+        heading: heading,
+        dev: absDev,
+        type: absDev <= 3.0 ? 'Sama-Sutra (Aligned)' : 'Vidisha (Tilted)'
+      };
+      plotTiltModal.classList.add('hidden');
+      showToast(`Plot wall locked: ${heading}° (${plotTiltReading.type})`);
+    });
+
+    // Vastu Tool: Camera AR
+    btnToolCamera.addEventListener('click', toggleCameraAR);
+
+    // Vastu Tool: Audit Export Report
+    btnToolAudit.addEventListener('click', openAuditModal);
+    btnCloseAuditModal.addEventListener('click', () => auditModal.classList.add('hidden'));
+
+    btnCopyAuditReport.addEventListener('click', async () => {
+      const text = generateAuditTextReport();
       try {
-        qrcodeInstance = new QRCode(qrcodeBox, {
-          text: url,
-          width: 170,
-          height: 170,
-          colorDark: '#07090e',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.M
-        });
+        await navigator.clipboard.writeText(text);
+        showToast('Vastu Report copied to clipboard!');
       } catch (err) {
-        console.warn('QR Code rendering fallback:', err);
-        qrcodeBox.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#07090e;font-size:12px;font-weight:600;word-break:break-all;text-align:center;">${url}</a>`;
+        showToast('Could not copy report to clipboard');
       }
-    } else {
-      qrcodeBox.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#07090e;font-size:12px;font-weight:600;word-break:break-all;text-align:center;">${url}</a>`;
+    });
+
+    btnShareAuditReport.addEventListener('click', async () => {
+      const text = generateAuditTextReport();
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'KUBERAN Vastu Compass Audit',
+            text: text
+          });
+        } catch (e) {}
+      } else {
+        await navigator.clipboard.writeText(text);
+        showToast('Report copied (Share not supported on this browser)');
+      }
+    });
+
+    // Info Modal
+    btnInfo.addEventListener('click', () => {
+      infoModal.classList.remove('hidden');
+      generateQrCode();
+    });
+    btnCloseModal.addEventListener('click', () => infoModal.classList.add('hidden'));
+
+    // Copy Coordinates Button
+    btnCopyCoords.addEventListener('click', async () => {
+      const lat = gpsLat.textContent;
+      const lng = gpsLng.textContent;
+      const str = `${lat}, ${lng} (Heading: ${Math.round(currentHeading)}° ${headingCardinal.textContent})`;
+      try {
+        await navigator.clipboard.writeText(str);
+        showToast('Coordinates copied to clipboard');
+      } catch (e) {
+        showToast('Copy failed');
+      }
+    });
+
+    // iOS Sensor Permission Button
+    btnGrantSensor.addEventListener('click', requestSensorPermission);
+  }
+
+  // --- Dynamic QR Code Generator for Install / GitHub ---
+  function generateQrCode() {
+    const qrcodeBox = document.getElementById('qrcodeBox');
+    if (qrcodeBox && typeof QRCode !== 'undefined') {
+      qrcodeBox.innerHTML = '';
+      const shareUrl = window.location.href;
+      new QRCode(qrcodeBox, {
+        text: shareUrl,
+        width: 140,
+        height: 140,
+        colorDark: "#d4a359",
+        colorLight: "#08111e",
+        correctLevel: QRCode.CorrectLevel.M
+      });
     }
   }
 
-  // --- Initialize App ---
+  // --- iOS Sensor Permissions ---
+  function requestSensorPermission() {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then((response) => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation, true);
+            iosPermissionBanner.classList.add('hidden');
+            showToast('Compass sensors activated');
+          } else {
+            showToast('Motion permission denied');
+          }
+        })
+        .catch(() => showToast('Sensor request error'));
+    }
+  }
+
+  // --- Sensor Initialization ---
+  function initSensors() {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ requires explicit user interaction
+      iosPermissionBanner.classList.remove('hidden');
+    } else if ('ondeviceorientationabsolute' in window) {
+      window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+    } else if ('ondeviceorientation' in window) {
+      window.addEventListener('deviceorientation', handleOrientation, true);
+    } else {
+      sensorStatus.textContent = 'Device orientation not supported';
+    }
+  }
+
+  // --- PWA Service Worker Registration ---
+  function initPWA() {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js?v=4.0.0')
+          .then((reg) => {
+            console.log('KUBERAN Vastu Compass SW registered:', reg.scope);
+          })
+          .catch((err) => console.warn('SW registration failed:', err));
+      });
+    }
+
+    // Capture install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btnInstallApp.classList.remove('hidden');
+    });
+
+    btnInstallApp.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'granted') {
+          btnInstallApp.classList.add('hidden');
+        }
+        deferredPrompt = null;
+      }
+    });
+  }
+
+  // --- Bootstrap App ---
   function init() {
     buildDialSvg();
+    setupEventListeners();
     initSensors();
     initGPS();
-
-    // Default heading display
-    updateHeading(0);
-    updateOrientation(0, 0);
-
-    // Update GitHub repo link based on actual host or default
-    if (window.location.hostname.includes('github.io')) {
-      const parts = window.location.pathname.split('/').filter(Boolean);
-      const repoName = parts[0] || 'compass-app';
-      const user = window.location.hostname.split('.')[0];
-      githubRepoLink.href = `https://github.com/${user}/${repoName}`;
-    }
+    initPWA();
+    updateHeadingUI(0);
   }
 
-  init();
+  // Run on DOM load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
 })();

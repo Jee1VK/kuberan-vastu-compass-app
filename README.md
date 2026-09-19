@@ -1,84 +1,79 @@
-# 🧭 KUBERAN Compass App - High-Precision Mobile Compass & Inclinometer
+# 🧭 KUBERAN Vastu Compass - Vedic Architecture & High-Precision Mobile Compass
 
-A sleek, downloadable **Compass & Inclinometer Progressive Web App (PWA)** built for iOS (Safari) and Android (Chrome / Samsung Internet), with 100% offline support, zero ads, and no telemetry bloat. Official edition presented by [Kuberan Silks](https://kuberansilks.com/).
+A sleek, downloadable **Vedic Vastu Shastra & Precision Inclinometer Progressive Web App (PWA)** built for iOS (Safari), Android (Chrome / Samsung Internet), and Desktop, with 100% offline support, zero ads, and no telemetry bloat. 
 
-📱 **Live Web App & Mobile Install:** [https://jee1vk.github.io/compass-app/](https://jee1vk.github.io/compass-app/)  
-🏪 **Official Store:** [https://kuberansilks.com/](https://kuberansilks.com/)
+Official edition presented by [Kuberan Silks](https://kuberansilks.com/).
+
+📱 **Official Store & Heritage:** [https://kuberansilks.com/](https://kuberansilks.com/)  
+🐙 **GitHub Repository & Source:** [https://github.com/Jee1VK/compass-app](https://github.com/Jee1VK/compass-app)
 
 ---
 
 ## 📲 How to Download & Install on Your Phone
 
-You can install this directly to your phone's home screen as a standalone full-screen native-like app:
+You can install this directly to your phone's home screen as a standalone full-screen native-like app with offline support:
 
 ### 🍏 iPhone / iPad (iOS Safari)
-1. Open [https://jee1vk.github.io/compass-app/](https://jee1vk.github.io/compass-app/) in **Safari**.
+1. Open the app link in **Safari**.
 2. Tap the **Share** button (the square icon with an arrow pointing up).
 3. Scroll down and tap **"Add to Home Screen"**.
 4. Tap **"Add"** in the top-right corner.
-5. The **KUBERAN Compass App** icon will now appear on your home screen! Tap it to launch full-screen.
-6. *Note*: On first launch, tap **"Enable"** on the banner to activate your device's motion sensors. Once enabled, the permission remains permanently active.
+5. The **KUBERAN Vastu** icon will appear on your home screen! Tap to launch full-screen.
+6. *First Launch Note*: Tap **"Enable"** on the floating banner to activate your device's hardware motion sensors.
 
 ### 🤖 Android (Chrome / Edge / Samsung Internet)
-1. Open [https://jee1vk.github.io/compass-app/](https://jee1vk.github.io/compass-app/) in **Chrome**.
+1. Open the app link in **Chrome**.
 2. Tap the **"Install App"** button on screen, OR tap the **three dots menu (⋮)** in the top right.
 3. Tap **"Install app"** (or **"Add to Home screen"**).
-4. Launch **KUBERAN Compass App** directly from your app drawer or home screen!
+4. Launch **KUBERAN Vastu** directly from your app drawer or home screen!
 
 ---
 
-## ✨ Features (v3.7.0)
+## ✨ Features (v4.0.0 Vedic Edition)
 
-- 🧭 **High-Precision Compass**:
-  - Real-time magnetic heading and true north heading with automatic declination calculation.
-  - Automatic landscape & portrait screen orientation compensation.
-  - Cardinal & Intercardinal typography (`N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, `NW`).
-  - Degree numbers `90` below `E`, `180` below `S`, and `270` below `W` for effortless navigation.
-  - Military NATO Mils scale (0–6400 mils) and back-azimuth calculation.
-  - Authentic 8-point vintage nautical compass rose vector dial.
-- ⚖️ **Dual-Axis Bubble Level & Inclinometer**:
-  - Center crosshairs bubble level for leveling tables, RVs, tripods, and surfaces.
-  - Real-time **Pitch** (front-to-back tilt) and **Roll** (left-to-right tilt) digital readouts.
-  - Turns glowing neon green with subtle haptic vibration when perfectly level ($\le 1.5^\circ$).
-- 🎯 **Target Bearing Lock**:
-  - Tap the crosshairs icon to lock your target heading.
-  - Accessible screen reader announcements and status indicators.
-  - Real-time deviation alerts: `◀ 12° LEFT`, `12° RIGHT ▶`, or `🎯 ON TARGET`.
-- 📍 **GPS Location Telemetry**:
-  - Interactive tap-to-refresh on telemetry panel.
-  - Coordinates in both **Decimal Degrees** and navigation **DMS** (Degrees, Minutes, Seconds).
-  - Real-time **Altitude** (meters above sea level) and GPS accuracy radius.
-  - Calculated magnetic declination offset (with clean zero formatting).
-  - One-tap **"Copy Coords"** button with fallback clipboard support.
-- 🎨 **4 Visual Themes**:
-  1. **Marine Brass (Default)**: Vintage nautical brass dial and deep ocean navy styling with authentic 8-point compass rose.
-  2. **Tactical OLED**: Stealth high-contrast neon cyan & military amber on pitch black.
-  3. **Minimalist Glass**: Crisp monochrome typography and dark frosted glass.
-  4. **Night Vision Red**: Red monochrome theme preserving night-adapted vision for astronomy and tactical field use.
-  - Dynamic browser theme-color synchronization matching active palette.
-- 📳 **Haptic Feedback**:
-  - Permanently enabled gentle haptic pulses when crossing 0°/North, cardinal axes, or when surface is level.
-- 📱 **Adaptive UI & Viewport Resiliency**:
-  - Floating hover sensor activation card.
-  - Sized and padded for complete visibility on screens down to 320px with zero horizontal scroll.
-  - Dynamic viewport height (`100dvh`) handling dynamic mobile toolbars.
-- ⚡ **100% Offline Capability**:
-  - Service Worker caching all static assets and icons. Operates seamlessly in the wilderness with no cellular reception or internet.
+### 🕉️ 1. Complete Vedic Vastu Architecture
+- **Rigorous Classical References**: Built according to authentic Vastu texts including *Vishwakarma Prakash*, *Manasara*, *Mayamatam*, and *Brihat Samhita*.
+- **3 Directional Zone Modes**:
+  - **8 Zones (Ashta Dikpala)**: Traditional 45° sectors with ruling Digpalas, Sanskrit names (*Uttara, Ishanya, Purva, Agneya, Dakshina, Nairutya, Paschima, Vayavya*), and Pancha Bhoota elements.
+  - **16 Zones (MahaVastu)**: 22.5° sectors mapping life aspects (Wealth, Health, Clarity, Cash Flow, Relationships, Skills, Gains, etc.).
+  - **32 Pada Devata Chakra**: 11.25° perimeter entrance sectors (E1–E8, S1–S8, W1–W8, N1–N8) with Grade A (Auspicious), Grade B (Neutral), and Grade C (Inauspicious) door ratings.
+- **Pancha Bhoota (Five Elements)**:
+  - 💧 **Water (*Jala*)** - North & North-East (Blue)
+  - 🌿 **Air / Wood (*Vāyu*)** - East & North-West (Green)
+  - 🔥 **Fire (*Agni*)** - South-East & South (Red)
+  - 🌍 **Earth (*Pṛthvī*)** - South-West & South (Gold / Yellow)
+  - 🌌 **Space / Metal (*Ākāśa*)** - West (Silver / Slate)
 
----
+### 🧭 2. True North Default & Precision Navigation
+- **True North by Default**: Applies real-time magnetic declination calculated from your GPS coordinates to face geographic True North, ensuring true alignment with Earth’s axial field.
+- **Dual Mode**: Instantly switch between **Vastu Compass** and clean nautical **Simple Compass**.
+- **Dual-Axis Bubble Level & Inclinometer**: Real-time **Pitch** and **Roll** with glowing neon green feedback when perfectly level ($\le 1.5^\circ$).
+- **Target Bearing Lock**: Lock target headings with real-time deviation cues (`◀ LEFT`, `RIGHT ▶`, `🎯 ON TARGET`).
+- **Auspicious Haptic Ticks**: Subtle vibration ticks upon crossing into auspicious zones, exact cardinal axes, or selected room targets.
 
-## 🛠️ Local Development & Testing
+### 🛠️ 3. Specialized Diagnostic Tools
+- 🔍 **Room-to-Direction Finder**: Select a room (Mandir, Kitchen, Master Bedroom, Safe Locker, Living Room, Dining, Study, Toilet, Water Tanks, Staircase) and the compass highlights ideal zones on the dial while guiding you toward them.
+- 📐 **Plot Tilt (Vidisha) Angle Detector**: Hold phone flush against a wall or boundary to calculate degree deviation from cardinal axes, diagnosing **Sama-Sutra** ($\le 3^\circ$) vs **Vidisha** ($> 3^\circ$) with classical remedies.
+- 📷 **Camera AR Background Mode**: Turns the compass background transparent and overlays the Vastu dial on top of your rear camera feed for real-time in-situ inspection of property walls and rooms.
+- 📋 **Exportable Vastu Inspection Audit**: Generate a timestamped summary card containing GPS coordinates, True North heading, detected zone, element, deity, door grade, and recommendations. 1-tap copy or share via Web Share API.
 
-To test locally:
-```bash
-# Start any static server, e.g.:
-npx serve .
-# or Python:
-python -m http.server 8080
-```
-Then visit `http://localhost:8080` in your browser.
+### 🌐 4. 5 Languages with Zero Spelling Errors
+Full native translations verified against classical lexicons:
+1. **English**
+2. **Hindi (हिंदी)**
+3. **Kannada (ಕನ್ನಡ)**
+4. **Tamil (தமிழ்)**
+5. **Telugu (తెలుగు)**
+- Includes Sanskrit transliteration (IAST / Devanagari) across all directional headings.
 
 ---
 
-## 📄 License
-MIT License. Created for Kuberan Silks by [Jee1VK](https://github.com/Jee1VK).
+## 🎨 Dial Visual Themes
+- **Pancha Bhoota Elemental**: Color-coded perimeter ring indicating the 5 primordial elements in harmony with Kuberan's gold & maroon theme.
+- **Vastu Chakra Wheel**: Full translucent color-filled sectors like a physical brass Shakti Chakra plate.
+- **Royal Gold**: Ultra-luxury pure gold monochrome aesthetic with fine gold dividers and Sanskrit calligraphy.
+
+---
+
+## 🏛️ Presented by KUBERAN Silks
+Official application developed for patrons and homeowners by [Kuberan Silks](https://kuberansilks.com/), Chickpet, Bengaluru.

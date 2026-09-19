@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>KUBERAN Compass App - High-Precision Mobile Compass</title>
+  <title>KUBERAN Vastu Compass - Vedic Architecture & Precision Compass</title>
 
   <!-- PWA Settings -->
-  <link rel="manifest" href="manifest.webmanifest?v=3.7.0">
+  <link rel="manifest" href="manifest.webmanifest?v=4.0.0">
   <meta name="theme-color" content="#08111e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="KUBERAN Compass">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=3.7.0">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=3.7.0">
-  <link rel="alternate icon" type="image/png" href="icon-192.png?v=3.7.0">
+  <meta name="apple-mobile-web-app-title" content="KUBERAN Vastu">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.0.0">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.0.0">
+  <link rel="alternate icon" type="image/png" href="icon-192.png?v=4.0.0">
 
-  <link rel="stylesheet" href="style.css?v=3.7.0">
+  <link rel="stylesheet" href="style.css?v=4.0.0">
 </head>
-<body class="theme-marine">
+<body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
   <main class="app-container">
     <!-- Top Header -->
@@ -28,21 +28,25 @@
           <img src="assets/images/kuberan_logo_white_bg.png" alt="Kuberan Silks - Chickpet, Bengaluru" class="kuberan-header-logo">
         </a>
         <div class="brand-text">
-          <span class="app-name"><span class="brand-kuberan">KUBERAN</span> Compass</span>
-          <span class="app-sub" id="northModeLabel">MAGNETIC NORTH</span>
+          <span class="app-name"><span class="brand-kuberan">KUBERAN</span> Vastu Compass</span>
+          <span class="app-sub" id="northModeLabel">TRUE NORTH • VASTU SHASTRA</span>
         </div>
       </div>
 
       <div class="header-actions">
-        <!-- North Mode Toggle -->
-        <button id="btnToggleNorth" class="icon-btn" title="Toggle True/Magnetic North" aria-label="Toggle North Mode">
-          <span class="mode-pill" id="northPill">MAG</span>
+        <!-- Language Switcher Button -->
+        <button id="btnLanguage" class="icon-btn" title="Select Language" aria-label="Select Language">
+          <span class="mode-pill" id="langPill">EN</span>
         </button>
-        <!-- Theme Toggle -->
-        <button id="btnTheme" class="icon-btn" title="Switch Theme" aria-label="Switch Theme">
+        <!-- North Mode Toggle (Defaults to True North) -->
+        <button id="btnToggleNorth" class="icon-btn active" title="Toggle True/Magnetic North" aria-label="Toggle North Mode">
+          <span class="mode-pill" id="northPill">TRU</span>
+        </button>
+        <!-- Dial Visual Theme Switcher -->
+        <button id="btnDialTheme" class="icon-btn" title="Switch Dial Visual Style (Elemental / Chakra / Royal Gold)" aria-label="Switch Dial Style">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-            <circle cx="12" cy="12" r="5" />
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor" opacity="0.6"/>
           </svg>
         </button>
         <!-- Target Bearing Lock -->
@@ -55,8 +59,8 @@
             <line x1="18" y1="12" x2="22" y2="12" />
           </svg>
         </button>
-        <!-- Info / Download / QR -->
-        <button id="btnInfo" class="icon-btn" title="Install App & Info" aria-label="Install App and Info">
+        <!-- Info / Download / QR / GitHub -->
+        <button id="btnInfo" class="icon-btn" title="App Info & Download" aria-label="App Info and Download">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />
@@ -66,15 +70,73 @@
       </div>
     </header>
 
+    <!-- App Mode Control Bar (Simple Compass vs Vastu Compass) -->
+    <section class="mode-control-strip">
+      <div class="segmented-control" id="compassModeSwitcher">
+        <button class="segment-btn active" data-mode="vastu" id="btnModeVastu">
+          <span class="segment-icon">🕉️</span>
+          <span class="segment-label" id="lblModeVastu">Vastu Compass</span>
+        </button>
+        <button class="segment-btn" data-mode="simple" id="btnModeSimple">
+          <span class="segment-icon">🧭</span>
+          <span class="segment-label" id="lblModeSimple">Simple Compass</span>
+        </button>
+      </div>
+
+      <!-- Vastu Sub-Bar: 8 Zones / 16 Zones / 32 Padas (Visible in Vastu Mode) -->
+      <div class="vastu-subcontrols" id="vastuSubcontrols">
+        <div class="segmented-control zones-segmented" id="zoneSystemSwitcher">
+          <button class="segment-btn active" data-zones="8" id="btnZone8">8 Zones</button>
+          <button class="segment-btn" data-zones="16" id="btnZone16">16 Zones</button>
+          <button class="segment-btn" data-zones="32" id="btnZone32">32 Padas</button>
+        </div>
+
+        <!-- Diagnostic Tools Toolbar -->
+        <div class="vastu-tools-toolbar" id="vastuToolsBar">
+          <button class="tool-chip" id="btnToolRoomFinder" title="Room to Direction Finder">
+            <span class="tool-icon">🔍</span>
+            <span class="tool-text" id="lblToolRoom">Room Finder</span>
+          </button>
+          <button class="tool-chip" id="btnToolPlotTilt" title="Plot Tilt / Vidisha Angle Detector">
+            <span class="tool-icon">📐</span>
+            <span class="tool-text" id="lblToolTilt">Plot Tilt</span>
+          </button>
+          <button class="tool-chip" id="btnToolCamera" title="Camera AR Overlay">
+            <span class="tool-icon">📷</span>
+            <span class="tool-text" id="lblToolCam">Camera AR</span>
+          </button>
+          <button class="tool-chip" id="btnToolAudit" title="Vastu Inspection Audit Report">
+            <span class="tool-icon">📋</span>
+            <span class="tool-text" id="lblToolAudit">Vastu Report</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- iOS Sensor Permission Required Overlay Banner -->
     <div id="iosPermissionBanner" class="permission-banner hidden">
       <div class="banner-content">
         <div class="banner-icon">🧭</div>
         <div class="banner-text">
-          <strong>Enable Compass Sensors</strong>
-          <span>Tap to activate your device's precision motion sensors</span>
+          <strong id="lblSensorTitle">Enable Compass Sensors</strong>
+          <span id="lblSensorDesc">Tap to activate your device's precision motion sensors</span>
         </div>
         <button id="btnGrantSensor" class="btn-primary">Enable</button>
+      </div>
+    </div>
+
+    <!-- Active Room Finder Guidance Banner (When Room is Selected) -->
+    <div id="roomGuidanceBanner" class="room-guidance-banner hidden">
+      <div class="room-guidance-content">
+        <span class="room-guidance-icon" id="guideRoomIcon">🪔</span>
+        <div class="room-guidance-info">
+          <div class="room-guidance-title">
+            <span id="guideRoomName">Puja Room</span>
+            <span class="room-target-badge" id="guideTargetBadge">Ideal: NE, E, N</span>
+          </div>
+          <div class="room-guidance-status" id="guideStatusText">Rotate device toward auspicious zone</div>
+        </div>
+        <button id="btnCloseRoomGuide" class="btn-guide-close" title="Clear room target">✕</button>
       </div>
     </div>
 
@@ -85,7 +147,10 @@
           <span id="headingDegrees" class="heading-num">0</span>
           <span class="degree-symbol">°</span>
         </div>
-        <div class="cardinal-direction" id="headingCardinal">N</div>
+        <div class="cardinal-direction-group">
+          <div class="cardinal-direction" id="headingCardinal">N</div>
+          <div class="vastu-sanskrit-tag" id="headingSanskrit">Uttara (उत्तर)</div>
+        </div>
       </div>
 
       <div class="secondary-telemetry">
@@ -119,7 +184,11 @@
       </div>
 
       <!-- Dial Frame -->
-      <div class="compass-viewport">
+      <div class="compass-viewport" id="compassViewport">
+        <!-- Camera AR Video Feed (Behind Dial) -->
+        <video id="cameraFeed" class="camera-feed hidden" playsinline autoplay muted></video>
+        <div id="cameraScrim" class="camera-scrim hidden"></div>
+
         <!-- Target Marker Flag (stays on target heading) -->
         <div class="target-marker-ring" id="targetMarkerRing">
           <div class="target-marker-flag" id="targetFlag"></div>
@@ -127,7 +196,7 @@
 
         <!-- Rotating Compass Card -->
         <div class="compass-card" id="compassCard">
-          <!-- Dial SVG with high-res precision ticks and typography -->
+          <!-- Dial SVG with high-res precision ticks, Vastu zones, and typography -->
           <svg class="dial-svg" viewBox="0 0 500 500" id="dialSvg">
             <!-- Dynamic elements built via app.js for ultra-sharp vector scaling -->
           </svg>
@@ -148,25 +217,97 @@
       </div>
     </section>
 
+    <!-- Live Vastu Zone Inspector Card (Visible in Vastu Mode) -->
+    <section class="vastu-inspector-section" id="vastuInspectorSection">
+      <div class="inspector-card" id="inspectorCard">
+        <div class="inspector-header">
+          <div class="inspector-zone-title-wrap">
+            <span class="inspector-zone-badge" id="inspZoneBadge">NE</span>
+            <div>
+              <h3 class="inspector-zone-name" id="inspZoneName">North-East</h3>
+              <span class="inspector-sanskrit" id="inspSanskrit">Īśānya (ईशान्य)</span>
+            </div>
+          </div>
+          <div class="element-badge" id="inspElementBadge">
+            <span class="element-dot" id="inspElementDot"></span>
+            <span class="element-name" id="inspElementName">Water Element</span>
+          </div>
+        </div>
+
+        <!-- Deity & Classical Summary -->
+        <div class="inspector-deity-row">
+          <div class="deity-item">
+            <span class="deity-label" id="lblDeity">Ruling Deity</span>
+            <span class="deity-val" id="inspDeityVal">Lord Shiva / Ishana</span>
+          </div>
+          <div class="summary-item">
+            <p class="summary-text" id="inspSummaryText">Most sacred zone. Bestows mental peace, spiritual enlightenment, and good health.</p>
+          </div>
+        </div>
+
+        <!-- 32-Pada Entrance Auspiciousness Box (Visible in 32-Pada mode) -->
+        <div class="pada-entrance-card hidden" id="padaEntranceCard">
+          <div class="pada-header">
+            <span class="pada-badge" id="padaIdBadge">E3</span>
+            <span class="pada-devata" id="padaDevataName">Jayanta (जयन्त)</span>
+            <span class="pada-grade-pill grade-a" id="padaGradePill">🌟 Highly Auspicious</span>
+          </div>
+          <p class="pada-effect-text" id="padaEffectText">Tremendous wealth, victory, great success</p>
+        </div>
+
+        <!-- Favorable vs Avoid Placements -->
+        <div class="placements-grid">
+          <div class="placement-col favorable-col">
+            <div class="col-header">
+              <span class="col-icon">✅</span>
+              <span class="col-title" id="lblFavorable">Favorable</span>
+            </div>
+            <div class="tags-cloud" id="favorableTags">
+              <span class="room-tag">Mandir</span>
+              <span class="room-tag">Meditation</span>
+              <span class="room-tag">Water Source</span>
+            </div>
+          </div>
+
+          <div class="placement-col avoid-col">
+            <div class="col-header">
+              <span class="col-icon">❌</span>
+              <span class="col-title" id="lblAvoid">Avoid</span>
+            </div>
+            <div class="tags-cloud" id="avoidTags">
+              <span class="room-tag tag-avoid">Toilet</span>
+              <span class="room-tag tag-avoid">Kitchen</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vastu Pro-Tip -->
+        <div class="inspector-tip" id="inspTipRow">
+          <span class="tip-icon">💡</span>
+          <span class="tip-text" id="inspTipText">Keep this zone open, light, and spotless. Ideal for Mandir and pure water.</span>
+        </div>
+      </div>
+    </section>
+
     <!-- Level Inclinometer & Tilt Readout -->
     <section class="level-details-section">
       <div class="tilt-card">
-        <span class="tilt-label">PITCH</span>
+        <span class="tilt-label" id="lblPitch">PITCH</span>
         <div class="tilt-gauge-bar"><div class="tilt-gauge-fill" id="pitchGauge"></div></div>
         <span class="tilt-value" id="pitchValue">0°</span>
       </div>
       <div class="tilt-card">
-        <span class="tilt-label">ROLL</span>
+        <span class="tilt-label" id="lblRoll">ROLL</span>
         <div class="tilt-gauge-bar"><div class="tilt-gauge-fill" id="rollGauge"></div></div>
         <span class="tilt-value" id="rollValue">0°</span>
       </div>
       <div class="tilt-card level-status-card" id="levelStatusCard">
-        <span class="tilt-label">SURFACE</span>
+        <span class="tilt-label" id="lblSurface">SURFACE</span>
         <span class="level-status-text" id="levelStatusText">LEVELING...</span>
       </div>
     </section>
 
-      <!-- GPS Location & Environmental Telemetry -->
+    <!-- GPS Location & Environmental Telemetry -->
     <section class="telemetry-panel">
       <div class="telemetry-grid" title="Tap any metric to refresh GPS location" aria-label="GPS Location and Environmental Telemetry - Tap to refresh">
         <div class="telemetry-item">
@@ -213,7 +354,7 @@
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
-          <span>Copy Coords</span>
+          <span id="lblCopyCoords">Copy Coords</span>
         </button>
         <button id="btnInstallApp" class="btn-action btn-install hidden" title="Install to Home Screen" aria-label="Install App to Home Screen">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -221,7 +362,7 @@
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          <span>Install App</span>
+          <span id="lblInstallApp">Install App</span>
         </button>
       </div>
     </section>
@@ -229,6 +370,170 @@
     <!-- Toast Alert Notification -->
     <div id="toast" class="toast hidden">Copied to clipboard</div>
   </main>
+
+  <!-- ================= MODALS & DRAWERS ================= -->
+
+  <!-- Language Switcher Modal -->
+  <div id="langModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="langModalTitle">
+    <div class="modal-window modal-compact">
+      <div class="modal-header">
+        <h3 id="langModalTitle">Select Language / भाषा चुनें</h3>
+        <button id="btnCloseLangModal" class="btn-modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="lang-options-list" id="langOptionsList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Room-to-Direction Finder Modal -->
+  <div id="roomFinderModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="roomModalTitle">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-brand-wrap">
+          <span class="modal-icon">🔍</span>
+          <div>
+            <h3 id="roomModalTitle">Vastu Room Finder</h3>
+            <span class="modal-brand-sub" id="roomModalSub">Select a room to highlight auspicious directions on compass</span>
+          </div>
+        </div>
+        <button id="btnCloseRoomModal" class="btn-modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="rooms-grid" id="roomsGrid">
+          <!-- Rendered dynamically from VASTU_DATA.ROOMS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plot Tilt / Vidisha Angle Detector Modal -->
+  <div id="plotTiltModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="tiltModalTitle">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-brand-wrap">
+          <span class="modal-icon">📐</span>
+          <div>
+            <h3 id="tiltModalTitle">Plot Tilt (Vidisha) Detector</h3>
+            <span class="modal-brand-sub">Vedic Cardinal Wall Alignment Tool</span>
+          </div>
+        </div>
+        <button id="btnCloseTiltModal" class="btn-modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="plot-instruction-card">
+          <p id="plotInstructionText">Hold your phone flat and align the top edge flush against the building front wall or boundary line.</p>
+        </div>
+
+        <div class="plot-meter-card">
+          <div class="plot-degrees-row">
+            <span class="plot-degrees-val" id="plotHeadingVal">0.0°</span>
+            <span class="plot-degrees-label">Current Wall Bearing</span>
+          </div>
+          <div class="plot-deviation-badge" id="plotDeviationBadge">
+            <span id="plotDeviationVal">0.0° Deviation</span>
+          </div>
+          <div class="plot-status-banner" id="plotStatusBanner">
+            <strong id="plotStatusTitle">SAMA-SUTRA (Aligned Plot)</strong>
+            <p id="plotStatusDesc">Plot is naturally aligned with the cardinal geomagnetic grid (within ±3°). Highly auspicious.</p>
+          </div>
+        </div>
+
+        <div class="plot-actions">
+          <button id="btnLockPlotTilt" class="btn-primary-large">Lock & Record Alignment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vastu Audit Export Report Modal -->
+  <div id="auditModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-brand-wrap">
+          <a href="https://kuberansilks.com/" target="_blank" rel="noopener noreferrer" class="kuberan-logo-link" title="Visit Kuberan Silks">
+            <img src="assets/images/kuberan_logo_white_bg.png" alt="Kuberan Silks" class="kuberan-modal-logo">
+          </a>
+          <div>
+            <h3 id="auditModalTitle">Vastu Inspection Audit</h3>
+            <span class="modal-brand-sub">Official KUBERAN Silks Vastu Report</span>
+          </div>
+        </div>
+        <button id="btnCloseAuditModal" class="btn-modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Styled Preview Card to Capture / Copy -->
+        <div class="audit-report-card" id="auditReportCard">
+          <div class="report-brand-header">
+            <div class="report-brand-title">KUBERAN VASTU COMPASS AUDIT</div>
+            <div class="report-timestamp" id="reportTimestamp">Date & Time: --</div>
+          </div>
+
+          <div class="report-grid">
+            <div class="report-row">
+              <span class="report-label">Heading:</span>
+              <strong class="report-val" id="reportHeading">0° North (True North)</strong>
+            </div>
+            <div class="report-row">
+              <span class="report-label">Active Zone:</span>
+              <strong class="report-val" id="reportZone">North-East • Īśānya</strong>
+            </div>
+            <div class="report-row">
+              <span class="report-label">Ruling Element:</span>
+              <span class="report-val" id="reportElement">Water Element (जल तत्व)</span>
+            </div>
+            <div class="report-row">
+              <span class="report-label">Ruling Deity:</span>
+              <span class="report-val" id="reportDeity">Lord Shiva / Ishana</span>
+            </div>
+            <div class="report-row">
+              <span class="report-label">GPS Location:</span>
+              <span class="report-val" id="reportGps">--</span>
+            </div>
+            <div class="report-row" id="reportDoorRow">
+              <span class="report-label">Door Pada (32):</span>
+              <span class="report-val" id="reportDoor">--</span>
+            </div>
+            <div class="report-row">
+              <span class="report-label">Plot Alignment:</span>
+              <span class="report-val" id="reportPlot">Sama-Sutra (Aligned)</span>
+            </div>
+          </div>
+
+          <div class="report-advice-box">
+            <strong>Key Vastu Recommendations:</strong>
+            <p id="reportAdvice">Ideal for Mandir, meditation, and pure water source. Keep open and clutter-free.</p>
+          </div>
+
+          <div class="report-footer">
+            <span>Powered by KUBERAN Silks • https://kuberansilks.com/</span>
+          </div>
+        </div>
+
+        <div class="audit-btn-row">
+          <button id="btnCopyAuditReport" class="btn-action btn-highlight">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span id="lblBtnCopyReport">Copy Text Report</span>
+          </button>
+          <button id="btnShareAuditReport" class="btn-action">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            <span id="lblBtnShareReport">Share Report</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Info & Install Modal -->
   <div id="infoModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -239,8 +544,8 @@
             <img src="assets/images/kuberan_logo_white_bg.png" alt="Kuberan Silks - Chickpet, Bengaluru" class="kuberan-modal-logo">
           </a>
           <div>
-            <h3 id="modalTitle">KUBERAN Compass App</h3>
-            <span class="modal-brand-sub">Official Kuberan Silks Edition</span>
+            <h3 id="modalTitle">KUBERAN Vastu Compass</h3>
+            <span class="modal-brand-sub">Official Kuberan Silks Vedic Architecture Edition</span>
           </div>
         </div>
         <button id="btnCloseModal" class="btn-modal-close" aria-label="Close modal">✕</button>
@@ -252,7 +557,7 @@
         </div>
 
         <div class="install-instructions">
-          <h4>📲 How to Download to Phone:</h4>
+          <h4>📲 How to Download & Install on Your Phone:</h4>
           <div class="step-card">
             <div class="step-badge">iOS</div>
             <div class="step-text">Open in <strong>Safari</strong> → Tap <svg class="inline-icon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> <strong>Share</strong> → Tap <strong>"Add to Home Screen"</strong>.</div>
@@ -264,27 +569,33 @@
         </div>
 
         <div class="features-list">
-          <h4>Features:</h4>
+          <h4>Vedic Vastu & Navigation Features:</h4>
           <ul>
-            <li>✨ 100% Offline Capability with Service Worker</li>
-            <li>🧭 Real-time iOS & Android Compass Hardware Sensors</li>
-            <li>⚖️ Dual-axis Pitch & Roll Inclinometer Bubble Level</li>
-            <li>🎯 Target Heading / Bearing Deviation Lock</li>
-            <li>📍 GPS Coordinates (Decimal + DMS), Altitude & Accuracy</li>
-            <li>📳 Haptic Vibration feedback on Cardinal headings</li>
-            <li>🎨 4 Visual Themes: Tactical OLED, Apple Glass, Marine Brass, Red Night</li>
+            <li>🧭 <strong>Simple Compass & Vastu Compass</strong> dual mode toggle</li>
+            <li>🕉️ <strong>8 Zones, 16 MahaVastu Zones & 32 Pada Chakra</strong> directional grids</li>
+            <li>🎨 <strong>3 Dial Visual Styles</strong>: Pancha Bhoota Elemental, Chakra Wheel & Royal Gold</li>
+            <li>🔍 <strong>Room-to-Direction Finder</strong> with dynamic compass guidance</li>
+            <li>📐 <strong>Plot Tilt (Vidisha) Angle Detector</strong> with wall alignment guidance</li>
+            <li>📷 <strong>Camera AR Background Mode</strong> for real-time room inspection</li>
+            <li>🌐 <strong>5 Languages</strong>: English, हिन्दी, ಕನ್ನಡ, தமிழ், తెలుగు with Sanskrit transliteration</li>
+            <li>📳 <strong>Auspicious Haptic Feedback</strong> on favorable Vastu alignments</li>
+            <li>📍 <strong>True North Default</strong> with automatic declination calculation</li>
+            <li>📋 <strong>Exportable Vastu Inspection Audit Report</strong> for sharing</li>
+            <li>✨ <strong>100% Offline PWA</strong> with zero telemetry bloat</li>
           </ul>
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Compass App v3.7.0 • Official Edition</span>
-          <a id="githubRepoLink" href="https://github.com/Jee1VK/compass-app" target="_blank" rel="noopener noreferrer">View GitHub Repo</a>
+          <span>KUBERAN Vastu Compass v4.0.0 • Vedic Edition</span>
+          <a id="githubRepoLink" href="https://github.com/Jee1VK/compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="qrcode.min.js?v=3.7.0"></script>
-  <script src="app.js?v=3.7.0"></script>
+  <!-- Scripts -->
+  <script src="vastu-data.js?v=4.0.0"></script>
+  <script src="qrcode.min.js?v=4.0.0"></script>
+  <script src="app.js?v=4.0.0"></script>
 </body>
 </html>

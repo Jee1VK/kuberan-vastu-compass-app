@@ -1,8 +1,8 @@
 {
-  "id": "kuberan-compass-app",
-  "name": "KUBERAN Compass App",
-  "short_name": "KUBERAN Compass",
-  "description": "High-precision mobile compass, dual-axis inclinometer bubble level, and GPS telemetry for iOS & Android.",
+  "id": "kuberan-vastu-compass-app",
+  "name": "KUBERAN Vastu Compass",
+  "short_name": "KUBERAN Vastu",
+  "description": "High-precision Vedic Vastu Shastra compass, dual-axis inclinometer bubble level, 8/16/32 zone mapping, Room Finder, and plot tilt detector.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "./index.html",
@@ -34,5 +34,5 @@
       "type": "image/svg+xml"
     }
   ],
-  "categories": ["utilities", "navigation"]
+  "categories": ["utilities", "lifestyle", "navigation"]
 }
