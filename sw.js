@@ -1,26 +1,26 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.1.0';
+const CACHE_NAME = 'kuberan-vastu-compass-v4.2.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=4.1.0',
+  './style.css?v=4.2.0',
   './style.css',
-  './vastu-data.js?v=4.1.0',
+  './vastu-data.js?v=4.2.0',
   './vastu-data.js',
-  './qrcode.min.js?v=4.1.0',
+  './qrcode.min.js?v=4.2.0',
   './qrcode.min.js',
-  './app.js?v=4.1.0',
+  './app.js?v=4.2.0',
   './app.js',
-  './manifest.webmanifest?v=4.1.0',
+  './manifest.webmanifest?v=4.2.0',
   './manifest.webmanifest',
   './assets/images/kuberan_logo_white_bg.png',
   './assets/images/kuberan_logo_transparent.png',
-  './icon.svg?v=4.1.0',
+  './icon.svg?v=4.2.0',
   './icon.svg',
-  './icon-192.png?v=4.1.0',
+  './icon-192.png?v=4.2.0',
   './icon-192.png',
-  './icon-512.png?v=4.1.0',
+  './icon-512.png?v=4.2.0',
   './icon-512.png',
-  './apple-touch-icon.png?v=4.1.0',
+  './apple-touch-icon.png?v=4.2.0',
   './apple-touch-icon.png'
 ];
 
@@ -46,11 +46,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
   const isNavigation = event.request.mode === 'navigate' || 
                        (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
+  
+  // Icon files, manifest, and HTML: ALWAYS Network-First so updates appear instantly
+  const isPriorityAsset = isNavigation || 
+                          url.pathname.endsWith('manifest.webmanifest') ||
+                          url.pathname.includes('icon') ||
+                          url.pathname.endsWith('.svg');
 
-  if (isNavigation) {
-    // Network-First for HTML: Always fetch newest online, fallback to cache offline
+  if (isPriorityAsset) {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
@@ -60,16 +66,15 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Cache-First for static assets (images, css, scripts)
+  // Cache-First with background revalidation for other static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cache immediately, fetch updated copy in background
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));

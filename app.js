@@ -1276,9 +1276,21 @@ https://kuberansilks.com/`;
   function initPWA() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.0.0')
+        navigator.serviceWorker.register('./sw.js?v=4.2.0')
           .then((reg) => {
             console.log('KUBERAN Vastu Compass SW registered:', reg.scope);
+            // Force immediate update check
+            reg.update();
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('New Vastu Compass version available, updating cache...');
+                  }
+                });
+              }
+            });
           })
           .catch((err) => console.warn('SW registration failed:', err));
       });
