@@ -615,9 +615,777 @@ const VASTU_DATA = {
     }
   ],
 
+
+  // Commercial & Retail Vastu Rules (Structured JSON Schema)
+  COMMERCIAL_ZONES: {
+  "N": {
+    "zone_name": "Uttara",
+    "element": "Water",
+    "deity": "Kubera / Mercury",
+    "commercial_suitability": [
+      "Main Entrance",
+      "Customer Service Desk",
+      "Cash Safe Opening"
+    ],
+    "avoid": [
+      "Heavy Storage",
+      "Toilets",
+      "Trash / Dustbins"
+    ],
+    "business_impact": {
+      "en": "Attracts financial growth, client opportunities, and liquidity.",
+      "hi": "वित्तीय प्रगति, नए व्यावसायिक अवसर और नकदी प्रवाह को आकर्षित करता है।",
+      "kn": "ಹಣಕಾಸಿನ ಬೆಳವಣಿಗೆ, ಗ್ರಾಹಕರ ಅವಕಾಶಗಳು ಮತ್ತು ನಗದು ಹರಿವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+      "ta": "நிதி வளர்ச்சி, வாடிக்கையாளர் வாய்ப்புகள் மற்றும் பணப்புழக்கத்தை ஈர்க்கிறது.",
+      "te": "ఆర్థిక వృద్ధి, కొత్త అవకాశాలు మరియు నిరంతర నగదు ప్రవాహాన్ని పెంచుతుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Ideal for main boutique entrance and customer reception. Keep glass doors sparkling clean.",
+        "hi": "बुटीक के मुख्य द्वार एवं स्वागत कक्ष के लिए उत्तम। कांच के दरवाजों को सदैव स्वच्छ रखें।",
+        "kn": "ಬುಟೀಕ್ ಪ್ರವೇಶದ್ವಾರ ಮತ್ತು ಸ್ವಾಗತ ಕೌಂಟರ್‌ಗೆ ಅತ್ಯುತ್ತಮ. ಗಾಜಿನ ಬಾಗಿಲುಗಳನ್ನು ಸ್ವಚ್ಛವಾಗಿಡಿ.",
+        "ta": "பொட்டிக் நுழைவாயில் மற்றும் வரவேற்பறைக்கு உகந்தது. கண்ணாடி கதவுகளை தூய்மையாக வைக்கவும்.",
+        "te": "బోటిక్ ప్రవేశద్వారం మరియు స్వాగత కౌంటర్‌కు అనుకూలం. గాజు తలుపులను శుభ్రంగా ఉంచాలి."
+      },
+      "jewelry_luxury": {
+        "en": "Prime location for luxury consultation counters and high-value customer lounge.",
+        "hi": "बहुमूल्य परामर्श काउंटर एवं वीआईपी ग्राहक लाउंज के लिए सर्वोत्तम।",
+        "kn": "ಐಷಾರಾಮಿ ಸಮಾಲೋಚನಾ ಕೌಂಟರ್ ಮತ್ತು ಗಣ್ಯ ಗ್ರಾಹಕರ ಕೋಣೆಗೆ ಪ್ರಶಸ್ತ ಸ್ಥಳ.",
+        "ta": "உயர்மதிப்பு ஆலோசனை கவுண்டர் மற்றும் விஐபி லவுஞ்சிற்கு மிகச் சிறந்தது.",
+        "te": "విలువైన సంప్రదింపుల కౌంటర్ మరియు విఐపి కస్టమర్ లాంజ్ కోసం అనువైనది."
+      },
+      "general_commercial": {
+        "en": "Main reception, sales inquiries, and client engagement desks perform best here.",
+        "hi": "मुख्य स्वागत कक्ष, बिक्री पूछताछ एवं ग्राहक परामर्श केंद्र के लिए आदर्श।",
+        "kn": "ಮುಖ್ಯ ಸ್ವಾಗತ ಕೊಠಡಿ ಮತ್ತು ಮಾರಾಟ ವಿಚಾರಣಾ ಕೌಂಟರ್‌ಗೆ ಸೂಕ್ತ ಸ್ಥಳ.",
+        "ta": "முக்கிய வரவேற்பறை மற்றும் வாடிக்கையாளர் தொடர்பு மையத்திற்கு ஏற்றது.",
+        "te": "ప్రధాన రిసెప్షన్ మరియు విక్రయాల విచారణల విభాగానికి అనుకూలం."
+      }
+    }
+  },
+  "NE": {
+    "zone_name": "Ishanya",
+    "element": "Water / Ether",
+    "deity": "Lord Shiva",
+    "commercial_suitability": [
+      "Mandir / Temple",
+      "Flagship Showcase",
+      "Reception Sanctum"
+    ],
+    "avoid": [
+      "Cash Safe",
+      "Heavy Reserve Stock",
+      "Toilets",
+      "Kitchen / Pantry"
+    ],
+    "business_impact": {
+      "en": "Brings supreme mental clarity, brand goodwill, and customer trust.",
+      "hi": "मानसिक स्पष्टता, ब्रांड की प्रतिष्ठा और अटूट ग्राहक विश्वास लाता है।",
+      "kn": "ಮಾನಸಿಕ ಸ್ಪಷ್ಟತೆ, ಬ್ರ್ಯಾಂಡ್ ಗೌರವ ಮತ್ತು ಗ್ರಾಹಕರ ನಂಬಿಕೆಯನ್ನು ತರುತ್ತದೆ.",
+      "ta": "தெளிவான சிந்தனை, பிராண்ட் நற்பெயர் மற்றும் வாடிக்கையாளர் நம்பிக்கையைத் தரும்.",
+      "te": "మానసిక ప్రశాంతత, బ్రాండ్ ప్రతిష్ట మరియు వినియోగదారుల విశ్వాసాన్ని పెంచుతుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Display exclusive bridal Kanchipuram silks or auspicious temple sarees here. Keep free of heavy boxes.",
+        "hi": "यहाँ विशेष विवाह कांचीपुरम रेशम या मांगलिक साड़ियाँ प्रदर्शित करें। भारी बक्सों से मुक्त रखें।",
+        "kn": "ಇಲ್ಲಿ ವಿಶೇಷ ಮದುವೆ ಕಾಂಚೀಪುರಂ ರೇಷ್ಮೆ ಸೀರೆಗಳನ್ನು ಪ್ರದರ್ಶಿಸಿ. ಭಾರವಾದ ವಸ್ತುಗಳನ್ನು ಇಡಬೇಡಿ.",
+        "ta": "இங்கு விசேஷ முகூர்த்த பட்டுப் புடவைகளை காட்சிப்படுத்தவும். கனமான பெட்டிகளை வைக்காதீர்கள்.",
+        "te": "ఇక్కడ ప్రత్యేక పెళ్లి పట్టుచీరలను ప్రదర్శించండి. బరువైన బాక్సులను ఉంచవద్దు."
+      },
+      "jewelry_luxury": {
+        "en": "Showcase pristine diamond Solitaires and sacred gold deities here under pure white/warm light.",
+        "hi": "यहाँ हीरे और शुद्ध स्वर्ण आभूषणों को पवित्र प्रकाश में प्रदर्शित करें।",
+        "kn": "ಇಲ್ಲಿ ವಜ್ರ ಮತ್ತು ಪವಿತ್ರ ಚಿನ್ನದ ಆಭರಣಗಳನ್ನು ಶುದ್ಧ ಬೆಳಕಿನಲ್ಲಿ ಪ್ರದರ್ಶಿಸಿ.",
+        "ta": "இங்கு வைரம் மற்றும் மங்களகரமான தங்க நகைகளை ஒளிவட்டத்தில் காட்சிப்படுத்தவும்.",
+        "te": "ఇక్కడ వజ్రాలు మరియు పవిత్రమైన బంగారు ఆభరణాలను ప్రదర్శించండి."
+      },
+      "general_commercial": {
+        "en": "Sanctum for prayer, company vision statements, and serene executive discussion.",
+        "hi": "प्रार्थना स्थल, कंपनी के ध्येय वाक्य एवं शांतिपूर्ण विचार-विमर्श हेतु आदर्श।",
+        "kn": "ಪೂಜಾ ಸ್ಥಳ, ಸಂಸ್ಥೆಯ ಧ್ಯೇಯ ವಾಕ್ಯ ಮತ್ತು ಸಮಾಲೋಚನೆಗೆ ಪ್ರಶಸ್ತ.",
+        "ta": "பூஜை அறை மற்றும் நிறுவனத்தின் உயரிய திட்டங்களை தீட்டும் அமைதியான இடம்.",
+        "te": "పూజా స్థలం మరియు ఉన్నత స్థాయి సమావేశాలకు అనువైన ప్రశాంత ప్రదేశం."
+      }
+    }
+  },
+  "E": {
+    "zone_name": "Purva",
+    "element": "Air / Sun",
+    "deity": "Indra / Sun",
+    "commercial_suitability": [
+      "Main Storefront Entrance",
+      "New Arrivals Display",
+      "PR & Marketing Desk"
+    ],
+    "avoid": [
+      "Heavy Waste Storage",
+      "Blocked Windows"
+    ],
+    "business_impact": {
+      "en": "Drives high customer footfall, brand prestige, and public visibility.",
+      "hi": "ग्राहकों का आवागमन, ब्रांड की प्रतिष्ठा और सार्वजनिक पहचान बढ़ाता है।",
+      "kn": "ಗ್ರಾಹಕರ ಒಳಹರಿವು, ಬ್ರ್ಯಾಂಡ್ ಜನಪ್ರಿಯತೆ ಮತ್ತು ಗೌರವವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+      "ta": "வாடிக்கையாளர் வருகை, பிராண்ட் புகழ் மற்றும் வெளிப்படையான வளர்ச்சியைத் தூண்டும்.",
+      "te": "గ్రాహకుల రాకపోకలు, బ్రాండ్ గుర్తింపు మరియు వ్యాపార కీర్తిని పెంచుతుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Position brightly illuminated window mannequins displaying seasonal silk sarees facing East.",
+        "hi": "पूर्व की ओर मुख करके मौसमी रेशमी साड़ियों के साथ प्रकाशित मैनेक्विन रखें।",
+        "kn": "ಪೂರ್ವಕ್ಕೆ ಮುಖಮಾಡಿ ಹೊಸ ವಿನ್ಯಾಸದ ರೇಷ್ಮೆ ಸೀರೆಗಳ ಆಕರ್ಷಕ ಗೊಂಬೆಗಳನ್ನು (ಮ್ಯಾನೆಕ್ವಿನ್) ಪ್ರದರ್ಶಿಸಿ.",
+        "ta": "கிழக்கு நோக்கி நவீன பட்டுப் புடவைகளை அணிந்த பொம்மைகளை (மானெக்வின்) அலங்கரிக்கவும்.",
+        "te": "తూర్పు ముఖంగా సరికొత్త డిజైన్ల పట్టుచీరల డిస్ప్లేలను అమర్చండి."
+      },
+      "jewelry_luxury": {
+        "en": "Display daily-wear gold, lightweight jewelry, and trending collections.",
+        "hi": "दैनिक उपयोग के हल्के सोने के आभूषण एवं नवीनतम संग्रह यहाँ रखें।",
+        "kn": "ದೈನಂದಿನ ಬಳಕೆಯ ಹಗುರವಾದ ಚಿನ್ನದ ಆಭರಣಗಳು ಮತ್ತು ಹೊಸ ಸಂಗ್ರಹಗಳನ್ನು ಪ್ರದರ್ಶಿಸಿ.",
+        "ta": "தினசரி அணியும் மெல்லிய தங்க நகைகள் மற்றும் புதிய கலெக்ஷன்களை காட்சிப்படுத்தவும்.",
+        "te": "తేలికపాటి బంగారు నగలు మరియు సరికొత్త కలెక్షన్లను ఇక్కడ ఉంచండి."
+      },
+      "general_commercial": {
+        "en": "Sales representative desks and brand promotion materials belong on this axis.",
+        "hi": "बिक्री प्रतिनिधियों की मेज एवं ब्रांड प्रचार सामग्री के लिए उपयुक्त।",
+        "kn": "ಮಾರಾಟ ಪ್ರತಿನಿಧಿಗಳ ಆಸನ ಮತ್ತು ಪ್ರಚಾರ ಸಾಮಗ್ರಿಗಳಿಗೆ ಸೂಕ್ತ ಸ್ಥಳ.",
+        "ta": "விற்பனை பிரதிநிதிகள் மற்றும் விளம்பரப் பிரிவுக்கு ஏற்ற இடம்.",
+        "te": "సేల్స్ డెస్క్ మరియు ప్రచార సామగ్రి కోసం సరైన స్థానం."
+      }
+    }
+  },
+  "SE": {
+    "zone_name": "Agneya",
+    "element": "Fire",
+    "deity": "Agni",
+    "commercial_suitability": [
+      "Main Electrical Panel / DB Box",
+      "UPS / Inverter",
+      "Pantry / Coffee Station",
+      "POS Terminal"
+    ],
+    "avoid": [
+      "Drinking Water Dispensers",
+      "Underground Water Sumps",
+      "Owner Seating"
+    ],
+    "business_impact": {
+      "en": "Drives rapid billing velocity, cashflow turnover, and operational energy.",
+      "hi": "त्वरित बिलिंग, नकदी प्रवाह में तेजी और ऊर्जावान संचालन को बढ़ावा देता है।",
+      "kn": "ತ್ವರಿತ ಬಿಲ್ಲಿಂಗ್, ನಗದು ಚಲಾವಣೆ ಮತ್ತು ಚುರುಕಾದ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ನೀಡುತ್ತದೆ.",
+      "ta": "வேகமான பில்லிங், பணப்புழக்க சுழற்சி மற்றும் சுறுசுறுப்பான வியாபாரத்தை உருவாக்கும்.",
+      "te": "వేగవంతమైన బిల్లింగ్, నిరంతర నగదు లావాదేవీలు మరియు చురుకైన పనితీరును అందిస్తుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Place the POS computer billing station here (cashier facing North or East). House steam iron stations here.",
+        "hi": "पीओएस बिलिंग काउंटर यहाँ रखें (मुख उत्तर या पूर्व में)। स्टीम इस्त्री यहाँ स्थापित करें।",
+        "kn": "ಪಿಒಎಸ್ ಬಿಲ್ಲಿಂಗ್ ಕೌಂಟರ್ ಅನ್ನು ಇಲ್ಲಿಡಿ (ಮುಖ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ). ಸ್ಟೀಮ್ ಇಸ್ತ್ರಿ ಇಲ್ಲಿರಲಿ.",
+        "ta": "பிஓஎஸ் பில்லிங் கவுண்ட்டரை இங்கு அமைக்கவும் (வடக்கு/கிழக்கு நோக்கி). ஸ்டீம் அயர்ன் இங்கு வைக்கலாம்.",
+        "te": "పిఒఎస్ బిల్లింగ్ కౌంటర్‌ను ఇక్కడ ఉంచండి (ఉత్తరం లేదా తూర్పు ముఖంగా). స్టీమ్ ఐరన్ ఇక్కడ ఉంచవచ్చు."
+      },
+      "jewelry_luxury": {
+        "en": "Install billing computers, CCTV surveillance servers, and testing equipment in this zone.",
+        "hi": "बिलिंग कंप्यूटर, सीसीटीवी सर्वर और परीक्षण उपकरण इसी क्षेत्र में स्थापित करें।",
+        "kn": "ಬಿಲ್ಲಿಂಗ್ ಕಂಪ್ಯೂಟರ್, ಸಿಸಿಟಿವಿ ಸರ್ವರ್ ಮತ್ತು ಪರೀಕ್ಷಾ ಸಾಧನಗಳನ್ನು ಈ ವಲಯದಲ್ಲಿ ಅಳವಡಿಸಿ.",
+        "ta": "பில்லிங் கம்ப்யூட்டர், சிசிடிவி சர்வர்கள் மற்றும் ஆய்வு கருவிகளை இங்கு நிறுவவும்.",
+        "te": "బిల్లింగ్ కంప్యూటర్లు, సిసిటివి సర్వర్లు మరియు టెస్టింగ్ పరికరాలను ఇక్కడ ఏర్పాటు చేయండి."
+      },
+      "general_commercial": {
+        "en": "Primary server rack, main circuit breakers, and staff tea station belong here.",
+        "hi": "मुख्य सर्वर रैक, विद्युत स्विचबोर्ड एवं चाय-कॉफी स्टेशन यहाँ बनाएं।",
+        "kn": "ಮುಖ್ಯ ಸರ್ವರ್, ವಿದ್ಯುತ್ ಪ್ಯಾನೆಲ್ ಮತ್ತು ಸಿಬ್ಬಂದಿ ಟೀ ಸ್ಟೇಷನ್ ಇಲ್ಲೇ ಇರಬೇಕು.",
+        "ta": "சர்வர் அறை, மெயின் ஸ்விட்ச் போர்டு மற்றும் தேனீர் நிலையம் இங்கு அமைய வேண்டும்.",
+        "te": "ప్రధాన సర్వర్ రాక్, విద్యుత్ డిబి బాక్స్ మరియు టీ/కాఫీ స్టేషన్ ఇక్కడే ఉండాలి."
+      }
+    }
+  },
+  "S": {
+    "zone_name": "Dakshina",
+    "element": "Earth / Fire",
+    "deity": "Yama",
+    "commercial_suitability": [
+      "Back-Office Workstations",
+      "Heavy Display Racks",
+      "Senior Manager Cabins"
+    ],
+    "avoid": [
+      "Customer Main Entrance",
+      "Water Borings"
+    ],
+    "business_impact": {
+      "en": "Anchors business longevity, institutional reputation, and operational stability.",
+      "hi": "व्यापार की दीर्घायु, प्रतिष्ठा और संगठनात्मक स्थिरता को सुदृढ़ करता है।",
+      "kn": "ವ್ಯವಹಾರದ ದೀರ್ಘಾಯುಷ್ಯ, ಘನತೆ ಮತ್ತು ಕಾರ್ಯಾಚರಣೆಯ ಸ್ಥಿರತೆಯನ್ನು ಬಲಪಡಿಸುತ್ತದೆ.",
+      "ta": "வணிகத்தின் நீண்ட ஆயுள், நற்பெயர் மற்றும் நிறுவன நிலைத்தன்மையை உறுதி செய்யும்.",
+      "te": "వ్యాపార దీర్ఘకాలిక మనుగడ, మార్కెట్ కీర్తి మరియు స్థిరత్వాన్ని కాపాడుతుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Erect heavy solid wood shelving for premium folded silks along the South wall.",
+        "hi": "दक्षिण की दीवार पर भारी लकड़ी की अलमारियों में तह की हुई रेशमी साड़ियाँ रखें।",
+        "kn": "ದಕ್ಷಿಣದ ಗೋಡೆಯಲ್ಲಿ ಮರದ ಕಪಾಟುಗಳನ್ನು ನಿರ್ಮಿಸಿ ಮಡಚಿದ ರೇಷ್ಮೆ ಸೀರೆಗಳನ್ನು ಸಂಗ್ರಹಿಸಿ.",
+        "ta": "தெற்கு சுவரில் கனமான மர அலமாரிகளில் மடிக்கப்பட்ட பட்டுப் புடவைகளை அடுக்கவும்.",
+        "te": "దక్షిణం గోడ వెంబడి బరువైన చెక్క అరలలో మడతపెట్టిన పట్టుచీరలను భద్రపరచండి."
+      },
+      "jewelry_luxury": {
+        "en": "Store heavy security safes and reinforced storage vaults backing the South wall.",
+        "hi": "दक्षिण दीवार के सहारे भारी तिजोरियां एवं मजबूत लॉकर स्थापित करें।",
+        "kn": "ದಕ್ಷಿಣದ ಗೋಡೆಯ ಆಧಾರದೊಂದಿಗೆ ಭದ್ರತಾ ತಿಜೋರಿಗಳನ್ನು ಇರಿಸಿ.",
+        "ta": "தெற்கு சுவரை ஒட்டி கனமான பாதுகாப்பு பெட்டகங்களை அமைக்கவும்.",
+        "te": "దక్షిణం గోడ ఆనుకుని భారీ సేఫ్‌లు మరియు లాకర్లను ఏర్పాటు చేయండి."
+      },
+      "general_commercial": {
+        "en": "Place senior accounts and administrative team desks facing North or East.",
+        "hi": "वरिष्ठ लेखा एवं प्रशासनिक टीम की मेज उत्तर या पूर्व की ओर मुख करके रखें।",
+        "kn": "ಹಿರಿಯ ಲೆಕ್ಕಪರಿಶೋಧಕರು ಮತ್ತು ಆಡಳಿತ ಸಿಬ್ಬಂದಿ ಆಸನಗಳನ್ನು ಇಲ್ಲಿರಿಸಿ.",
+        "ta": "மூத்த கணக்காளர்கள் மற்றும் நிர்வாகப் பிரிவு மேசைகளை இங்கு அமைக்கவும்.",
+        "te": "సీనియర్ అకౌంట్స్ మరియు అడ్మినిస్ట్రేషన్ డెస్క్‌లను ఇక్కడ ఉంచండి."
+      }
+    }
+  },
+  "SW": {
+    "zone_name": "Nairutya",
+    "element": "Earth",
+    "deity": "Nirrti",
+    "commercial_suitability": [
+      "Owner / MD Seating Desk",
+      "Main Cash Safe Box",
+      "Heavy Bulk Reserve Stock"
+    ],
+    "avoid": [
+      "Customer Main Entrance",
+      "Water Fountains",
+      "Restrooms / Toilets"
+    ],
+    "business_impact": {
+      "en": "Commands ultimate authority, wealth accumulation, leadership control, and financial retention.",
+      "hi": "परम अधिकार, धन संचय, नेतृत्व नियंत्रण एवं वित्तीय स्थिरता प्रदान करता है।",
+      "kn": "ಪೂರ್ಣ ಅಧಿಕಾರ, ಸಂಪತ್ತು ಶೇಖರಣೆ, ನಾಯಕತ್ವದ ನಿಯಂತ್ರಣ ಮತ್ತು ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ನೀಡುತ್ತದೆ.",
+      "ta": "முழு ஆளுமை, செல்வச் சேமிப்பு, தலைமை கட்டுப்பாடு மற்றும் நிதி பாதுகாப்பை வழங்கும்.",
+      "te": "సంపూర్ణ అధికారం, సంపద నిల్వ, నాయకత్వ నియంత్రణ మరియు ఆర్థిక స్థిరత్వాన్ని ఇస్తుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Owner/MD desk must be here, sitting facing North or East with solid wall behind. Cash safe placed here opening North.",
+        "hi": "मालिक की मेज यहाँ हो (मुख उत्तर या पूर्व)। पीछे ठोस दीवार हो। तिजोरी यहीं रखें जिसका मुख उत्तर में खुले।",
+        "kn": "ಮಾಲೀಕರ ಆಸನ ಇಲ್ಲೇ ಇರಬೇಕು (ಮುಖ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ). ಹಿಂಭಾಗದಲ್ಲಿ ಭದ್ರವಾದ ಗೋಡೆ ಇರಲಿ. ತಿಜೋರಿ ಬಾಗಿಲು ಉತ್ತರಕ್ಕೆ ತೆರೆಯಲಿ.",
+        "ta": "உரிமையாளர் மேசை இங்கு அமைய வேண்டும் (வடக்கு/கிழக்கு நோக்கி). பின்னால் திடமான சுவர் இருக்க வேண்டும். பணப்பெட்டி வடக்கு நோக்கி திறக்க வேண்டும்.",
+        "te": "యజమాని డెస్క్ ఇక్కడే ఉండాలి (ఉత్తరం లేదా తూర్పు ముఖంగా). వెనుక గట్టి గోడ ఉండాలి. లాకర్ ఉత్తరం వైపు తెరుచుకోవాలి."
+      },
+      "jewelry_luxury": {
+        "en": "Master vault and owner cabin anchored here. Supreme security and zero financial leakage.",
+        "hi": "मुख्य वॉल्ट और मालिक का कक्ष यहीं हो। सर्वोच्च सुरक्षा एवं वित्तीय सुदृढ़ता।",
+        "kn": "ಮುಖ್ಯ ವಾಲ್ಟ್ ಮತ್ತು ಮಾಲೀಕರ ಕೊಠಡಿಯನ್ನು ಇಲ್ಲಿ ಸ್ಥಾಪಿಸಿ. ಗರಿಷ್ಠ ಭದ್ರತೆ ದೊರೆಯುತ್ತದೆ.",
+        "ta": "முக்கிய பெட்டகம் மற்றும் உரிமையாளர் அறை இங்கு அமைய வேண்டும். உச்சக்கட்ட பாதுகாப்பு.",
+        "te": "ప్రధాన వాల్ట్ మరియు యజమాని క్యాబిన్ ఇక్కడే ఉండాలి. గరిష్ట భద్రత లభిస్తుంది."
+      },
+      "general_commercial": {
+        "en": "MD / CEO executive cabin. Place heaviest office furniture, safe, and critical company archives here.",
+        "hi": "प्रबंध निदेशक / सीईओ का केबिन। सबसे भारी फर्नीचर, तिजोरी एवं महत्वपूर्ण दस्तावेज यहाँ रखें।",
+        "kn": "ವ್ಯವಸ್ಥಾಪಕ ನಿರ್ದೇಶಕರ (MD/CEO) ಕೊಠಡಿ. ಅತ್ಯಂತ ಭಾರವಾದ ಪೀಠೋಪಕರಣಗಳು ಮತ್ತು ದಾಖಲೆಗಳು ಇಲ್ಲಿರಲಿ.",
+        "ta": "நிர்வாக இயக்குனர் அறை. கனமான மரச்சாமான்கள், லாக்கர் மற்றும் முக்கிய ஆவணங்களை இங்கு வைக்கவும்.",
+        "te": "మేనేజింగ్ డైరెక్టర్ క్యాబిన్. అత్యంత బరువైన ఫర్నిచర్, సేఫ్ మరియు కీలక పత్రాలు ఇక్కడే ఉండాలి."
+      }
+    }
+  },
+  "W": {
+    "zone_name": "Paschima",
+    "element": "Space / Air",
+    "deity": "Varuna",
+    "commercial_suitability": [
+      "Sales Counter & Demonstration",
+      "Trial Rooms",
+      "Merchandise Display Cabinets"
+    ],
+    "avoid": [
+      "Mandir / Prayer Altar",
+      "Light Balconies"
+    ],
+    "business_impact": {
+      "en": "Secures high profit margins, consistent revenue monetization, and closure of deals.",
+      "hi": "उच्च लाभ मार्जिन, निरंतर राजस्व प्राप्ति और सौदों को सफलतापूर्वक पूरा करता है।",
+      "kn": "ಉತ್ತಮ ಲಾಭ, ನಿರಂತರ ಆದಾಯ ಮತ್ತು ವ್ಯಾಪಾರ ವಹಿವಾಟುಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಳಿಸುತ್ತದೆ.",
+      "ta": "அதிக லாப வரம்பு, தொடர் வருமானம் மற்றும் வெற்றிகரமான விற்பனையை உறுதி செய்யும்.",
+      "te": "అధిక లాభాలు, స్థిరమైన ఆదాయం మరియు వ్యాపార ఒప్పందాల విజయవంతమైన ముగింపును ఇస్తుంది."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Ideal for saree drapery display counters and consultation tables where customers inspect silk weaves.",
+        "hi": "साड़ियों के प्रदर्शन काउंटर और परामर्श मेजों के लिए आदर्श जहाँ ग्राहक साड़ियाँ देखते हैं।",
+        "kn": "ಗ್ರಾಹಕರು ರೇಷ್ಮೆ ಸೀರೆಗಳನ್ನು ವೀಕ್ಷಿಸುವ ಮತ್ತು ಆಯ್ಕೆ ಮಾಡುವ ಪ್ರದರ್ಶನ ಕೌಂಟರ್‌ಗಳಿಗೆ ಅತ್ಯುತ್ತಮ.",
+        "ta": "வாடிக்கையாளர்கள் பட்டுப் புடவைகளை விரித்துப் பார்த்து தேர்ந்தெடுக்கும் மேசைகளுக்கு ஏற்றது.",
+        "te": "కస్టమర్లు పట్టుచీరలను చూసి ఎంపిక చేసుకునే ప్రదర్శన కౌంటర్లకు ఇది ఉత్తమం."
+      },
+      "jewelry_luxury": {
+        "en": "Sales presentation desks and diamond viewing tables with customer seating facing East.",
+        "hi": "बिक्री प्रस्तुति मेज एवं हीरा निरीक्षण काउंटर जहाँ ग्राहक का मुख पूर्व में हो।",
+        "kn": "ಮಾರಾಟ ಪ್ರಸ್ತುತಿ ಮೇಜುಗಳು ಮತ್ತು ಗ್ರಾಹಕರು ಪೂರ್ವಕ್ಕೆ ಮುಖಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳುವ ಕೌಂಟರ್‌ಗಳು.",
+        "ta": "விற்பனை மேசைகள் மற்றும் வாடிக்கையாளர்கள் கிழக்கு நோக்கி அமர்ந்து நகைகளை பார்க்கும் இடம்.",
+        "te": "విక్రయాల ప్రదర్శన బల్లలు మరియు కస్టమర్లు తూర్పు ముఖంగా కూర్చునే కౌంటర్లు."
+      },
+      "general_commercial": {
+        "en": "Core sales division, conference rooms, and customer closing meeting rooms.",
+        "hi": "बिक्री विभाग, सम्मेलन कक्ष और ग्राहक सौदे बंद करने वाले मीटिंग रूम।",
+        "kn": "ಮಾರಾಟ ವಿಭಾಗ, ಸಭಾಂಗಣ ಮತ್ತು ವ್ಯಾಪಾರ ಒಪ್ಪಂದಗಳ ಕೊಠಡಿ.",
+        "ta": "விற்பனை பிரிவு, மாநாட்டு கூடம் மற்றும் வர்த்தக பேச்சுவார்த்தை அறை.",
+        "te": "సేల్స్ విభాగం, సమావేశ మందిరం మరియు డీల్ ముగింపు గదులు."
+      }
+    }
+  },
+  "NW": {
+    "zone_name": "Vayavya",
+    "element": "Air",
+    "deity": "Vayu",
+    "commercial_suitability": [
+      "Fast-Moving Stock Racks",
+      "Trial / Changing Rooms",
+      "Packing & Dispatch Bay"
+    ],
+    "avoid": [
+      "Cash Safe / Locker",
+      "Permanent Heavy Reserve Stock",
+      "Owner Cabin"
+    ],
+    "business_impact": {
+      "en": "Accelerates stock rotation, prevents inventory dead-stock, and speeds up product dispatch.",
+      "hi": "माल के तेजी से बिकने को गति देता है, पुराने स्टॉक को जमा नहीं होने देता और प्रेषण तेज करता है।",
+      "kn": "ದಾಸ್ತಾನು ತ್ವರಿತವಾಗಿ ಮಾರಾಟವಾಗುವಂತೆ ಮಾಡುತ್ತದೆ ಮತ್ತು ಸರಕುಗಳನ್ನು ಸುಲಭವಾಗಿ ಸಾಗಿಸಲು ಸಹಕಾರಿ.",
+      "ta": "பொருட்கள் விரைவாக விற்றுத் தீர வழிவகுக்கும், தேக்க நிலையைத் தடுக்கும் மற்றும் பார்சல் அனுப்ப உதவும்.",
+      "te": "సరుకు వేగంగా అమ్ముడయ్యేలా చేస్తుంది, నిల్వ పేరుకుపోకుండా నివారిస్తుంది మరియు ప్యాకింగ్‌కు అనుకూలం."
+    },
+    "retail_tips": {
+      "apparel_silk_sarees": {
+        "en": "Place fast-moving trend sarees, festive collections, and customer trial rooms here. Stock moves swiftly!",
+        "hi": "तेजी से बिकने वाली साड़ियाँ, त्यौहारी संग्रह और ट्रायल रूम यहाँ रखें। माल तुरंत बिकेगा!",
+        "kn": "ವೇಗವಾಗಿ ಮಾರಾಟವಾಗುವ ಟ್ರೆಂಡಿ ಸೀರೆಗಳು, ಹಬ್ಬದ ಸಂಗ್ರಹ ಮತ್ತು ಟ್ರಯಲ್ ರೂಮ್ ಇಲ್ಲೇ ಇರಲಿ. ವ್ಯಾಪಾರ ಚುರುಕಾಗುತ್ತದೆ!",
+        "ta": "விரைவாக விற்பனையாகும் ட்ரெண்டிங் புடவைகள், பண்டிகை கால ஆடைகள் மற்றும் டிரையல் ரூம் இங்கு அமையட்டும்.",
+        "te": "వేగంగా అమ్ముడయ్యే చీరలు, పండుగ కలెక్షన్లు మరియు ట్రయల్ రూమ్‌లను ఇక్కడే ఉంచండి."
+      },
+      "jewelry_luxury": {
+        "en": "Package dispatch counter, online courier order processing, and finished goods shipping.",
+        "hi": "पार्सल प्रेषण काउंटर, ऑनलाइन ऑर्डर पैकेजिंग और तैयार माल की डिलीवरी व्यवस्था।",
+        "kn": "ಪಾರ್ಸಲ್ ವಿತರಣಾ ಕೌಂಟರ್, ಆನ್‌ಲೈನ್ ಆರ್ಡರ್ ಪ್ಯಾಕಿಂಗ್ ಮತ್ತು ಸಾಗಣೆ ವಿಭಾಗ.",
+        "ta": "பார்சல் அனுப்பும் கவுண்டர், ஆன்லைன் ஆர்டர் பேக்கிங் மற்றும் டெலிவரி பிரிவு.",
+        "te": "పార్శిల్ డిస్పాచ్ కౌంటర్, ఆన్‌లైన్ ఆర్డర్ల ప్యాకింగ్ మరియు డెలివరీ విభాగం."
+      },
+      "general_commercial": {
+        "en": "Logistics, delivery staging, customer trial suites, and rotating finished goods inventory.",
+        "hi": "लॉजिस्टिक्स, डिलीवरी केंद्र, ग्राहक परीक्षण कक्ष और गतिशील इन्वेंट्री।",
+        "kn": "ಲಾಜಿಸ್ಟಿಕ್ಸ್, ಡೆಲಿವರಿ ವಿಭಾಗ, ಗ್ರಾಹಕರ ಪರೀಕ್ಷಾ ಕೊಠಡಿ ಮತ್ತು ಚಲನಶೀಲ ದಾಸ್ತಾನು.",
+        "ta": "சரக்கு போக்குவரத்து, டெலிவரி பிரிவு மற்றும் தொடர்ந்து சுழலும் இருப்புப் பகுதி.",
+        "te": "లాజిస్టిక్స్, డెలివరీ విభాగం మరియు రొటేటింగ్ ఇన్వెంటరీ."
+      }
+    }
+  }
+},
+
+  // Retail & Business Vastu Profiles
+  RETAIL_PROFILES: [
+  {
+    "profile_id": "apparel_silk_sarees",
+    "name": {
+      "en": "Apparel, Silk Sarees & Boutiques",
+      "hi": "परिधान, रेशमी साड़ियाँ एवं बुटीक",
+      "kn": "ವಸ್ತ್ರ, ರೇಷ್ಮೆ ಸೀರೆಗಳು ಮತ್ತು ಅಂಗಡಿಗಳು",
+      "ta": "ஆடைகள், பட்டுப் புடவைகள் & பொட்டிக்குகள்",
+      "te": "వస్త్రాలు, పట్టుచీరలు & బోటిక్‌లు"
+    },
+    "icon": "👗",
+    "primary_element": "Fire & Venus (Aesthetics, Luster & Luxury)",
+    "favored_entrance": [
+      "NE",
+      "E",
+      "SE"
+    ],
+    "keyZones": [
+      "SE",
+      "E",
+      "NE",
+      "SW",
+      "NW"
+    ],
+    "focus_zones": {
+      "entrance": "East / Northeast for visual appeal and customer influx",
+      "cash_register": "Southwest zone, safe opening North",
+      "display_shelves": "West, Northwest, or South walls",
+      "fitting_rooms": "Northwest or West",
+      "zari_silk_display": "North-East or East for premium luster and prestige"
+    },
+    "tips": {
+      "en": "Emphasize South-East (Venus / Aesthetics) and North-East (Purity / Luster). Keep silks displayed on West or South racks facing East or North.",
+      "hi": "दक्षिण-पूर्व (शुक्र/सौंदर्य) और उत्तर-पूर्व (शुद्धता) को प्राथमिकता दें। रेशमी साड़ियों को पश्चिम या दक्षिण रैक में पूर्व या उत्तर की ओर प्रदर्शित करें।",
+      "kn": "ಆಗ್ನೇಯ (ಶುಕ್ರ/ಸೌಂದರ್ಯ) ಮತ್ತು ಈಶಾನ್ಯಕ್ಕೆ ಆದ್ಯತೆ ನೀಡಿ. ರೇಷ್ಮೆ ಸೀರೆಗಳನ್ನು ಪಶ್ಚಿಮ ಅಥವಾ ದಕ್ಷಿಣದ ಕಪಾಟಿನಲ್ಲಿ ಪೂರ್ವ ಅಥವಾ ಉತ್ತರಕ್ಕೆ ಮುಖಮಾಡಿ ಪ್ರದರ್ಶಿಸಿ.",
+      "ta": "தென்கிழக்கு (அழகு/சுக்கிரன்) மற்றும் வடகிழக்கிற்கு முக்கியத்துவம் கொடுங்கள். பட்டுப் புடவைகளை மேற்கு/தெற்கு சுவரில் கிழக்கு/வடக்கு நோக்கி காட்சிப்படுத்துங்கள்.",
+      "te": "ఆగ్నేయం (శుక్రుడు/సౌందర్యం) మరియు ఈశాన్యానికి ప్రాధాన్యత ఇవ్వండి. పట్టుచీరలను పడమర లేదా దక్షిణం రాక్స్‌లో తూర్పు/ఉత్తరం ముఖంగా ప్రదర్శించండి."
+    }
+  },
+  {
+    "profile_id": "jewelry_luxury",
+    "name": {
+      "en": "Jewelry & High-Value Retail",
+      "hi": "आभूषण एवं बहुमूल्य खुदरा",
+      "kn": "ಆಭರಣಗಳು ಮತ್ತು ಬೆಲೆಬಾಳುವ ವ್ಯಾಪಾರ",
+      "ta": "நகைகள் & உயர் மதிப்பு சில்லறை",
+      "te": "ఆభరణాలు & విలువైన వస్తువుల రిటైల్"
+    },
+    "icon": "💎",
+    "primary_element": "Earth & Water (Stability & Wealth Accumulation)",
+    "favored_entrance": [
+      "N",
+      "NE"
+    ],
+    "keyZones": [
+      "N",
+      "NE",
+      "SW"
+    ],
+    "focus_zones": {
+      "entrance": "North (Kubera Zone) or Northeast",
+      "vault_cash": "Southwest corner, opening facing North",
+      "premium_display": "Northeast or East",
+      "security_counter": "Southeast or Northwest"
+    },
+    "tips": {
+      "en": "Anchor high-value vaults in South-West opening North. Position diamond/gold display counters in North or North-East.",
+      "hi": "मुख्य तिजोरी दक्षिण-पश्चिम में रखें जिसका द्वार उत्तर में खुले। हीरे व सोने के डिस्प्ले काउंटर उत्तर या उत्तर-पूर्व में रखें।",
+      "kn": "ಬೆಲೆಬಾಳುವ ವಾಲ್ಟ್ ನೈಋತ್ಯದಲ್ಲಿರಲಿ (ಉತ್ತರಕ್ಕೆ ತೆರೆಯಲಿ). ವಜ್ರ ಮತ್ತು ಚಿನ್ನದ ಕೌಂಟರ್‌ಗಳನ್ನು ಉತ್ತರ ಅಥವಾ ಈಶಾನ್ಯದಲ್ಲಿರಿಸಿ.",
+      "ta": "முக்கிய நகைப் பெட்டகத்தை தென்மேற்கில் வைத்து வடக்கு நோக்கி திறக்கவும். வைரம்/தங்க கவுண்ட்டரை வடக்கு அல்லது வடகிழக்கில் வைக்கவும்.",
+      "te": "భారీ వాల్ట్‌ను నైరుతిలో ఉంచి తలుపు ఉత్తరం వైపు తెరుచుకునేలా చేయండి. బంగారం, వజ్రాల కౌంటర్లను ఉత్తరం లేదా ఈశాన్యంలో ఉంచండి."
+    }
+  },
+  {
+    "profile_id": "general_commercial",
+    "name": {
+      "en": "General Commercial Office & Stores",
+      "hi": "सामान्य वाणिज्यिक कार्यालय एवं प्रतिष्ठान",
+      "kn": "ಸಾಮಾನ್ಯ ವಾಣಿಜ್ಯ ಕಚೇರಿ ಮತ್ತು ಮಳಿಗೆಗಳು",
+      "ta": "பொது வணிக அலுவலகம் & கடைகள்",
+      "te": "సాధారణ వాణిజ్య కార్యాలయం & దుకాణాలు"
+    },
+    "icon": "🏬",
+    "primary_element": "Balanced 5 Elements (Harmony & Scale)",
+    "favored_entrance": [
+      "N",
+      "NE",
+      "E"
+    ],
+    "keyZones": [
+      "SW",
+      "SE",
+      "NW",
+      "N"
+    ],
+    "focus_zones": {
+      "owner_desk": "Southwest facing North/East",
+      "fast_moving_stock": "Northwest",
+      "heavy_inventory": "Southwest / South",
+      "electrical_db": "Southeast"
+    },
+    "tips": {
+      "en": "Ensure Owner/MD sits in South-West facing North or East. Place fast turnover inventory in North-West and servers in South-East.",
+      "hi": "मालिक दक्षिण-पश्चिम में बैठकर उत्तर या पूर्व की ओर मुख करें। त्वरित बिक्री माल उत्तर-पश्चिम में और सर्वर दक्षिण-पूर्व में रखें।",
+      "kn": "ಮಾಲೀಕರು ನೈಋತ್ಯದಲ್ಲಿ ಕುಳಿತು ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಲಿ. ಚಲನಶೀಲ ಸರಕುಗಳು ವಾಯುವ್ಯದಲ್ಲಿ ಮತ್ತು ಸರ್ವರ್ ಆಗ್ನೇಯದಲ್ಲಿರಲಿ.",
+      "ta": "உரிமையாளர் தென்மேற்கில் வடக்கு அல்லது கிழக்கு நோக்கி அமரட்டும். சுழலும் பொருட்கள் வடமேற்கிலும் சர்வர்கள் தென்கிழக்கிலும் இருக்கட்டும்.",
+      "te": "యజమాని నైరుతిలో ఉత్తరం లేదా తూర్పు ముఖంగా కూర్చోవాలి. వేగంగా అమ్ముడయ్యే స్టాక్ వాయువ్యంలో, సర్వర్లు ఆగ్నేయంలో ఉండాలి."
+    }
+  }
+],
+
+  // Specialized Commercial Presets for Room & Zone Finder
+  COMMERCIAL_ROOMS: [
+  {
+    "id": "owner_desk",
+    "icon": "👑",
+    "names": {
+      "en": "Owner / MD Seating & Desk",
+      "hi": "मालिक / प्रबंध निदेशक का आसन व मेज",
+      "kn": "ಮಾಲೀಕರು / ವ್ಯವಸ್ಥಾಪಕ ನಿರ್ದೇಶಕರ ಆಸನ",
+      "ta": "உரிமையாளர் / மேலாண்மை இயக்குனர் இருக்கை",
+      "te": "యజమాని / మేనేజింగ్ డైరెక్టర్ కూర్చునే స్థానం"
+    },
+    "idealZones": [
+      "SW"
+    ],
+    "avoidZones": [
+      "NE",
+      "SE",
+      "NW"
+    ],
+    "remedyEn": "Target Zone: SW (Nairutya). Owner must sit facing North or East for supreme authority, firm leadership, and financial retention.",
+    "remedyHi": "नैऋत्य (दक्षिण-पश्चिम) में बैठें और मुख उत्तर या पूर्व की ओर रखें। इससे नेतृत्व सुदृढ़ रहता है और व्यवसाय बढ़ता है।",
+    "remedyKn": "ನೈಋತ್ಯವು (ದಕ್ಷಿಣ-ಪಶ್ಚಿಮ) ಶ್ರೇಷ್ಠ. ಮುಖವು ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಇರಲಿ. ಇದು ಸಂಸ್ಥೆಯ ಮೇಲೆ ಸಂಪೂರ್ಣ ನಿಯಂತ್ರಣ ನೀಡುತ್ತದೆ.",
+    "remedyTa": "தென்மேற்கு (நைருதி) மிகச் சிறந்த இடம். வடக்கு அல்லது கிழக்கு நோக்கி அமர வேண்டும். தலைமைப் பண்பும் நிதிப் பாதுகாப்பும் கூடும்.",
+    "remedyTe": "నైరుతి అత్యంత అనుకూలం. కూర్చునేటప్పుడు ముఖం ఉత్తరం లేదా తూర్పు వైపు ఉండాలి. ఇది సంస్థపై పూర్తి పట్టును ఇస్తుంది."
+  },
+  {
+    "id": "cash_safe",
+    "icon": "💰",
+    "names": {
+      "en": "Cash Locker & Safe Placement",
+      "hi": "रोकड़ तिजोरी एवं सुरक्षित स्थान",
+      "kn": "ನಗದು ತಿಜೋರಿ ಮತ್ತು ಸುರಕ್ಷಿತ ಪೆಟ್ಟಿಗೆ",
+      "ta": "பணப்பெட்டி & லாக்கர் அமைவிடம்",
+      "te": "నగదు లాకర్ & సేఫ్ స్థానం"
+    },
+    "idealZones": [
+      "SW",
+      "N"
+    ],
+    "avoidZones": [
+      "SE",
+      "S",
+      "NE"
+    ],
+    "remedyEn": "Target Zone: SW or North. Place heavy locker in SW opening North towards Lord Kubera. Never place in South-East or North-East.",
+    "remedyHi": "तिजोरी नैऋत्य में रखें जिसका द्वार उत्तर (कुबेर दिशा) में खुले। आग्नेय या ईशान्य में कभी न रखें।",
+    "remedyKn": "ತಿಜೋರಿಯನ್ನು ನೈಋತ್ಯದಲ್ಲಿಟ್ಟು ಅದರ ಬಾಗಿಲು ಉತ್ತರಕ್ಕೆ (ಕುಬೇರ ದಿಕ್ಕು) ತೆರೆಯುವಂತಿರಲಿ. ಆಗ್ನೇಯ ಅಥವಾ ಈಶಾನ್ಯದಲ್ಲಿ ಬೇಡ.",
+    "remedyTa": "பணப்பெட்டியை தென்மேற்கில் வைத்து அதன் கதவு வடக்கு நோக்கி திறக்க வேண்டும். தென்கிழக்கு அல்லது வடகிழக்கில் வைக்கக் கூடாது.",
+    "remedyTe": "లాకర్‌ను నైరుతిలో ఉంచి తలుపు ఉత్తరం (కుబేర దిశ) వైపు తెరిచేలా చేయాలి. ఆగ్నేయం లేదా ఈశాన్యంలో అస్సలు పెట్టకూడదు."
+  },
+  {
+    "id": "fast_stock",
+    "icon": "⚡",
+    "names": {
+      "en": "Fast-Moving Stock & Sales Display",
+      "hi": "शीघ्र बिकने वाला माल एवं प्रदर्शन",
+      "kn": "ವೇಗವಾಗಿ ಮಾರಾಟವಾಗುವ ದಾಸ್ತಾನು",
+      "ta": "வேகமாக விற்பனையாகும் பொருட்கள்",
+      "te": "వేగంగా అమ్ముడయ్యే స్టాక్"
+    },
+    "idealZones": [
+      "NW"
+    ],
+    "avoidZones": [
+      "SW",
+      "NE"
+    ],
+    "remedyEn": "Target Zone: NW (Vayavya - Air). Air element accelerates movement and sales turnover, preventing goods stagnation.",
+    "remedyHi": "वायव्य (उत्तर-पश्चिम) में रखने से माल जल्दी बिकता है और व्यापार में निरंतर गति बनी रहती है।",
+    "remedyKn": "ವಾಯುವ್ಯದಲ್ಲಿ ಇರಿಸಿದರೆ ದಾಸ್ತಾನು ಶೀಘ್ರವಾಗಿ ಮಾರಾಟವಾಗಿ ನಗದು ಚಲಾವಣೆ ಹೆಚ್ಚುತ್ತದೆ.",
+    "remedyTa": "வடமேற்கு (வாயு) பகுதியில் வைத்தால் பொருட்கள் தேக்கமின்றி விரைவாக விற்பனையாகும்.",
+    "remedyTe": "వాయువ్యంలో ఉంచడం వల్ల సరుకు త్వరగా అమ్ముడై నిరంతర నగదు ప్రవాహం ఉంటుంది."
+  },
+  {
+    "id": "heavy_stock",
+    "icon": "📦",
+    "names": {
+      "en": "Heavy Reserve Stock & Warehouse",
+      "hi": "भारी गोदाम एवं आरक्षित माल",
+      "kn": "ಭಾರವಾದ ದಾಸ್ತಾನು ಮತ್ತು ಗೋದಾಮು",
+      "ta": "கனரக இருப்பு & கிடங்கு",
+      "te": "భారీ సరుకు నిల్వ & గోదాము"
+    },
+    "idealZones": [
+      "SW",
+      "S",
+      "W"
+    ],
+    "avoidZones": [
+      "NE",
+      "N",
+      "E"
+    ],
+    "remedyEn": "Target Zone: SW (Earth), South, or West. Heavy earth weight anchors stability. Never overload North or North-East.",
+    "remedyHi": "भारी माल नैऋत्य, दक्षिण या पश्चिम में रखें। उत्तर या ईशान्य को सदैव हल्का और खुला रखें।",
+    "remedyKn": "ಭಾರವಾದ ದಾಸ್ತಾನನ್ನು ನೈಋತ್ಯ, ದಕ್ಷಿಣ ಅಥವಾ ಪಶ್ಚಿಮದಲ್ಲಿಡಿ. ಉತ್ತರ ಮತ್ತು ಈಶಾನ್ಯವನ್ನು ಹಗುರವಾಗಿಡಿ.",
+    "remedyTa": "கனரக பொருட்களை தென்மேற்கு, தெற்கு அல்லது மேற்கில் அடுக்கவும். வடகிழக்கை எப்போதும் பாரமின்றி வைக்கவும்.",
+    "remedyTe": "భారీ సరుకును నైరుతి, దక్షిణం లేదా పడమరలో నిల్వ చేయాలి. ఉత్తరం మరియు ఈశాన్యం ఖాళీగా ఉండాలి."
+  },
+  {
+    "id": "electrical_db",
+    "icon": "⚡",
+    "names": {
+      "en": "Electrical DB, UPS, Server & Generator",
+      "hi": "विद्युत पैनल, यूपीएस, सर्वर एवं जनरेटर",
+      "kn": "ವಿದ್ಯುತ್ ಪ್ಯಾನೆಲ್, ಯುಪಿಎಸ್, ಸರ್ವರ್",
+      "ta": "மின்சார வாரிய பெட்டி, யுபிஎஸ் & சர்வர்",
+      "te": "విద్యుత్ ప్యానెల్, యుపిఎస్ & సర్వర్"
+    },
+    "idealZones": [
+      "SE"
+    ],
+    "avoidZones": [
+      "NE",
+      "N",
+      "SW"
+    ],
+    "remedyEn": "Target Zone: SE (Agneya - Fire Element). Prevents short-circuits, electrical failures, and equipment hazards.",
+    "remedyHi": "आग्नेय (दक्षिण-पूर्व) में सभी विद्युत उपकरण स्थापित करें। इससे दुर्घटनाएं और खराबी टलती है।",
+    "remedyKn": "ಆಗ್ನೇಯದಲ್ಲಿ (ಅಗ್ನಿ ತತ್ವ) ವಿದ್ಯುತ್ ಉಪಕರಣಗಳನ್ನು ಅಳವಡಿಸಿ. ವಿದ್ಯುತ್ ಅವಘಡಗಳು ಮತ್ತು ತೊಂದರೆಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ.",
+    "remedyTa": "தென்கிழக்கு (அக்னி) பகுதியில் மின் உபகரணங்களை நிறுவவும். மின் விபத்துக்கள் தவிர்க்கப்படும்.",
+    "remedyTe": "ఆగ్నేయంలో (అగ్ని తత్త్వం) విద్యుత్ పరికరాలను అమర్చాలి. షార్ట్ సర్క్యూట్లు మరియు ప్రమాదాలు జరగవు."
+  },
+  {
+    "id": "trial_rooms",
+    "icon": "🚪",
+    "names": {
+      "en": "Trial & Changing Rooms",
+      "hi": "ट्रायल एवं वस्त्र परिवर्तन कक्ष",
+      "kn": "ಟ್ರಯಲ್ ಮತ್ತು ಉಡುಪು ಬದಲಾಯಿಸುವ ಕೋಣೆ",
+      "ta": "ஆடை மாற்றும் அறை (டிரையல் ரூம்)",
+      "te": "ట్రయల్ & దుస్తులు మార్చుకునే గది"
+    },
+    "idealZones": [
+      "NW",
+      "W"
+    ],
+    "avoidZones": [
+      "NE",
+      "SW"
+    ],
+    "remedyEn": "Target Zone: NW or West. Position interior full-length mirrors on North or East walls for flattering reflection.",
+    "remedyHi": "वायव्य या पश्चिम में बनाएं। कमरे के भीतर दर्पण सदैव उत्तर या पूर्व की दीवार पर लगाएं।",
+    "remedyKn": "ವಾಯುವ್ಯ ಅಥವಾ ಪಶ್ಚಿಮದಲ್ಲಿ ನಿರ್ಮಿಸಿ. ಕೋಣೆಯೊಳಗಿನ ಕನ್ನಡಿಗಳನ್ನು ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ಗೋಡೆಗೆ ಅಳವಡಿಸಿ.",
+    "remedyTa": "வடமேற்கு அல்லது மேற்கில் அமைக்கவும். அறையின் உள்ளே கண்ணாடியை வடக்கு அல்லது கிழக்கு சுவரில் பொருத்தவும்.",
+    "remedyTe": "వాయువ్యం లేదా పడమరలో నిర్మించండి. గది లోపల అద్దాలను ఉత్తరం లేదా తూర్పు గోడపై అమర్చండి."
+  },
+  {
+    "id": "pos_billing",
+    "icon": "💳",
+    "names": {
+      "en": "POS Billing Counter & Cash Desk",
+      "hi": "बिलिंग काउंटर एवं बिक्री रोकड़",
+      "kn": "ಬಿಲ್ಲಿಂಗ್ ಕೌಂಟರ್ ಮತ್ತು ನಗದು ಕೌಂಟರ್",
+      "ta": "பில்லிங் கவுண்டர் & ரொக்க மேசை",
+      "te": "బిల్లింగ్ కౌంటర్ & నగదు విభాగం"
+    },
+    "idealZones": [
+      "SE",
+      "N",
+      "E"
+    ],
+    "avoidZones": [
+      "SW",
+      "NE"
+    ],
+    "remedyEn": "Target Zone: SE (Fire speed) or North/East. Cashier should face North or East while billing.",
+    "remedyHi": "आग्नेय, उत्तर या पूर्व में रखें। बिल बनाते समय कैशियर का मुख उत्तर या पूर्व दिशा में होना चाहिए।",
+    "remedyKn": "ಆಗ್ನೇಯ, ಉತ್ತರ ಅಥವಾ ಪೂರ್ವದಲ್ಲಿಡಿ. ಬಿಲ್ ಮಾಡುವಾಗ ಕ್ಯಾಷಿಯರ್ ಮುಖವು ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಇರಲಿ.",
+    "remedyTa": "தென்கிழக்கு, வடக்கு அல்லது கிழக்கில் அமைக்கவும். பில் போடும் போது காசாளர் வடக்கு அல்லது கிழக்கு நோக்கி இருக்க வேண்டும்.",
+    "remedyTe": "ఆగ్నేయం, ఉత్తరం లేదా తూర్పులో ఉంచండి. బిల్లింగ్ చేసేటప్పుడు క్యాషియర్ ముఖం ఉత్తరం లేదా తూర్పు వైపు ఉండాలి."
+  },
+  {
+    "id": "luxury_display",
+    "icon": "✨",
+    "names": {
+      "en": "Luxury Showcase & Flagship Display",
+      "hi": "उत्कृष्ट रेशम एवं आभूषण शोकेस",
+      "kn": "ಐಷಾರಾಮಿ ರೇಷ್ಮೆ ಮತ್ತು ಆಭರಣ ಪ್ರದರ್ಶನ",
+      "ta": "ஆடம்பர பட்டு & நகை காட்சி பெட்டகம்",
+      "te": "విలువైన పట్టు & ఆభరణాల ప్రదర్శన"
+    },
+    "idealZones": [
+      "NE",
+      "E",
+      "N"
+    ],
+    "avoidZones": [
+      "SW",
+      "S"
+    ],
+    "remedyEn": "Target Zone: NE, East, or North. Sacred illumination brings out the richest luster of silk sarees and fine gems.",
+    "remedyHi": "ईशान्य, पूर्व या उत्तर में रखें। उत्तम प्रकाश व्यवस्था रेशमी साड़ियों और रत्नों की चमक बढ़ाती है।",
+    "remedyKn": "ಈಶಾನ್ಯ, ಪೂರ್ವ ಅಥವಾ ಉತ್ತರದಲ್ಲಿ ಪ್ರದರ್ಶಿಸಿ. ಪ್ರಕಾಶಮಾನ ಬೆಳಕು ರೇಷ್ಮೆ ಸೀರೆಗಳ ಸೌಂದರ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+    "remedyTa": "வடகிழக்கு, கிழக்கு அல்லது வடக்கில் காட்சிப்படுத்தவும். சீரான வெளிச்சம் பட்டுப் புடவைகளின் அழகை மிளிரச் செய்யும்.",
+    "remedyTe": "ఈశాన్యం, తూర్పు లేదా ఉత్తరంలో ప్రదర్శించండి. దివ్యమైన వెలుగు పట్టుచీరల శోభను రెట్టింపు చేస్తుంది."
+  },
+  {
+    "id": "pantry",
+    "icon": "☕",
+    "names": {
+      "en": "Staff Pantry & Water Station",
+      "hi": "कर्मचारी रसोई एवं पेय जल",
+      "kn": "ಸಿಬ್ಬಂದಿ ಉಪಹಾರ ಮತ್ತು ಕುಡಿಯುವ ನೀರು",
+      "ta": "பணியாளர் சிற்றுண்டி & குடிநீர்",
+      "te": "సిబ్బంది పాంట్రీ & తాగునీరు"
+    },
+    "idealZones": [
+      "SE",
+      "NW"
+    ],
+    "avoidZones": [
+      "SW",
+      "NE"
+    ],
+    "remedyEn": "Target Zone: SE (Fire) for cooking/heating; NW for general pantry. Water dispenser in North or NE.",
+    "remedyHi": "चाय-कॉफी मशीन आग्नेय में रखें। पीने के पानी का डिस्पेंसर उत्तर या ईशान्य में रखें।",
+    "remedyKn": "ಕಾಫಿ-ಟೀ ಮಷಿನ್ ಆಗ್ನೇಯದಲ್ಲಿರಲಿ. ಕುಡಿಯುವ ನೀರಿನ ಫಿಲ್ಟರ್ ಉತ್ತರ ಅಥವಾ ಈಶಾನ್ಯದಲ್ಲಿರಲಿ.",
+    "remedyTa": "தேனீர்/காபி அடுப்பு தென்கிழக்கில் அமையட்டும். குடிநீர் கேன் வடக்கு அல்லது வடகிழக்கில் இருக்க வேண்டும்.",
+    "remedyTe": "టీ/కాఫీ మెషిన్ ఆగ్నేయంలో ఉండాలి. తాగునీటి డిస్పెన్సర్ ఉత్తరం లేదా ఈశాన్యంలో అమర్చాలి."
+  }
+],
+
+  // Commercial Plot Geometry Classifications
+  PLOT_SHAPES: {
+  "Shermukhi": {
+    "id": "Shermukhi",
+    "name": "Shermukhi (Lion-Faced)",
+    "subtitle": "Wide Front, Narrow Back",
+    "names": {
+      "en": "Shermukhi (Lion-Faced: Wide Front)",
+      "hi": "शेरमुखी (आगे से चौड़ा, पीछे से संकरा)",
+      "kn": "ಶೇರ್ಮುಖಿ (ಮುಂದೆ ಅಗಲ, ಹಿಂದೆ ಕಿರಿದು)",
+      "ta": "சிங்க முகம் (முன்புறம் அகலம், பின்புறம் குறுகியது)",
+      "te": "సింహముఖి (ముందు వెడల్పు, వెనుక ఇరుకు)"
+    },
+    "commercialEffect": "Highly recommended for commercial retail stores, showrooms & boutiques. Maximizes street frontage, visual exposure, and customer footfall.",
+    "residentialEffect": "Not recommended for residential dwelling.",
+    "badgeClass": "aligned",
+    "statusLabel": "🌟 IDEAL FOR RETAIL & SHOWROOMS"
+  },
+  "Gaumukhi": {
+    "id": "Gaumukhi",
+    "name": "Gaumukhi (Cow-Faced)",
+    "subtitle": "Narrow Front, Wide Back",
+    "names": {
+      "en": "Gaumukhi (Cow-Faced: Narrow Front)",
+      "hi": "गोमुखी (आगे से संकरा, पीछे से चौड़ा)",
+      "kn": "ಗೋಮುಖಿ (ಮುಂದೆ ಕಿರಿದು, ಹಿಂದೆ ಅಗಲ)",
+      "ta": "பசு முகம் (முன்புறம் குறுகியது, பின்புறம் அகலம்)",
+      "te": "గోముఖి (ముందు ఇరుకు, వెనుక వెడల్పు)"
+    },
+    "commercialEffect": "Caution for retail storefronts due to restricted street frontage. Remedy: Install expansive full-glass facade and bright grand illumination at entrance.",
+    "residentialEffect": "Most auspicious and peaceful for family living.",
+    "badgeClass": "tilted",
+    "statusLabel": "⚠️ CAUTION FOR RETAIL (Requires Facade Remedy)"
+  },
+  "Square_Rectangular": {
+    "id": "Square_Rectangular",
+    "name": "Square / Rectangular",
+    "subtitle": "90° Cardinal Symmetry",
+    "names": {
+      "en": "Square & Rectangular (Symmetrical)",
+      "hi": "वर्गाकार एवं आयताकार (सम-भुज)",
+      "kn": "ಚೌಕಾಕಾರ ಮತ್ತು ಆಯತಾಕಾರ (ಸಮ ಬಾಹು)",
+      "ta": "சதுரம் மற்றும் செவ்வகம் (சம கோணம்)",
+      "te": "చతురస్రాకార మరియు దీర్ఘచతురస్రాకార"
+    },
+    "commercialEffect": "Universally auspicious balance. Ratio should not exceed 1:2 for sustained wealth and organizational stability.",
+    "residentialEffect": "Highly balanced and universally auspicious.",
+    "badgeClass": "aligned",
+    "statusLabel": "✅ UNIVERSALLY BALANCED"
+  }
+},
+
   // UI Strings Dictionary for All 5 Languages
   UI: {
     en: {
+      propertyResidential: "Residential Vastu",
+      propertyCommercial: "Commercial & Retail Vastu",
+      businessCategory: "Business Category",
+      commercialSuitability: "Commercial Suitability",
+      businessImpact: "Business Impact",
+      retailProfileApparel: "Apparel, Silk Sarees & Boutiques",
+      retailProfileJewelry: "Jewelry & High-Value Retail",
+      retailProfileGeneral: "General Office & Stores",
+      plotShapeTitle: "Commercial Plot Geometry",
+      shermukhi: "Shermukhi (Lion Face)",
+      gaumukhi: "Gaumukhi (Cow Face)",
+      commercialChecklist: "Commercial Compliance Audit",
+      ownerDeskCheck: "Owner/MD Seating (SW facing N/E)",
+      cashSafeCheck: "Cash Safe (SW opening North)",
+      inventoryCheck: "Fast Stock Turnover (NW Zone)",
+      fireElectricalCheck: "Fire & Electrical Safety (SE Zone)",
       appName: 'KUBERAN Vastu Compass',
       brandSubtitle: 'TRUE NORTH • VASTU SHASTRA EDITION',
       simpleMode: 'Simple Compass',
@@ -658,6 +1426,22 @@ const VASTU_DATA = {
       close: 'Close'
     },
     hi: {
+      propertyResidential: "आवासीय वास्तु",
+      propertyCommercial: "व्यावसायिक एवं खुदरा वास्तु",
+      businessCategory: "व्यापार श्रेणी",
+      commercialSuitability: "व्यावसायिक उपयुक्तता",
+      businessImpact: "व्यापारिक प्रभाव",
+      retailProfileApparel: "परिधान, रेशमी साड़ियाँ एवं बुटीक",
+      retailProfileJewelry: "आभूषण एवं उच्च मूल्य खुदरा",
+      retailProfileGeneral: "सामान्य कार्यालय एवं प्रतिष्ठान",
+      plotShapeTitle: "व्यावसायिक भूखंड ज्यामिति",
+      shermukhi: "शेरमुखी (सिंह मुखी भूखंड)",
+      gaumukhi: "गोमुखी (गौ मुखी भूखंड)",
+      commercialChecklist: "व्यावसायिक वास्तु अनुपालन सूची",
+      ownerDeskCheck: "मालिक आसन (नैऋत्य में उत्तर/पूर्व मुख)",
+      cashSafeCheck: "रोकड़ तिजोरी (नैऋत्य में उत्तर मुखी)",
+      inventoryCheck: "शीघ्रगामी माल संचलन (वायव्य क्षेत्र)",
+      fireElectricalCheck: "अग्नि एवं विद्युत सुरक्षा (आग्नेय क्षेत्र)",
       appName: 'कुबेरन वास्तु कंपास',
       brandSubtitle: 'सत्य उत्तर • वैदिक वास्तु शास्त्र संस्करण',
       simpleMode: 'साधारण कंपास',
@@ -698,6 +1482,22 @@ const VASTU_DATA = {
       close: 'बंद करें'
     },
     kn: {
+      propertyResidential: "ವಸತಿ ವಾಸ್ತು",
+      propertyCommercial: "ವಾಣಿಜ್ಯ ಮತ್ತು ಚಿಲ್ಲರೆ ವಾಸ್ತು",
+      businessCategory: "ವ್ಯವಹಾರ ಪ್ರಕಾರ",
+      commercialSuitability: "ವಾಣಿಜ್ಯ ಸೂಕ್ತತೆ",
+      businessImpact: "ವ್ಯವಹಾರ ಪ್ರಭಾವ",
+      retailProfileApparel: "ವಸ್ತ್ರಗಳು, ರೇಷ್ಮೆ ಸೀರೆಗಳು ಮತ್ತು ಬುಟೀಕ್",
+      retailProfileJewelry: "ಆಭರಣಗಳು ಮತ್ತು ಬೆಲೆಬಾಳುವ ವ್ಯಾಪಾರ",
+      retailProfileGeneral: "ಸಾಮಾನ್ಯ ಕಚೇರಿಗಳು ಮತ್ತು ಮಳಿಗೆಗಳು",
+      plotShapeTitle: "ವಾಣಿಜ್ಯ ನಿವೇಶನ ಆಕಾರ",
+      shermukhi: "ಶೇರ್ಮುಖಿ (ಸಿಂಹ ಮುಖ)",
+      gaumukhi: "ಗೋಮುಖಿ (ಗೋ ಮುಖ)",
+      commercialChecklist: "ವಾಣಿಜ್ಯ ವಾಸ್ತು ಅನುಸರಣೆ ಪರಿಶೀಲನಾಪಟ್ಟಿ",
+      ownerDeskCheck: "ಮಾಲೀಕರ ಆಸನ (ನೈಋತ್ಯದಲ್ಲಿ ಉತ್ತರ/ಪೂರ್ವ ಮುಖ)",
+      cashSafeCheck: "ನಗದು ತಿಜೋರಿ (ನೈಋತ್ಯದಲ್ಲಿ ಉತ್ತರಕ್ಕೆ ತೆರೆಯುವುದು)",
+      inventoryCheck: "ವೇಗದ ಸರಕು ಚಲನೆ (ವಾಯುವ್ಯ ವಲಯ)",
+      fireElectricalCheck: "ವಿದ್ಯುತ್ ಮತ್ತು ಅಗ್ನಿ ಸುರಕ್ಷತೆ (ಆಗ್ನೇಯ ವಲಯ)",
       appName: 'ಕುಬೇರನ್ ವಾಸ್ತು ದಿಕ್ಸೂಚಿ',
       brandSubtitle: 'ನಿಜವಾದ ಉತ್ತರ • ವೈದಿಕ ವಾಸ್ತು ಶಾಸ್ತ್ರ ಆವೃತ್ತಿ',
       simpleMode: 'ಸರಳ ದಿಕ್ಸೂಚಿ',
@@ -738,6 +1538,22 @@ const VASTU_DATA = {
       close: 'ಮುಚ್ಚಿ'
     },
     ta: {
+      propertyResidential: "குடியிருப்பு வாஸ்து",
+      propertyCommercial: "வணிக & சில்லறை வாஸ்து",
+      businessCategory: "வணிகப் பிரிவு",
+      commercialSuitability: "வணிகப் பொருத்தம்",
+      businessImpact: "வணிக வளர்ச்சி பலன்",
+      retailProfileApparel: "ஆடைகள், பட்டுப் புடவைகள் & பொட்டிக்குகள்",
+      retailProfileJewelry: "நகைகள் & உயர்மதிப்பு சில்லறை விற்பனை",
+      retailProfileGeneral: "பொது அலுவலகங்கள் & கடைகள்",
+      plotShapeTitle: "வணிக மனையின் வடிவியல்",
+      shermukhi: "சிங்க முகம் (முன்புறம் அகலம்)",
+      gaumukhi: "பசு முகம் (முன்புறம் குறுகியது)",
+      commercialChecklist: "வணிக வாஸ்து தணிக்கை பட்டியல்",
+      ownerDeskCheck: "உரிமையாளர் அமர்வு (தென்மேற்கில் வடக்கு/கிழக்கு நோக்கி)",
+      cashSafeCheck: "பணப்பெட்டி (தென்மேற்கில் வடக்கு நோக்கி திறத்தல்)",
+      inventoryCheck: "சுழலும் சரக்கு விற்பனை (வடமேற்கு பகுதி)",
+      fireElectricalCheck: "மின்சாரம் மற்றும் தீ பாதுகாப்பு (தென்கிழக்கு பகுதி)",
       appName: 'குபேரன் வாஸ்து திசைகாட்டி',
       brandSubtitle: 'உண்மை வடக்கு • வேத வாஸ்து சாஸ்திர பதிப்பு',
       simpleMode: 'எளிய திசைகாட்டி',
@@ -778,6 +1594,22 @@ const VASTU_DATA = {
       close: 'மூடு'
     },
     te: {
+      propertyResidential: "నివాస వాస్తు",
+      propertyCommercial: "వాణిజ్య & రిటైల్ వాస్తు",
+      businessCategory: "వ్యాపార విభాగం",
+      commercialSuitability: "వాణిజ్య అనుకూలత",
+      businessImpact: "వ్యాపార వృద్ధి ఫలితాలు",
+      retailProfileApparel: "వస్త్రాలు, పట్టుచీరలు & బోటిక్‌లు",
+      retailProfileJewelry: "ఆభరణాలు & విలువైన వస్తువుల వ్యాపారం",
+      retailProfileGeneral: "సాధారణ వాణిజ్య కార్యాలయాలు & దుకాణాలు",
+      plotShapeTitle: "వాణిజ్య స్థలాల ఆకారం",
+      shermukhi: "సింహముఖి (ముందు వెడల్పు)",
+      gaumukhi: "గోముఖి (ముందు ఇరుకు)",
+      commercialChecklist: "వాణిజ్య వాస్తు పరిశీలన జాబితా",
+      ownerDeskCheck: "యజమాని ఆసనం (నైరుతిలో ఉత్తరం/తూర్పు ముఖంగా)",
+      cashSafeCheck: "ధన లాకర్ (నైరుతిలో ఉత్తరం వైపు తెరుచుకునేలా)",
+      inventoryCheck: "సరుకుల వేగవంతమైన రవాణా (వాయువ్య విభాగం)",
+      fireElectricalCheck: "విద్యుత్ & అగ్ని భద్రత (ఆగ్నేయ విభాగం)",
       appName: 'కుబేరన్ వాస్తు దిక్సూచి',
       brandSubtitle: 'నిజమైన ఉత్తరం • వేద వాస్తు శాస్త్ర ఎడిషన్',
       simpleMode: 'సాధారణ దిక్సూచి',

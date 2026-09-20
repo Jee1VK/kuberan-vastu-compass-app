@@ -1,26 +1,26 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.2.0';
+const CACHE_NAME = 'kuberan-vastu-compass-v4.3.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=4.2.0',
+  './style.css?v=4.3.0',
   './style.css',
-  './vastu-data.js?v=4.2.0',
+  './vastu-data.js?v=4.3.0',
   './vastu-data.js',
-  './qrcode.min.js?v=4.2.0',
+  './qrcode.min.js?v=4.3.0',
   './qrcode.min.js',
-  './app.js?v=4.2.0',
+  './app.js?v=4.3.0',
   './app.js',
-  './manifest.webmanifest?v=4.2.0',
+  './manifest.webmanifest?v=4.3.0',
   './manifest.webmanifest',
   './assets/images/kuberan_logo_white_bg.png',
   './assets/images/kuberan_logo_transparent.png',
-  './icon.svg?v=4.2.0',
+  './icon.svg?v=4.3.0',
   './icon.svg',
-  './icon-192.png?v=4.2.0',
+  './icon-192.png?v=4.3.0',
   './icon-192.png',
-  './icon-512.png?v=4.2.0',
+  './icon-512.png?v=4.3.0',
   './icon-512.png',
-  './apple-touch-icon.png?v=4.2.0',
+  './apple-touch-icon.png?v=4.3.0',
   './apple-touch-icon.png'
 ];
 

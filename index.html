@@ -19,16 +19,16 @@
   <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.2.0">
   <meta property="og:url" content="https://jee1vk.github.io/kuberan-vastu-compass-app/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.2.0">
+  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.3.0">
 
   <!-- Icons & Favicon -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.2.0">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.2.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.2.0">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=4.2.0">
-  <link rel="shortcut icon" href="icon-192.png?v=4.2.0">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.3.0">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.3.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.3.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=4.3.0">
+  <link rel="shortcut icon" href="icon-192.png?v=4.3.0">
 
-  <link rel="stylesheet" href="style.css?v=4.2.0">
+  <link rel="stylesheet" href="style.css?v=4.3.0">
 </head>
 <body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
@@ -95,8 +95,39 @@
         </button>
       </div>
 
-      <!-- Vastu Sub-Bar: 8 Zones / 16 Zones / 32 Padas (Visible in Vastu Mode) -->
+      <!-- Vastu Sub-Bar: Controls (Visible in Vastu Mode) -->
       <div class="vastu-subcontrols" id="vastuSubcontrols">
+        <!-- Property Type Switcher: Residential vs Commercial & Retail -->
+        <div class="segmented-control property-segmented" id="propertyTypeSwitcher">
+          <button class="segment-btn active" data-property="residential" id="btnPropResidential">
+            <span class="segment-icon">🏠</span>
+            <span class="segment-label" id="lblPropResidential">Residential Vastu</span>
+          </button>
+          <button class="segment-btn" data-property="commercial" id="btnPropCommercial">
+            <span class="segment-icon">🏢</span>
+            <span class="segment-label" id="lblPropCommercial">Commercial & Retail</span>
+          </button>
+        </div>
+
+        <!-- Retail Business Category Profile Strip (Active in Commercial Mode) -->
+        <div class="retail-profile-strip hidden" id="retailProfileStrip">
+          <span class="profile-strip-label" id="lblBusinessCategory">Business Category:</span>
+          <div class="profile-chips-scroll">
+            <button class="profile-chip active" data-profile="apparel_silk_sarees" id="chipProfileApparel" title="Apparel, Silk Sarees & Boutiques">
+              <span class="profile-icon">👗</span>
+              <span id="lblProfileApparel">Apparel & Silk Sarees</span>
+            </button>
+            <button class="profile-chip" data-profile="jewelry_luxury" id="chipProfileJewelry" title="Jewelry & High-Value Retail">
+              <span class="profile-icon">💎</span>
+              <span id="lblProfileJewelry">Jewelry & Luxury</span>
+            </button>
+            <button class="profile-chip" data-profile="general_commercial" id="chipProfileGeneral" title="General Office & Stores">
+              <span class="profile-icon">🏢</span>
+              <span id="lblProfileGeneral">General Office & Stores</span>
+            </button>
+          </div>
+        </div>
+
         <div class="segmented-control zones-segmented" id="zoneSystemSwitcher">
           <button class="segment-btn active" data-zones="8" id="btnZone8">8 Zones</button>
           <button class="segment-btn" data-zones="16" id="btnZone16">16 Zones</button>
@@ -107,9 +138,9 @@
         <div class="vastu-tools-toolbar" id="vastuToolsBar">
           <button class="tool-chip" id="btnToolRoomFinder" title="Room to Direction Finder">
             <span class="tool-icon">🔍</span>
-            <span class="tool-text" id="lblToolRoom">Room Finder</span>
+            <span class="tool-text" id="lblToolRoom">Zone Finder</span>
           </button>
-          <button class="tool-chip" id="btnToolPlotTilt" title="Plot Tilt / Vidisha Angle Detector">
+          <button class="tool-chip" id="btnToolPlotTilt" title="Plot Tilt & Geometry Detector">
             <span class="tool-icon">📐</span>
             <span class="tool-text" id="lblToolTilt">Plot Tilt</span>
           </button>
@@ -267,6 +298,18 @@
           <p class="pada-effect-text" id="padaEffectText">Tremendous wealth, victory, great success</p>
         </div>
 
+        <!-- Commercial Business Suitability & Impact (Shown in Commercial Mode) -->
+        <div class="commercial-inspector-box hidden" id="commercialInspectorBox">
+          <div class="comm-suitability-row">
+            <span class="comm-label" id="lblCommSuitability">Commercial Suitability:</span>
+            <span class="comm-val" id="inspCommSuitability">Main Customer Entrance, Service Desk, Cash Safe Opening</span>
+          </div>
+          <div class="comm-impact-row">
+            <span class="comm-label" id="lblBusinessImpact">Business Impact:</span>
+            <p class="comm-impact-text" id="inspBusinessImpact">Attracts financial growth, client opportunities, and liquidity.</p>
+          </div>
+        </div>
+
         <!-- Favorable vs Avoid Placements -->
         <div class="placements-grid">
           <div class="placement-col favorable-col">
@@ -414,8 +457,14 @@
         <button id="btnCloseRoomModal" class="btn-modal-close" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
+        <!-- Room/Zone Finder Category Tabs -->
+        <div class="segmented-control room-tabs-segmented" id="roomFinderCategoryTabs">
+          <button class="segment-btn active" data-cat="residential" id="tabResRooms">🏠 Residential Rooms</button>
+          <button class="segment-btn" data-cat="commercial" id="tabCommRooms">🏢 Commercial & Retail</button>
+        </div>
+
         <div class="rooms-grid" id="roomsGrid">
-          <!-- Rendered dynamically from VASTU_DATA.ROOMS -->
+          <!-- Rendered dynamically from VASTU_DATA.ROOMS or VASTU_DATA.COMMERCIAL_ROOMS -->
         </div>
       </div>
     </div>
@@ -453,6 +502,32 @@
           </div>
         </div>
 
+        <!-- Commercial & Retail Plot Geometry Section -->
+        <div class="plot-shape-card">
+          <div class="plot-shape-header">
+            <span class="shape-icon">📐</span>
+            <strong id="lblPlotShapeTitle">Commercial Plot Geometry & Shape</strong>
+          </div>
+          <div class="shape-selector-grid" id="plotShapeSelectorGrid">
+            <button class="shape-chip active" data-shape="Shermukhi">
+              <span class="shape-chip-icon">🐅</span>
+              <span class="shape-chip-name">Shermukhi (Lion Face)</span>
+            </button>
+            <button class="shape-chip" data-shape="Gaumukhi">
+              <span class="shape-chip-icon">🐄</span>
+              <span class="shape-chip-name">Gaumukhi (Cow Face)</span>
+            </button>
+            <button class="shape-chip" data-shape="Square_Rectangular">
+              <span class="shape-chip-icon">⏹️</span>
+              <span class="shape-chip-name">Square / Rectangular</span>
+            </button>
+          </div>
+          <div class="shape-detail-box" id="plotShapeDetailBox">
+            <span class="shape-badge badge-aligned" id="plotShapeBadge">🌟 IDEAL FOR RETAIL & SHOWROOMS</span>
+            <p id="plotShapeAdviceText">Shermukhi (Broad front, narrow rear) maximizes visual frontage and customer footfall for retail showrooms, boutiques, and saree stores.</p>
+          </div>
+        </div>
+
         <div class="plot-actions">
           <button id="btnLockPlotTilt" class="btn-primary-large">Lock & Record Alignment</button>
         </div>
@@ -485,6 +560,14 @@
 
           <div class="report-grid">
             <div class="report-row">
+              <span class="report-label">Property Type:</span>
+              <strong class="report-val" id="reportPropertyType">Commercial & Retail</strong>
+            </div>
+            <div class="report-row" id="reportCategoryRow">
+              <span class="report-label">Business Profile:</span>
+              <span class="report-val" id="reportBusinessCategory">Apparel, Silk Sarees & Boutiques</span>
+            </div>
+            <div class="report-row">
               <span class="report-label">Heading:</span>
               <strong class="report-val" id="reportHeading">0° North (True North)</strong>
             </div>
@@ -512,6 +595,21 @@
               <span class="report-label">Plot Alignment:</span>
               <span class="report-val" id="reportPlot">Sama-Sutra (Aligned)</span>
             </div>
+            <div class="report-row" id="reportPlotShapeRow">
+              <span class="report-label">Plot Shape:</span>
+              <span class="report-val" id="reportPlotShape">Shermukhi (Lion-Faced)</span>
+            </div>
+          </div>
+
+          <!-- Commercial Compliance Checklist (Shown in Commercial Mode) -->
+          <div class="commercial-checklist-box hidden" id="commercialChecklistBox">
+            <strong id="lblCommercialChecklist">Commercial Compliance Audit:</strong>
+            <ul class="checklist-items">
+              <li><span class="check-icon">✅</span> <span class="check-label" id="lblCheckOwner">Owner/MD Desk:</span> <span class="check-val" id="valCheckOwner">SW facing North/East</span></li>
+              <li><span class="check-icon">✅</span> <span class="check-label" id="lblCheckSafe">Cash Safe:</span> <span class="check-val" id="valCheckSafe">SW/South opening North</span></li>
+              <li><span class="check-icon">✅</span> <span class="check-label" id="lblCheckStock">Inventory Flow:</span> <span class="check-val" id="valCheckStock">Fast-moving in NW</span></li>
+              <li><span class="check-icon">✅</span> <span class="check-label" id="lblCheckFire">Electrical Safety:</span> <span class="check-val" id="valCheckFire">Main DB/UPS in SE</span></li>
+            </ul>
           </div>
 
           <div class="report-advice-box">
@@ -598,7 +696,7 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v4.0.0 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v4.3.0 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
@@ -606,8 +704,8 @@
   </div>
 
   <!-- Scripts -->
-  <script src="vastu-data.js?v=4.2.0"></script>
-  <script src="qrcode.min.js?v=4.2.0"></script>
-  <script src="app.js?v=4.2.0"></script>
+  <script src="vastu-data.js?v=4.3.0"></script>
+  <script src="qrcode.min.js?v=4.3.0"></script>
+  <script src="app.js?v=4.3.0"></script>
 </body>
 </html>

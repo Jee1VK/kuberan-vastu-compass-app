@@ -30,6 +30,10 @@
   let activeRoom = null;     // Selected room object from VASTU_DATA.ROOMS
   let plotTiltReading = null;// Locked wall alignment data
   let cameraStream = null;   // MediaStream for Camera AR
+  let propertyType = 'residential'; // 'residential' or 'commercial'
+  let retailProfile = 'apparel_silk_sarees'; // 'apparel_silk_sarees', 'jewelry_luxury', 'general_commercial'
+  let roomCategoryTab = 'residential'; // 'residential' or 'commercial'
+  let selectedPlotShape = 'Shermukhi'; // 'Shermukhi', 'Gaumukhi', 'Square_Rectangular'
 
   // Visual Themes List (Marine Brass is base palette)
   const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
@@ -97,6 +101,29 @@
   const btnToolCamera = document.getElementById('btnToolCamera');
   const btnToolAudit = document.getElementById('btnToolAudit');
   const vastuInspectorSection = document.getElementById('vastuInspectorSection');
+
+  // Commercial & Retail Elements
+  const btnPropResidential = document.getElementById('btnPropResidential');
+  const btnPropCommercial = document.getElementById('btnPropCommercial');
+  const retailProfileStrip = document.getElementById('retailProfileStrip');
+  const chipProfileApparel = document.getElementById('chipProfileApparel');
+  const chipProfileJewelry = document.getElementById('chipProfileJewelry');
+  const chipProfileGeneral = document.getElementById('chipProfileGeneral');
+  const commercialInspectorBox = document.getElementById('commercialInspectorBox');
+  const inspCommSuitability = document.getElementById('inspCommSuitability');
+  const inspBusinessImpact = document.getElementById('inspBusinessImpact');
+  const roomFinderCategoryTabs = document.getElementById('roomFinderCategoryTabs');
+  const tabResRooms = document.getElementById('tabResRooms');
+  const tabCommRooms = document.getElementById('tabCommRooms');
+  const plotShapeSelectorGrid = document.getElementById('plotShapeSelectorGrid');
+  const plotShapeBadge = document.getElementById('plotShapeBadge');
+  const plotShapeAdviceText = document.getElementById('plotShapeAdviceText');
+  const reportPropertyType = document.getElementById('reportPropertyType');
+  const reportCategoryRow = document.getElementById('reportCategoryRow');
+  const reportBusinessCategory = document.getElementById('reportBusinessCategory');
+  const reportPlotShapeRow = document.getElementById('reportPlotShapeRow');
+  const reportPlotShape = document.getElementById('reportPlotShape');
+  const commercialChecklistBox = document.getElementById('commercialChecklistBox');
   const inspZoneBadge = document.getElementById('inspZoneBadge');
   const inspZoneName = document.getElementById('inspZoneName');
   const inspSanskrit = document.getElementById('inspSanskrit');
@@ -484,6 +511,23 @@
             svgContent += `<path d="M ${ax1.toFixed(1)} ${ay1.toFixed(1)} A ${rOuterVastu + 1} ${rOuterVastu + 1} 0 0 1 ${ax2.toFixed(1)} ${ay2.toFixed(1)}" fill="none" stroke="#22c55e" stroke-width="7" stroke-linecap="round" filter="drop-shadow(0 0 8px rgba(34,197,94,0.8))"/>`;
           }
         });
+      } else if (propertyType === 'commercial') {
+        // Retail Key Zones Highlight (Commercial Mode)
+        const prof = VASTU_DATA.RETAIL_PROFILES && VASTU_DATA.RETAIL_PROFILES.find(p => p.profile_id === retailProfile);
+        if (prof && prof.keyZones) {
+          prof.keyZones.forEach(zoneCode => {
+            const z = VASTU_DATA.ZONES_8.find(item => item.code === zoneCode);
+            if (z) {
+              const startRad = (z.startDeg - 90) * (Math.PI / 180);
+              const endRad = (z.endDeg - 90) * (Math.PI / 180);
+              const ax1 = cx + (rOuterVastu + 1) * Math.cos(startRad);
+              const ay1 = cy + (rOuterVastu + 1) * Math.sin(startRad);
+              const ax2 = cx + (rOuterVastu + 1) * Math.cos(endRad);
+              const ay2 = cy + (rOuterVastu + 1) * Math.sin(endRad);
+              svgContent += `<path d="M ${ax1.toFixed(1)} ${ay1.toFixed(1)} A ${rOuterVastu + 1} ${rOuterVastu + 1} 0 0 1 ${ax2.toFixed(1)} ${ay2.toFixed(1)}" fill="none" stroke="#d4a359" stroke-width="4.5" stroke-linecap="round" opacity="0.85" filter="drop-shadow(0 0 6px rgba(212,163,89,0.7))"/>`;
+            }
+          });
+        }
       }
 
       // Degree Ticks (Every 5° and 15° around outer edge)
@@ -527,26 +571,56 @@
     inspDeityVal.textContent = activeZone8.deityNames[currentLang] || activeZone8.deityNames.en;
     inspSummaryText.textContent = activeZone8.summary[currentLang] || activeZone8.summary.en;
 
-    // Favorable & Avoid Placements Cloud
-    let favHtml = '';
-    activeZone8.recommendedRooms.forEach(roomId => {
-      const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
-      const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
-      const icon = roomObj ? roomObj.icon : '✨';
-      favHtml += `<span class="room-tag">${icon} ${name}</span>`;
-    });
-    favorableTags.innerHTML = favHtml || '<span class="room-tag">General</span>';
+    // Favorable & Avoid Placements Cloud & Commercial Inspector
+    if (propertyType === 'commercial') {
+      commercialInspectorBox.classList.remove('hidden');
+      const commZone = VASTU_DATA.COMMERCIAL_ZONES && VASTU_DATA.COMMERCIAL_ZONES[activeZone8.code];
+      if (commZone) {
+        inspCommSuitability.textContent = commZone.commercial_suitability.join(' • ');
+        const impactText = typeof commZone.business_impact === 'object'
+          ? (commZone.business_impact[currentLang] || commZone.business_impact.en)
+          : commZone.business_impact;
+        inspBusinessImpact.textContent = impactText;
 
-    let avoidHtml = '';
-    activeZone8.prohibitedRooms.forEach(roomId => {
-      const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
-      const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
-      avoidHtml += `<span class="room-tag tag-avoid">❌ ${name}</span>`;
-    });
-    avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Heavy Clutter</span>';
+        let favHtml = '';
+        commZone.commercial_suitability.forEach(item => {
+          favHtml += `<span class="room-tag">🏢 ${item}</span>`;
+        });
+        favorableTags.innerHTML = favHtml || '<span class="room-tag">Commercial</span>';
 
-    // Tip
-    inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+        let avoidHtml = '';
+        commZone.avoid.forEach(item => {
+          avoidHtml += `<span class="room-tag tag-avoid">❌ ${item}</span>`;
+        });
+        avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Incompatible Setup</span>';
+
+        if (commZone.retail_tips && commZone.retail_tips[retailProfile]) {
+          inspTipText.textContent = commZone.retail_tips[retailProfile][currentLang] || commZone.retail_tips[retailProfile].en;
+        } else {
+          inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+        }
+      }
+    } else {
+      commercialInspectorBox.classList.add('hidden');
+      let favHtml = '';
+      activeZone8.recommendedRooms.forEach(roomId => {
+        const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+        const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+        const icon = roomObj ? roomObj.icon : '✨';
+        favHtml += `<span class="room-tag">${icon} ${name}</span>`;
+      });
+      favorableTags.innerHTML = favHtml || '<span class="room-tag">General</span>';
+
+      let avoidHtml = '';
+      activeZone8.prohibitedRooms.forEach(roomId => {
+        const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+        const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+        avoidHtml += `<span class="room-tag tag-avoid">❌ ${name}</span>`;
+      });
+      avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Heavy Clutter</span>';
+
+      inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+    }
 
     // 32-Pada Entrance Card
     if (zoneSystem === '32') {
@@ -809,6 +883,14 @@
       plotStatusTitle.textContent = `VIDISHA (Tilted Plot by ${absDev}°)`;
       plotStatusDesc.textContent = 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, mandir, and bed axes towards Cardinal North.';
     }
+
+    // Commercial Plot Shape geometry status
+    const shapeObj = VASTU_DATA.PLOT_SHAPES && VASTU_DATA.PLOT_SHAPES[selectedPlotShape];
+    if (shapeObj && plotShapeBadge && plotShapeAdviceText) {
+      plotShapeBadge.className = `shape-badge ${shapeObj.badgeClass}`;
+      plotShapeBadge.textContent = shapeObj.statusLabel;
+      plotShapeAdviceText.textContent = shapeObj.commercialEffect;
+    }
   }
 
   // --- Camera AR Mode ---
@@ -870,6 +952,30 @@
     document.getElementById('lblCopyCoords').textContent = dict.copyReport ? 'Copy Coords' : 'Copy Coords';
     document.getElementById('lblInstallApp').textContent = dict.installApp || 'Install App';
 
+    // Commercial & Retail UI Translations
+    const lblPropRes = document.getElementById('lblPropResidential');
+    if (lblPropRes) lblPropRes.textContent = dict.propertyResidential || 'Residential Vastu';
+    const lblPropComm = document.getElementById('lblPropCommercial');
+    if (lblPropComm) lblPropComm.textContent = dict.propertyCommercial || 'Commercial & Retail';
+    const lblBizCat = document.getElementById('lblBusinessCategory');
+    if (lblBizCat) lblBizCat.textContent = dict.businessCategory ? `${dict.businessCategory}:` : 'Business Category:';
+    const lblCommSuit = document.getElementById('lblCommSuitability');
+    if (lblCommSuit) lblCommSuit.textContent = dict.commercialSuitability || 'Commercial Suitability';
+    const lblBizImp = document.getElementById('lblBusinessImpact');
+    if (lblBizImp) lblBizImp.textContent = dict.businessImpact || 'Business Impact';
+    const lblPlotTitle = document.getElementById('lblPlotShapeTitle');
+    if (lblPlotTitle) lblPlotTitle.textContent = dict.plotShapeTitle || 'Commercial Plot Geometry & Shape';
+    const lblCommCheck = document.getElementById('lblCommercialChecklist');
+    if (lblCommCheck) lblCommCheck.textContent = dict.commercialChecklist ? `${dict.commercialChecklist}:` : 'Commercial Compliance Audit:';
+    const lblCheckOwner = document.getElementById('lblCheckOwner');
+    if (lblCheckOwner) lblCheckOwner.textContent = dict.ownerDeskCheck || 'Owner/MD Desk:';
+    const lblCheckSafe = document.getElementById('lblCheckSafe');
+    if (lblCheckSafe) lblCheckSafe.textContent = dict.cashSafeCheck || 'Cash Safe:';
+    const lblCheckStock = document.getElementById('lblCheckStock');
+    if (lblCheckStock) lblCheckStock.textContent = dict.inventoryCheck || 'Inventory Flow:';
+    const lblCheckFire = document.getElementById('lblCheckFire');
+    if (lblCheckFire) lblCheckFire.textContent = dict.fireElectricalCheck || 'Electrical Safety:';
+
     // Re-render Dial and Inspector
     buildDialSvg();
     updateVastuInspector(currentHeading);
@@ -903,7 +1009,8 @@
   // --- Room Finder Modal & Grid ---
   function renderRoomsGrid() {
     let html = '';
-    VASTU_DATA.ROOMS.forEach(room => {
+    const roomList = (roomCategoryTab === 'commercial' && VASTU_DATA.COMMERCIAL_ROOMS) ? VASTU_DATA.COMMERCIAL_ROOMS : VASTU_DATA.ROOMS;
+    roomList.forEach(room => {
       const isSelected = activeRoom && activeRoom.id === room.id ? 'active' : '';
       const name = room.names[currentLang] || room.names.en;
       html += `
@@ -926,7 +1033,7 @@
   }
 
   function selectRoom(roomId) {
-    const room = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+    const room = VASTU_DATA.ROOMS.find(r => r.id === roomId) || (VASTU_DATA.COMMERCIAL_ROOMS && VASTU_DATA.COMMERCIAL_ROOMS.find(r => r.id === roomId));
     if (!room) return;
 
     activeRoom = room;
@@ -980,7 +1087,30 @@
       reportPlot.textContent = 'Standard Cardinal Inspection';
     }
 
-    reportAdvice.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+    // Commercial Property vs Residential Audit parameters
+    if (reportPropertyType) {
+      reportPropertyType.textContent = propertyType === 'commercial' ? 'Commercial & Retail' : 'Residential';
+    }
+    if (propertyType === 'commercial') {
+      if (reportCategoryRow) reportCategoryRow.classList.remove('hidden');
+      if (reportPlotShapeRow) reportPlotShapeRow.classList.remove('hidden');
+      if (commercialChecklistBox) commercialChecklistBox.classList.remove('hidden');
+
+      const prof = VASTU_DATA.RETAIL_PROFILES && VASTU_DATA.RETAIL_PROFILES.find(p => p.profile_id === retailProfile);
+      if (reportBusinessCategory) {
+        reportBusinessCategory.textContent = prof ? (prof.name[currentLang] || prof.name.en) : 'Apparel, Silk Sarees & Boutiques';
+      }
+      const shapeObj = VASTU_DATA.PLOT_SHAPES && VASTU_DATA.PLOT_SHAPES[selectedPlotShape];
+      if (reportPlotShape) {
+        reportPlotShape.textContent = shapeObj ? `${shapeObj.name} • ${shapeObj.statusLabel}` : 'Shermukhi (Lion-Faced)';
+      }
+    } else {
+      if (reportCategoryRow) reportCategoryRow.classList.add('hidden');
+      if (reportPlotShapeRow) reportPlotShapeRow.classList.add('hidden');
+      if (commercialChecklistBox) commercialChecklistBox.classList.add('hidden');
+    }
+
+    reportAdvice.textContent = inspTipText.textContent || activeZone8.tips[currentLang] || activeZone8.tips.en;
 
     auditModal.classList.remove('hidden');
   }
@@ -989,6 +1119,23 @@
     const activeZone8 = getActiveZone8(currentHeading);
     const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
     const activePada = getActivePada32(currentHeading);
+    const prof = VASTU_DATA.RETAIL_PROFILES && VASTU_DATA.RETAIL_PROFILES.find(p => p.profile_id === retailProfile);
+    const shapeObj = VASTU_DATA.PLOT_SHAPES && VASTU_DATA.PLOT_SHAPES[selectedPlotShape];
+
+    let commercialText = '';
+    if (propertyType === 'commercial') {
+      commercialText = `
+🏢 Property Type: Commercial & Retail
+🛍️ Business Profile: ${prof ? (prof.name[currentLang] || prof.name.en) : 'Apparel, Silk Sarees & Boutiques'}
+📐 Commercial Plot Shape: ${shapeObj ? shapeObj.name : 'Shermukhi (Lion-Faced)'} [${shapeObj ? shapeObj.statusLabel : 'Ideal for Retail'}]
+
+📋 Commercial Compliance Checklist:
+• Owner / MD Seating (SW Zone facing N/E): ✓ Verified
+• Cash Locker / Safe Placement (SW opening North): ✓ Verified
+• Fast Stock Circulation (NW Vayavya Zone): ✓ Verified
+• Electrical Panel & DB Box (SE Agneya Fire Zone): ✓ Verified
+`;
+    }
 
     return `🏛️ KUBERAN VASTU COMPASS AUDIT REPORT
 -----------------------------------------
@@ -1002,10 +1149,10 @@ Presented by KUBERAN Silks (https://kuberansilks.com/)
 👑 Ruling Deity: ${activeZone8.deityNames[currentLang] || activeZone8.deityNames.en}
 🚪 32-Pada Devata: ${activePada.id} - ${activePada.devata} [Grade ${activePada.grade}]
 📍 GPS Coordinates: ${gpsLat.textContent}, ${gpsLng.textContent}
-⛰️ Altitude: ${gpsAlt.textContent}
+⛰️ Altitude: ${gpsAlt.textContent}${commercialText}
 
 💡 Vedic Recommendation:
-${activeZone8.tips[currentLang] || activeZone8.tips.en}
+${inspTipText.textContent || activeZone8.tips[currentLang] || activeZone8.tips.en}
 
 Explore official luxury silk & spiritual collections at:
 https://kuberansilks.com/`;
@@ -1073,6 +1220,88 @@ https://kuberansilks.com/`;
       buildDialSvg();
       updateVastuInspector(currentHeading);
     });
+
+    // Property Type Switcher (Residential vs Commercial & Retail)
+    if (btnPropResidential && btnPropCommercial) {
+      btnPropResidential.addEventListener('click', () => {
+        propertyType = 'residential';
+        btnPropResidential.classList.add('active');
+        btnPropCommercial.classList.remove('active');
+        if (retailProfileStrip) retailProfileStrip.classList.add('hidden');
+        roomCategoryTab = 'residential';
+        if (tabResRooms) tabResRooms.classList.add('active');
+        if (tabCommRooms) tabCommRooms.classList.remove('active');
+        buildDialSvg();
+        updateVastuInspector(currentHeading);
+        showToast('Switched to Residential Vastu');
+      });
+
+      btnPropCommercial.addEventListener('click', () => {
+        propertyType = 'commercial';
+        btnPropCommercial.classList.add('active');
+        btnPropResidential.classList.remove('active');
+        if (retailProfileStrip) retailProfileStrip.classList.remove('hidden');
+        roomCategoryTab = 'commercial';
+        if (tabCommRooms) tabCommRooms.classList.add('active');
+        if (tabResRooms) tabResRooms.classList.remove('active');
+        buildDialSvg();
+        updateVastuInspector(currentHeading);
+        showToast('Switched to Commercial & Retail Vastu');
+      });
+    }
+
+    // Retail Profile Chips (Apparel, Jewelry, General)
+    function setRetailProfile(profId) {
+      retailProfile = profId;
+      [chipProfileApparel, chipProfileJewelry, chipProfileGeneral].forEach(chip => {
+        if (chip) chip.classList.toggle('active', chip.dataset.profile === profId);
+      });
+      buildDialSvg();
+      updateVastuInspector(currentHeading);
+      const prof = VASTU_DATA.RETAIL_PROFILES && VASTU_DATA.RETAIL_PROFILES.find(p => p.profile_id === profId);
+      const name = prof ? (prof.name[currentLang] || prof.name.en) : profId;
+      showToast(`Retail Profile: ${name}`);
+    }
+
+    if (chipProfileApparel) chipProfileApparel.addEventListener('click', () => setRetailProfile('apparel_silk_sarees'));
+    if (chipProfileJewelry) chipProfileJewelry.addEventListener('click', () => setRetailProfile('jewelry_luxury'));
+    if (chipProfileGeneral) chipProfileGeneral.addEventListener('click', () => setRetailProfile('general_commercial'));
+
+    // Room Category Tabs in Room Finder Modal
+    if (tabResRooms) {
+      tabResRooms.addEventListener('click', () => {
+        roomCategoryTab = 'residential';
+        tabResRooms.classList.add('active');
+        if (tabCommRooms) tabCommRooms.classList.remove('active');
+        renderRoomsGrid();
+      });
+    }
+    if (tabCommRooms) {
+      tabCommRooms.addEventListener('click', () => {
+        roomCategoryTab = 'commercial';
+        tabCommRooms.classList.add('active');
+        if (tabResRooms) tabResRooms.classList.remove('active');
+        renderRoomsGrid();
+      });
+    }
+
+    // Commercial Plot Shape Selector Cards in Plot Tilt Modal
+    if (plotShapeSelectorGrid) {
+      plotShapeSelectorGrid.querySelectorAll('.shape-chip').forEach(card => {
+        card.addEventListener('click', () => {
+          plotShapeSelectorGrid.querySelectorAll('.shape-chip').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedPlotShape = card.dataset.shape;
+          const shapeObj = VASTU_DATA.PLOT_SHAPES && VASTU_DATA.PLOT_SHAPES[selectedPlotShape];
+          if (shapeObj && plotShapeBadge && plotShapeAdviceText) {
+            plotShapeBadge.className = `shape-badge ${shapeObj.badgeClass}`;
+            plotShapeBadge.textContent = shapeObj.statusLabel;
+            plotShapeAdviceText.textContent = shapeObj.commercialEffect;
+            showToast(`Plot Shape: ${shapeObj.name}`);
+          }
+        });
+      });
+    }
 
     // Dial Visual Theme Switcher (Elemental / Chakra / Royal Gold)
     btnDialTheme.addEventListener('click', () => {
@@ -1276,7 +1505,7 @@ https://kuberansilks.com/`;
   function initPWA() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.2.0')
+        navigator.serviceWorker.register('./sw.js?v=4.3.0')
           .then((reg) => {
             console.log('KUBERAN Vastu Compass SW registered:', reg.scope);
             // Force immediate update check

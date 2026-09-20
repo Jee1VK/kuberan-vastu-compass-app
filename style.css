@@ -1853,3 +1853,280 @@ body.theme-gold .vastu-sector-ring {
 body.theme-gold .vastu-zone-text {
   fill: #f7eedd !important;
 }
+/* ==========================================================================
+   COMMERCIAL & RETAIL VASTU UI STYLES
+   ========================================================================== */
+
+/* Property Segmented Switcher (Residential vs Commercial) */
+.property-segmented {
+  margin-top: 2px;
+  background: rgba(14, 28, 49, 0.75);
+  border: 1px solid rgba(212, 163, 89, 0.4);
+}
+
+.property-segmented .segment-btn.active {
+  background: linear-gradient(135deg, rgba(212, 163, 89, 0.45) 0%, rgba(230, 57, 70, 0.3) 100%);
+  color: #fff;
+  border: 1px solid #d4a359;
+  box-shadow: 0 0 12px rgba(212, 163, 89, 0.35);
+}
+
+/* Retail Profile Strip & Chips */
+.retail-profile-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.profile-strip-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+
+.profile-chips-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.profile-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: 16px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.profile-chip:hover {
+  color: var(--text-main);
+  border-color: rgba(212, 163, 89, 0.5);
+}
+
+.profile-chip.active {
+  background: linear-gradient(135deg, rgba(212, 163, 89, 0.35) 0%, rgba(104, 74, 30, 0.35) 100%);
+  border-color: #d4a359;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(212, 163, 89, 0.3);
+}
+
+.profile-icon {
+  font-size: 0.85rem;
+}
+
+/* Room Category Tabs */
+.room-tabs-segmented {
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.room-tabs-segmented .segment-btn {
+  font-size: 0.78rem;
+  padding: 6px 12px;
+}
+
+/* Commercial Inspector Box */
+.commercial-inspector-box {
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 3px solid #d4a359;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comm-suitability-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comm-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #d4a359;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.comm-val {
+  font-size: 0.74rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.comm-impact-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comm-impact-text {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Commercial Plot Shape Section in Plot Tilt Modal */
+.plot-shape-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plot-shape-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+}
+
+.shape-selector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.shape-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.shape-chip:hover {
+  color: var(--text-main);
+  border-color: rgba(212, 163, 89, 0.4);
+}
+
+.shape-chip.active {
+  background: rgba(212, 163, 89, 0.2);
+  border-color: #d4a359;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(212, 163, 89, 0.25);
+}
+
+.shape-chip-icon {
+  font-size: 1.1rem;
+}
+
+.shape-detail-box {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shape-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 2px 8px;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.shape-badge.badge-aligned {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  color: #4ade80;
+}
+
+.shape-badge.badge-tilted {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fde047;
+}
+
+.shape-detail-box p {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+/* Commercial Checklist Box in Audit Modal */
+.commercial-checklist-box {
+  background: rgba(212, 163, 89, 0.1);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.commercial-checklist-box strong {
+  font-size: 0.74rem;
+  color: #d4a359;
+}
+
+.checklist-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checklist-items li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+}
+
+.check-icon {
+  font-size: 0.75rem;
+}
+
+.check-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.check-val {
+  color: var(--text-main);
+  margin-left: auto;
+  font-weight: 600;
+}
