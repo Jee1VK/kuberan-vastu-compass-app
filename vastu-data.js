@@ -1423,7 +1423,19 @@ const VASTU_DATA = {
       plotTiltHelp: 'Align your phone flush against the front wall or plot boundary.',
       switchLang: 'Language',
       installApp: 'Install App',
-      close: 'Close'
+      close: 'Close',
+      calibrate: 'Calibrate',
+      calibrationTitle: 'Compass Calibration',
+      calibrationSub: 'Hardware Magnetometer & Alignment',
+      sensorStatusLabel: 'SENSOR STATUS:',
+      calibrationConfidence: 'CALIBRATION CONFIDENCE:',
+      manualOffsetLabel: 'MANUAL OFFSET:',
+      fig8Title: 'Wave Phone in Figure-8 Motion',
+      fig8Desc: 'Gently wave your phone in a figure-8 pattern in the air 3 to 4 times to reset the internal magnetometer and clear local magnetic bias.',
+      manualOffsetTitle: 'Manual Calibration Offset',
+      calHint: 'Compensate for magnetic phone cases or fine-tune against an external reference needle.',
+      zeroToNorthBtn: 'Set Current Heading as True Reference',
+      resetOffset: 'Reset (0°)'
     },
     hi: {
       propertyResidential: "आवासीय वास्तु",
@@ -1479,7 +1491,19 @@ const VASTU_DATA = {
       plotTiltHelp: 'अपने फोन को मुख्य दीवार या भूखंड की सीमा के समानांतर रखें।',
       switchLang: 'भाषा',
       installApp: 'ऐप इंस्टॉल करें',
-      close: 'बंद करें'
+      close: 'बंद करें',
+      calibrate: 'कैलिब्रेट करें',
+      calibrationTitle: 'कंपास कैलिब्रेशन',
+      calibrationSub: 'हार्डवेयर मैग्नेटोमीटर एवं संरेखण',
+      sensorStatusLabel: 'सेंसर स्थिति:',
+      calibrationConfidence: 'सटीकता विश्वास:',
+      manualOffsetLabel: 'मैन्युअल ऑफ़सेट:',
+      fig8Title: 'फोन को 8 के आकार में घुमाएं',
+      fig8Desc: 'आंतरिक मैग्नेटोमीटर को रीसेट करने और चुंबकीय प्रभाव दूर करने के लिए फोन को हवा में 3-4 बार 8 के आकार में धीरे-धीरे घुमाएं।',
+      manualOffsetTitle: 'मैन्युअल कैलिब्रेशन ऑफ़सेट',
+      calHint: 'चुंबकीय फोन कवर या बाहरी संदर्भ सुई के अनुसार सटीक समायोजन करें।',
+      zeroToNorthBtn: 'वर्तमान दिशा को संदर्भ मान निर्धारित करें',
+      resetOffset: 'रीसेट (0°)'
     },
     kn: {
       propertyResidential: "ವಸತಿ ವಾಸ್ತು",
@@ -1535,7 +1559,19 @@ const VASTU_DATA = {
       plotTiltHelp: 'ಫೋನನ್ನು ಮುಂಭಾಗದ ಗೋಡೆ ಅಥವಾ ನಿವೇಶನದ ರೇಖೆಗೆ ಸಮಾನಾಂತರವಾಗಿ ಇಡಿ.',
       switchLang: 'ಭಾಷೆ',
       installApp: 'ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ',
-      close: 'ಮುಚ್ಚಿ'
+      close: 'ಮುಚ್ಚಿ',
+      calibrate: 'ಕ್ಯಾಲಿಬ್ರೇಟ್',
+      calibrationTitle: 'ದಿಕ್ಸೂಚಿ ಕ್ಯಾಲಿಬ್ರೇಶನ್',
+      calibrationSub: 'ಹಾರ್ಡ್‌ವೇರ್ ಮ್ಯಾಗ್ನೆಟೋಮೀಟರ್ ಮತ್ತು ಜೋಡಣೆ',
+      sensorStatusLabel: 'ಸೆನ್ಸರ್ ಸ್ಥಿತಿ:',
+      calibrationConfidence: 'ನಿಖರತೆಯ ವಿಶ್ವಾಸ:',
+      manualOffsetLabel: 'ಮ್ಯಾನುಯಲ್ ಆಫ್‌ಸೆಟ್:',
+      fig8Title: 'ಫೋನ್ ಅನ್ನು 8 ಆಕಾರದಲ್ಲಿ ತಿರುಗಿಸಿ',
+      fig8Desc: 'ಆಂತರಿಕ ಮ್ಯಾಗ್ನೆಟೋಮೀಟರ್ ಮರುಹೊಂದಿಸಲು ಮತ್ತು ಕಾಂತೀಯ ಅಡಚಣೆ ನಿವಾರಿಸಲು ಫೋನ್ ಅನ್ನು ಗಾಳಿಯಲ್ಲಿ 3-4 ಬಾರಿ 8 ರ ಆಕಾರದಲ್ಲಿ ನಿಧಾನವಾಗಿ ತಿರುಗಿಸಿ.',
+      manualOffsetTitle: 'ಮ್ಯಾನುಯಲ್ ಕ್ಯಾಲಿಬ್ರೇಶನ್ ಆಫ್‌ಸೆಟ್',
+      calHint: 'ಕಾಂತೀಯ ಮೊಬೈಲ್ ಕವರ್‌ಗಳ ಪ್ರಭಾವ ಸರಿಹೊಂದಿಸಲು ಅಥವಾ ಬಾಹ್ಯ ಸೂಜಿಯೊಂದಿಗೆ ಹೊಂದಾಣಿಕೆ ಮಾಡಲು ಬಳಸಿ.',
+      zeroToNorthBtn: 'ಪ್ರಸ್ತುತ ದಿಕ್ಕನ್ನು ಮುಖ್ಯ ಉಲ್ಲೇಖವಾಗಿ ನಿಗದಿಪಡಿಸಿ',
+      resetOffset: 'ಮರುಹೊಂದಿಸಿ (0°)'
     },
     ta: {
       propertyResidential: "குடியிருப்பு வாஸ்து",
@@ -1591,7 +1627,19 @@ const VASTU_DATA = {
       plotTiltHelp: 'உங்கள் போனை முன் சுவர் அல்லது மனை எல்லையில் நேராக வைக்கவும்.',
       switchLang: 'மொழி',
       installApp: 'செயலியை நிறுவுங்கள்',
-      close: 'மூடு'
+      close: 'மூடு',
+      calibrate: 'அளவீடு (Calibrate)',
+      calibrationTitle: 'திசைகாட்டி அளவீடு',
+      calibrationSub: 'மேக்னடோமீட்டர் சென்சார் & துல்லிய சீரமைப்பு',
+      sensorStatusLabel: 'சென்சார் நிலை:',
+      calibrationConfidence: 'துல்லிய நம்பிக்கை:',
+      manualOffsetLabel: 'கைமுறை ஆஃப்செட்:',
+      fig8Title: 'போனை 8 வடிவில் சுழற்றவும்',
+      fig8Desc: 'உட்புற மேக்னடோமீட்டரை மீட்டமைக்கவும் காந்தக் குறுக்கீட்டை நீக்கவும் போனை காற்றில் 3-4 முறை எட்டு (8) வடிவில் மெதுவாக அசைக்கவும்.',
+      manualOffsetTitle: 'கைமுறை அளவீட்டு ஆஃப்செட்',
+      calHint: 'காந்த மொபைல் கவர்களால் ஏற்படும் பிழையை சரிசெய்ய அல்லது துல்லியமாக சீரமைக்க உதவும்.',
+      zeroToNorthBtn: 'தற்போதைய திசையை மூலக் குறியீடாக அமை',
+      resetOffset: 'மீட்டமை (0°)'
     },
     te: {
       propertyResidential: "నివాస వాస్తు",
@@ -1647,7 +1695,19 @@ const VASTU_DATA = {
       plotTiltHelp: 'ఫోన్‌ను గోడ లేదా ప్లాట్ సరిహద్దుకు సమాంతరంగా ఉంచండి.',
       switchLang: 'భాష',
       installApp: 'యాప్ ఇన్‌స్టాల్ చేసుకోండి',
-      close: 'మూసివేయి'
+      close: 'మూసివేయి',
+      calibrate: 'క్యాలిబ్రేట్',
+      calibrationTitle: 'దిక్సూచి క్యాలిబ్రేషన్',
+      calibrationSub: 'హార్డ్‌వేర్ మాగ్నెటోమీటర్ & సమలేఖనం',
+      sensorStatusLabel: 'సెన్సార్ స్థితి:',
+      calibrationConfidence: 'ఖచ్చితత్వ విశ్వాసం:',
+      manualOffsetLabel: 'మాన్యువల్ ఆఫ్‌సెట్:',
+      fig8Title: 'ఫోన్‌ను 8 ఆకారంలో తిప్పండి',
+      fig8Desc: 'అంతర్గత మాగ్నెటోమీటర్‌ను రీసెట్ చేయడానికి మరియు అయస్కాంత అంతరాయాన్ని తొలగించడానికి ఫోన్‌ను గాలిలో 3-4 సార్లు 8 ఆకారంలో నెమ్మదిగా తిప్పండి.',
+      manualOffsetTitle: 'మాన్యువల్ క్యాలిబ్రేషన్ ఆఫ్‌సెట్',
+      calHint: 'అయస్కాంత మొబైల్ కవర్ల ప్రభావాన్ని సరిచేయడానికి లేదా బాహ్య సూచికతో సమలేఖనం చేయడానికి ఉపయోగించండి.',
+      zeroToNorthBtn: 'ప్రస్తుత దిశను ప్రామాణికంగా సెట్ చేయండి',
+      resetOffset: 'రీసెట్ (0°)'
     }
   }
 };
