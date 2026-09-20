@@ -1,6 +1,5 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.6.0';
+const CACHE_NAME = 'kuberan-vastu-compass-v4.6.1';
 const ASSETS_TO_CACHE = [
-  './',
   './index.html',
   './style.css',
   './vastu-data.js',
@@ -19,7 +18,12 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      // Use Promise.allSettled or catch individual errors so one missing file (like './') doesn't break the entire SW install
+      return Promise.all(
+        ASSETS_TO_CACHE.map(url => {
+          return cache.add(url).catch(err => console.warn('SW Install: failed to cache', url, err));
+        })
+      );
     })
   );
 });
