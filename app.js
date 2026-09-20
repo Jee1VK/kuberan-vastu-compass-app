@@ -11,7 +11,7 @@
   let currentHeading = 0;
   let rawMagneticHeading = 0;
   let smoothedHeading = null;
-  const SMOOTHING_FACTOR = 0.22;
+  const SMOOTHING_FACTOR = 0.25; // balanced responsiveness + stability
   let calibrationOffset = 0;
   try {
     const savedOffset = localStorage.getItem('kuberan-vastu-compass-offset');
@@ -205,6 +205,35 @@
   const reportAdvice = document.getElementById('reportAdvice');
   const btnCopyAuditReport = document.getElementById('btnCopyAuditReport');
   const btnShareAuditReport = document.getElementById('btnShareAuditReport');
+
+  // --- Tilt-Compensated Compass Heading (W3C / Rotation Matrix) ---
+  // On Android, raw alpha is NOT tilt-compensated. When the phone is tilted
+  // (held at natural 30-50° viewing angle), heading from raw alpha drifts.
+  // This formula projects the device's rotation matrix onto the horizontal
+  // plane to extract a true compass heading regardless of pitch/roll.
+  function tiltCompensatedHeading(alpha, beta, gamma) {
+    const degToRad = Math.PI / 180;
+    const a = alpha * degToRad;
+    const b = beta  * degToRad;
+    const g = gamma * degToRad;
+
+    // Rotation matrix components (ZXY intrinsic Tait-Bryan angles)
+    const cA = Math.cos(a), sA = Math.sin(a);
+    const cB = Math.cos(b), sB = Math.sin(b);
+    const cG = Math.cos(g), sG = Math.sin(g);
+
+    // Elements of the rotation matrix that map device Y-axis to Earth frame
+    // rA = -cos(alpha)*sin(gamma) - sin(alpha)*sin(beta)*cos(gamma)
+    // rB = -sin(alpha)*sin(gamma) + cos(alpha)*sin(beta)*cos(gamma)
+    const rA = -cA * sG - sA * sB * cG;
+    const rB = -sA * sG + cA * sB * cG;
+
+    // Compass heading (clockwise from North)
+    let heading = Math.atan2(rA, rB) * (180 / Math.PI);
+    if (heading < 0) heading += 360;
+
+    return heading;
+  }
 
   // --- Angle Smoothing Helper (handles 0°/360° phase wrap-around) ---
   function smoothAngle(prev, target, factor) {
@@ -902,8 +931,20 @@
         sensorAccuracy = event.webkitCompassAccuracy;
       }
     } else if (event.alpha !== null && event.alpha !== undefined) {
-      // Android / W3C: alpha goes 0-360 counter-clockwise
-      heading = ((360 - event.alpha) % 360 + 360) % 360;
+      // Android / W3C: Use tilt-compensated heading formula
+      // Raw alpha alone is inaccurate when the phone is tilted (natural viewing angle).
+      // The rotation-matrix projection accounts for beta (pitch) and gamma (roll)
+      // to produce a stable heading regardless of device tilt.
+      const beta  = (event.beta  !== null && event.beta  !== undefined) ? event.beta  : 0;
+      const gamma = (event.gamma !== null && event.gamma !== undefined) ? event.gamma : 0;
+
+      // Only use tilt compensation when we have meaningful tilt data
+      if (Math.abs(beta) > 0.5 || Math.abs(gamma) > 0.5) {
+        heading = tiltCompensatedHeading(event.alpha, beta, gamma);
+      } else {
+        // Phone is flat on a table — raw alpha inversion is fine
+        heading = ((360 - event.alpha) % 360 + 360) % 360;
+      }
       if (event.absolute === true || isAbsolute) {
         isAbsoluteOrientation = true;
       }
