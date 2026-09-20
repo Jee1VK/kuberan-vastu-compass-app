@@ -30,10 +30,14 @@ You can install this directly to your phone's home screen as a standalone full-s
 
 ---
 
-## ✨ Features (v4.0.0 Vedic Edition)
+## ✨ Features (v4.6.0 Vedic Edition)
 
 ### 🕉️ 1. Complete Vedic Vastu Architecture
 - **Rigorous Classical References**: Built according to authentic Vastu texts including *Vishwakarma Prakash*, *Manasara*, *Mayamatam*, and *Brihat Samhita*.
+- **Commercial & Retail Vastu Engine**:
+  - **9 Commercial Pre-sets**: Director/MD Seating, Cash Locker, Display/Showroom, Staff Seating, IT/Server Room, Stock Storage, Customer Reception, Restrooms, and Billing Counter.
+  - **3 Retail Profiles**: Specialized tips for Apparel/Silk Sarees, Jewelry/Gold, and General Commercial businesses.
+  - **Plot Geometry Diagnosis**: Commercial suitability ratings for Shermukhi (Lion-faced) and Gaumukhi (Cow-faced) plots.
 - **3 Directional Zone Modes**:
   - **8 Zones (Ashta Dikpala)**: Traditional 45° sectors with ruling Digpalas, Sanskrit names (*Uttara, Ishanya, Purva, Agneya, Dakshina, Nairutya, Paschima, Vayavya*), and Pancha Bhoota elements.
   - **16 Zones (MahaVastu)**: 22.5° sectors mapping life aspects (Wealth, Health, Clarity, Cash Flow, Relationships, Skills, Gains, etc.).

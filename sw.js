@@ -1,26 +1,17 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.5.3';
+const CACHE_NAME = 'kuberan-vastu-compass-v4.6.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=4.3.1',
   './style.css',
-  './vastu-data.js?v=4.3.1',
   './vastu-data.js',
-  './qrcode.min.js?v=4.3.1',
   './qrcode.min.js',
-  './app.js?v=4.3.1',
   './app.js',
-  './manifest.webmanifest?v=4.3.1',
   './manifest.webmanifest',
   './assets/images/kuberan_logo_white_bg.png',
   './assets/images/kuberan_logo_transparent.png',
-  './icon.svg?v=4.3.1',
   './icon.svg',
-  './icon-192.png?v=4.3.1',
   './icon-192.png',
-  './icon-512.png?v=4.3.1',
   './icon-512.png',
-  './apple-touch-icon.png?v=4.3.1',
   './apple-touch-icon.png'
 ];
 
@@ -66,14 +57,14 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request, { ignoreSearch: true }))
     );
     return;
   }
 
   // Cache-First with background revalidation for other static assets
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {

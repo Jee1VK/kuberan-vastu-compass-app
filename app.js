@@ -238,8 +238,10 @@
   // --- Angle Smoothing Helper (handles 0°/360° phase wrap-around) ---
   function smoothAngle(prev, target, factor) {
     if (prev === null) return target;
-    let diff = (target - prev + 540) % 360 - 180;
-    return (prev + diff * factor + 360) % 360;
+    // Calculate shortest angular distance to target, keeping prev as an accumulated value
+    let prevDisplay = ((prev % 360) + 360) % 360;
+    let diff = (target - prevDisplay + 540) % 360 - 180;
+    return prev + diff * factor;
   }
 
   // --- Helper: Degree Normalizer ---
@@ -751,16 +753,17 @@
   }
 
   // --- Update Primary Orientation & Telemetry UI ---
-  function updateHeadingUI(heading) {
-    currentHeading = heading;
-    const rounded = Math.round(heading);
+  function updateHeadingUI(cssHeading) {
+    const displayHeading = ((cssHeading % 360) + 360) % 360;
+    currentHeading = displayHeading; // Store clamped 0-359 value for external use
+    const rounded = Math.round(displayHeading) === 360 ? 0 : Math.round(displayHeading);
 
     // Degrees display
     headingDegrees.textContent = rounded;
 
     // Cardinal Heading calculation
     const cardinals = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    const cardIndex = Math.round(heading / 45) % 8;
+    const cardIndex = Math.round(displayHeading / 45) % 8;
     const activeZone8 = VASTU_DATA.ZONES_8[cardIndex];
     headingCardinal.textContent = cardinals[cardIndex];
 
@@ -768,19 +771,19 @@
     headingSanskrit.textContent = activeZone8.sanskrit;
 
     // Mils (6400 NATO Mils scale)
-    const mils = Math.round((heading / 360) * 6400);
+    const mils = Math.round((displayHeading / 360) * 6400);
     milsValue.textContent = mils;
 
     // Back Azimuth
-    const backAzimuth = Math.round((heading + 180) % 360);
+    const backAzimuth = Math.round((displayHeading + 180) % 360);
     backAzimuthValue.textContent = `${backAzimuth}°`;
 
     // Rotate Compass Card
-    compassCard.style.transform = `rotate(${-heading}deg)`;
+    compassCard.style.transform = `rotate(${-cssHeading}deg)`;
 
     // Target Deviation Bar
     if (targetHeading !== null) {
-      let diff = heading - targetHeading;
+      let diff = displayHeading - targetHeading;
       while (diff < -180) diff += 360;
       while (diff > 180) diff -= 360;
 
@@ -806,7 +809,7 @@
 
     // Cardinal Haptic Tick (exact 0°, 90°, 180°, 270° within 1.5°)
     const cardinalAngles = [0, 90, 180, 270];
-    const isExactCardinal = cardinalAngles.some(ang => Math.abs(heading - ang) <= 1.2 || Math.abs(heading - 360) <= 1.2);
+    const isExactCardinal = cardinalAngles.some(ang => Math.abs(displayHeading - ang) <= 1.2 || Math.abs(displayHeading - 360) <= 1.2);
     if (isExactCardinal && lastVibratedCardinal !== rounded) {
       lastVibratedCardinal = rounded;
       triggerHapticTick(20);
@@ -815,11 +818,11 @@
     }
 
     // Update Vastu Inspector Card
-    updateVastuInspector(heading);
+    updateVastuInspector(displayHeading);
 
     // If Plot Tilt Modal is open, update its real-time angle
     if (!plotTiltModal.classList.contains('hidden')) {
-      updatePlotTiltUI(heading);
+      updatePlotTiltUI(displayHeading);
     }
   }
 
@@ -867,12 +870,11 @@
     smoothedHeading = smoothAngle(smoothedHeading, rawMagneticHeading, SMOOTHING_FACTOR);
 
     // Apply manual calibration offset
-    let calibratedHeading = (smoothedHeading + calibrationOffset) % 360;
-    if (calibratedHeading < 0) calibratedHeading += 360;
+    let calibratedHeading = smoothedHeading + calibrationOffset;
 
     let trueHeading = calibratedHeading;
     if (isTrueNorth) {
-      trueHeading = ((calibratedHeading + magneticDeclination) % 360 + 360) % 360;
+      trueHeading = calibratedHeading + magneticDeclination;
     }
 
     updateHeadingUI(trueHeading);
@@ -1861,7 +1863,7 @@ https://kuberansilks.com/`;
   function initPWA() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.4.0')
+        navigator.serviceWorker.register('./sw.js')
           .then((reg) => {
             console.log('KUBERAN Vastu Compass SW registered:', reg.scope);
             // Force immediate update check
