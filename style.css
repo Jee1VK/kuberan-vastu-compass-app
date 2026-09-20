@@ -336,6 +336,13 @@ body {
   color: var(--text-muted);
 }
 
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .btn-primary {
   background: var(--accent-cyan);
   color: #07090e;

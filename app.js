@@ -68,6 +68,7 @@
   const btnCloseModal = document.getElementById('btnCloseModal');
   const iosPermissionBanner = document.getElementById('iosPermissionBanner');
   const btnGrantSensor = document.getElementById('btnGrantSensor');
+  const btnDismissSensor = document.getElementById('btnDismissSensor');
   const levelHousing = document.getElementById('levelHousing');
   const levelBubble = document.getElementById('levelBubble');
   const pitchGauge = document.getElementById('pitchGauge');
@@ -796,6 +797,9 @@
   function handleOrientation(e) {
     hasSensorData = true;
     iosPermissionBanner.classList.add('hidden');
+    try {
+      localStorage.setItem('kuberan_compass_sensor_enabled', 'true');
+    } catch (err) {}
 
     let heading = null;
 
@@ -1329,12 +1333,12 @@ https://kuberansilks.com/`;
       if (isTrueNorth) {
         btnToggleNorth.classList.add('active');
         northPill.textContent = 'TRU';
-        northModeLabel.textContent = 'TRUE NORTH • VASTU SHASTRA';
+        if (northModeLabel) northModeLabel.textContent = 'TRUE NORTH';
         showToast('True North mode active (Magnetic declination applied)');
       } else {
         btnToggleNorth.classList.remove('active');
         northPill.textContent = 'MAG';
-        northModeLabel.textContent = 'MAGNETIC NORTH';
+        if (northModeLabel) northModeLabel.textContent = 'MAGNETIC NORTH';
         showToast('Magnetic North mode active');
       }
       sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
@@ -1451,6 +1455,12 @@ https://kuberansilks.com/`;
 
     // iOS Sensor Permission Button
     btnGrantSensor.addEventListener('click', requestSensorPermission);
+    if (btnDismissSensor) {
+      btnDismissSensor.addEventListener('click', () => {
+        try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
+        iosPermissionBanner.classList.add('hidden');
+      });
+    }
   }
 
   // --- Dynamic QR Code Generator for Install / GitHub ---
@@ -1472,10 +1482,15 @@ https://kuberansilks.com/`;
 
   // --- iOS Sensor Permissions ---
   function requestSensorPermission() {
+    try {
+      localStorage.setItem('kuberan_compass_sensor_enabled', 'true');
+    } catch (e) {}
+
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
         .then((response) => {
           if (response === 'granted') {
+            try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
             window.addEventListener('deviceorientation', handleOrientation, true);
             iosPermissionBanner.classList.add('hidden');
             showToast('Compass sensors activated');
@@ -1483,20 +1498,46 @@ https://kuberansilks.com/`;
             showToast('Motion permission denied');
           }
         })
-        .catch(() => showToast('Sensor request error'));
+        .catch(() => {
+          try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
+          iosPermissionBanner.classList.add('hidden');
+        });
+    } else {
+      iosPermissionBanner.classList.add('hidden');
     }
   }
 
   // --- Sensor Initialization ---
   function initSensors() {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      // iOS 13+ requires explicit user interaction
-      iosPermissionBanner.classList.remove('hidden');
-    } else if ('ondeviceorientationabsolute' in window) {
+    const isIOS = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
+    let isAlreadyEnabled = false;
+    try {
+      isAlreadyEnabled = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true';
+    } catch (e) {}
+
+    // Always attach available listeners immediately
+    if ('ondeviceorientationabsolute' in window) {
       window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-    } else if ('ondeviceorientation' in window) {
+    }
+    if ('ondeviceorientation' in window || isIOS) {
       window.addEventListener('deviceorientation', handleOrientation, true);
-    } else {
+    }
+
+    if (isIOS) {
+      if (isAlreadyEnabled) {
+        // Already granted/enabled previously, never harass the user again!
+        iosPermissionBanner.classList.add('hidden');
+      } else {
+        // Only show if orientation data does not arrive automatically within 800ms
+        setTimeout(() => {
+          let enabledNow = false;
+          try { enabledNow = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true'; } catch (e) {}
+          if (!hasSensorData && !enabledNow) {
+            iosPermissionBanner.classList.remove('hidden');
+          }
+        }, 800);
+      }
+    } else if (!('ondeviceorientation' in window) && !('ondeviceorientationabsolute' in window)) {
       sensorStatus.textContent = 'Device orientation not supported';
     }
   }
@@ -1505,7 +1546,7 @@ https://kuberansilks.com/`;
   function initPWA() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.3.0')
+        navigator.serviceWorker.register('./sw.js?v=4.3.1')
           .then((reg) => {
             console.log('KUBERAN Vastu Compass SW registered:', reg.scope);
             // Force immediate update check

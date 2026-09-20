@@ -19,16 +19,16 @@
   <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.2.0">
   <meta property="og:url" content="https://jee1vk.github.io/kuberan-vastu-compass-app/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.3.0">
+  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.3.1">
 
   <!-- Icons & Favicon -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.3.0">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.3.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.3.0">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=4.3.0">
-  <link rel="shortcut icon" href="icon-192.png?v=4.3.0">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.3.1">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.3.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.3.1">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=4.3.1">
+  <link rel="shortcut icon" href="icon-192.png?v=4.3.1">
 
-  <link rel="stylesheet" href="style.css?v=4.3.0">
+  <link rel="stylesheet" href="style.css?v=4.3.1">
 </head>
 <body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
@@ -41,7 +41,7 @@
         </a>
         <div class="brand-text">
           <span class="app-name"><span class="brand-kuberan">KUBERAN</span> Vastu Compass</span>
-          <span class="app-sub" id="northModeLabel">TRUE NORTH • VASTU SHASTRA</span>
+          <span class="app-sub hidden" id="northModeLabel" style="display:none;"></span>
         </div>
       </div>
 
@@ -162,9 +162,12 @@
         <div class="banner-icon">🧭</div>
         <div class="banner-text">
           <strong id="lblSensorTitle">Enable Compass Sensors</strong>
-          <span id="lblSensorDesc">Tap to activate your device's precision motion sensors</span>
+          <span id="lblSensorDesc">Tap to activate precision motion sensors</span>
         </div>
-        <button id="btnGrantSensor" class="btn-primary">Enable</button>
+        <div class="banner-actions">
+          <button id="btnGrantSensor" class="btn-primary">Enable</button>
+          <button id="btnDismissSensor" class="btn-guide-close" title="Dismiss" aria-label="Dismiss">✕</button>
+        </div>
       </div>
     </div>
 
@@ -696,7 +699,7 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v4.3.0 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v4.3.1 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
@@ -704,8 +707,8 @@
   </div>
 
   <!-- Scripts -->
-  <script src="vastu-data.js?v=4.3.0"></script>
-  <script src="qrcode.min.js?v=4.3.0"></script>
-  <script src="app.js?v=4.3.0"></script>
+  <script src="vastu-data.js?v=4.3.1"></script>
+  <script src="qrcode.min.js?v=4.3.1"></script>
+  <script src="app.js?v=4.3.1"></script>
 </body>
 </html>
