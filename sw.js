@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.5.2';
+const CACHE_NAME = 'kuberan-vastu-compass-v4.5.3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

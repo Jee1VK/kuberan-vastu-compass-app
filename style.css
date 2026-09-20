@@ -227,11 +227,21 @@ body {
 }
 
 .brand-kuberan {
+  font-size: 0.98rem;
   font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--accent-cyan);
   text-shadow: 0 0 8px var(--accent-glow);
+  line-height: 1.1;
+}
+
+.brand-vastu-compass {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  line-height: 1.1;
 }
 
 .app-sub {
