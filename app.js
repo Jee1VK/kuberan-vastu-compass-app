@@ -11,7 +11,7 @@
   let currentHeading = 0;
   let rawMagneticHeading = 0;
   let smoothedHeading = null;
-  const SMOOTHING_FACTOR = 0.25; // balanced responsiveness + stability
+  // (smoothing factor is now adaptive - see updateHeading)
   let calibrationOffset = 0;
   try {
     const savedOffset = localStorage.getItem('kuberan-vastu-compass-offset');
@@ -206,33 +206,57 @@
   const btnCopyAuditReport = document.getElementById('btnCopyAuditReport');
   const btnShareAuditReport = document.getElementById('btnShareAuditReport');
 
-  // --- Tilt-Compensated Compass Heading (W3C / Rotation Matrix) ---
-  // On Android, raw alpha is NOT tilt-compensated. When the phone is tilted
-  // (held at natural 30-50° viewing angle), heading from raw alpha drifts.
-  // This formula projects the device's rotation matrix onto the horizontal
-  // plane to extract a true compass heading regardless of pitch/roll.
-  function tiltCompensatedHeading(alpha, beta, gamma) {
-    const degToRad = Math.PI / 180;
-    const a = alpha * degToRad;
-    const b = beta  * degToRad;
-    const g = gamma * degToRad;
-
-    // Rotation matrix components (ZXY intrinsic Tait-Bryan angles)
+  // --- Robust Compass Heading from W3C Euler angles (alpha, beta, gamma) ---
+  // BUG FIXED (v4.6.2): the previous formula returned the direction of the phone's
+  // BACK (-Z axis). Held flat (the normal way to use a compass) the back points at the
+  // floor, so its horizontal projection is ~0 and the heading swung by up to 90-180°
+  // with a 1-2° hand tilt (and jumped at the 0.5° flat/tilted switch).
+  //
+  // Correct behaviour:
+  //   * phone flat / slightly tilted  -> heading of the SCREEN-TOP edge  (tilt-immune)
+  //   * phone upright (camera / AR)   -> heading of the REAR CAMERA axis
+  //   * smooth blend between the two  -> no jumps while raising or lowering the phone
+  // Screen rotation (portrait/landscape) is handled here, so callers must NOT add it again.
+  function computeHeadingFromEuler(alpha, beta, gamma, screenAngle) {
+    const D = Math.PI / 180;
+    const a = alpha * D, b = beta * D, g = gamma * D;
     const cA = Math.cos(a), sA = Math.sin(a);
     const cB = Math.cos(b), sB = Math.sin(b);
     const cG = Math.cos(g), sG = Math.sin(g);
 
-    // Elements of the rotation matrix that map device Y-axis to Earth frame
-    // rA = -cos(alpha)*sin(gamma) - sin(alpha)*sin(beta)*cos(gamma)
-    // rB = -sin(alpha)*sin(gamma) + cos(alpha)*sin(beta)*cos(gamma)
-    const rA = -cA * sG - sA * sB * cG;
-    const rB = -sA * sG + cA * sB * cG;
+    // Device axes in the Earth frame (east, north). R = Rz(alpha) · Rx(beta) · Ry(gamma)
+    const axisX    = { e: cA * cG - sA * sB * sG, n: cG * sA + cA * sB * sG };   // device right
+    const axisY    = { e: -cB * sA,               n: cA * cB };                  // device top edge
+    const axisRear = { e: -(cA * sG + cG * sA * sB), n: -(sA * sG - cA * cG * sB) }; // -Z (rear camera)
 
-    // Compass heading (clockwise from North)
-    let heading = Math.atan2(rA, rB) * (180 / Math.PI);
-    if (heading < 0) heading += 360;
+    // Which device axis is the top of the *screen* right now?
+    const quarter = ((Math.round((screenAngle || 0) / 90) % 4) + 4) % 4;
+    const top = [axisY, axisX, { e: -axisY.e, n: -axisY.n }, { e: -axisX.e, n: -axisX.n }][quarter];
 
-    return heading;
+    // 1 = lying flat face-up, 0 = upright
+    const flatness = cB * cG;
+    const t = Math.min(1, Math.max(0, (flatness - 0.35) / 0.40));
+    const wTop = t * t * (3 - 2 * t); // smoothstep: 0 (upright) .. 1 (flat)
+
+    const unit = (v) => {
+      const m = Math.hypot(v.e, v.n);
+      return m < 1e-6 ? null : { e: v.e / m, n: v.n / m };
+    };
+    const uTop = unit(top);
+    const uRear = unit(axisRear);
+
+    let e = 0, n = 0;
+    if (uTop && wTop > 0) { e += uTop.e * wTop; n += uTop.n * wTop; }
+    if (uRear && wTop < 1) {
+      // never blend two opposite vectors (phone tipped top-down): align rear with top first
+      const sign = (uTop && wTop > 0 && (uTop.e * uRear.e + uTop.n * uRear.n) < 0) ? -1 : 1;
+      e += sign * uRear.e * (1 - wTop);
+      n += sign * uRear.n * (1 - wTop);
+    }
+    if (e === 0 && n === 0) return null;
+
+    let heading = Math.atan2(e, n) / D;
+    return heading < 0 ? heading + 360 : heading;
   }
 
   // --- Angle Smoothing Helper (handles 0°/360° phase wrap-around) ---
@@ -866,8 +890,12 @@
       rawMagneticHeading = ((rawHeading % 360) + 360) % 360;
     }
 
-    // Apply low-pass angular smoothing filter to eliminate magnetic jitter
-    smoothedHeading = smoothAngle(smoothedHeading, rawMagneticHeading, SMOOTHING_FACTOR);
+    // Adaptive low-pass filter: heavy smoothing when steady (kills magnetic jitter),
+    // light smoothing when the phone is genuinely turning (no lag).
+    const prevShown = smoothedHeading === null ? rawMagneticHeading : normalizeAngle(smoothedHeading);
+    const delta = Math.abs(((rawMagneticHeading - prevShown + 540) % 360) - 180);
+    const adaptiveFactor = Math.min(0.6, Math.max(0.1, delta / 25));
+    smoothedHeading = smoothAngle(smoothedHeading, rawMagneticHeading, adaptiveFactor);
 
     // Apply manual calibration offset
     let calibratedHeading = smoothedHeading + calibrationOffset;
@@ -881,11 +909,22 @@
   }
 
   // --- Dual-Stream Orientation Processing ---
+  // Chromium (Android): plain `deviceorientation` is RELATIVE (alpha = 0 at page load, NOT north),
+  // only `deviceorientationabsolute` is north-referenced. Mixing them made the needle jump.
+  // iOS: `deviceorientation` carries webkitCompassHeading (north-referenced).
+  // Firefox: `deviceorientation` is absolute (event.absolute === true).
+  const HAS_ABSOLUTE_EVENT = ('ondeviceorientationabsolute' in window);
+  let sensorAttachTs = 0;
+  let lastAbsoluteEventTs = 0;
+  let relativeWarningShown = false;
+
   function attachSensorListeners() {
-    // 1. Android: Primary absolute orientation (Chrome & Android WebViews)
+    sensorAttachTs = performance.now();
+
+    // 1. Android: Primary absolute orientation (Chrome, Samsung Internet & Android WebViews)
     window.addEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, true);
 
-    // 2. Standard deviceorientation (iOS provides webkitCompassHeading, Android fallback)
+    // 2. Standard deviceorientation (iOS webkitCompassHeading, Firefox absolute, last-resort fallback)
     window.addEventListener('deviceorientation', handleDeviceOrientation, true);
 
     // Fallback manual touch/mouse control if sensors aren't firing on desktop
@@ -893,29 +932,42 @@
   }
 
   function handleDeviceOrientationAbsolute(event) {
-    if (event.alpha === null && event.beta === null) return;
+    if (event.alpha === null || event.alpha === undefined) return; // no north reference -> useless for a compass
     isAbsoluteOrientation = true;
+    lastAbsoluteEventTs = performance.now();
     processOrientationData(event, true);
   }
 
   function handleDeviceOrientation(event) {
-    const hasValidOrientation = (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) ||
-                                (event.alpha !== null && event.alpha !== undefined) ||
-                                (event.beta !== null && event.beta !== undefined);
+    const hasWebkit = event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null;
+    const hasAlpha = event.alpha !== null && event.alpha !== undefined;
+    if (!hasWebkit && !hasAlpha) return; // ignore empty dummy events from desktop browsers
 
-    if (!hasValidOrientation) {
-      return; // Ignore empty dummy events from desktop browsers without hardware sensors
+    // iOS: direct, north-referenced heading
+    if (hasWebkit) { processOrientationData(event, false); return; }
+
+    // Firefox / any browser that flags this stream as absolute
+    if (event.absolute === true) { processOrientationData(event, true); return; }
+
+    // Chromium: this stream is RELATIVE. Prefer the absolute stream whenever it is alive.
+    const now = performance.now();
+    if (HAS_ABSOLUTE_EVENT) {
+      const absoluteAlive = lastAbsoluteEventTs > 0 && (now - lastAbsoluteEventTs) < 1500;
+      const stillWaiting = lastAbsoluteEventTs === 0 && (now - sensorAttachTs) < 1500;
+      if (absoluteAlive || stillWaiting) return;
     }
 
-    // On Android, if absolute orientation is already active, don't overwrite with relative gyro
-    if (isAbsoluteOrientation && event.webkitCompassHeading === undefined) {
-      return;
+    // Last resort: relative-only device. Heading is NOT north-referenced - tell the user once.
+    isAbsoluteOrientation = false;
+    if (!relativeWarningShown) {
+      relativeWarningShown = true;
+      showToast('This browser has no magnetic compass. Open in Chrome for true direction.');
     }
-
     processOrientationData(event, false);
   }
 
   function processOrientationData(event, isAbsolute) {
+    const firstSample = !hasSensorData;
     hasSensorData = true;
 
     // Ensure permission banner is dismissed and saved as enabled once data arrives
@@ -924,7 +976,15 @@
     }
     try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) {}
 
-    let heading = 0;
+    // First real sensor sample: drop the placeholder 0° so the filter starts from the true heading
+    if (firstSample) smoothedHeading = null;
+
+    // Handle landscape/portrait orientation adjustments (modern standard + legacy fallback)
+    const orientationAngle = (screen.orientation && typeof screen.orientation.angle === 'number')
+      ? screen.orientation.angle
+      : (typeof window.orientation === 'number' ? window.orientation : 0);
+
+    let heading = null;
 
     // iOS provides direct calibrated magnetic heading and accuracy radius
     if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
@@ -932,37 +992,21 @@
       if (typeof event.webkitCompassAccuracy === 'number') {
         sensorAccuracy = event.webkitCompassAccuracy;
       }
+      // webkitCompassHeading is reported for the device's natural top edge: compensate for screen rotation
+      if (orientationAngle) {
+        heading = ((heading + orientationAngle) % 360 + 360) % 360;
+      }
     } else if (event.alpha !== null && event.alpha !== undefined) {
-      // Android / W3C: Use tilt-compensated heading formula
-      // Raw alpha alone is inaccurate when the phone is tilted (natural viewing angle).
-      // The rotation-matrix projection accounts for beta (pitch) and gamma (roll)
-      // to produce a stable heading regardless of device tilt.
+      // Android / W3C: tilt-immune heading (screen rotation is handled inside the function)
       const beta  = (event.beta  !== null && event.beta  !== undefined) ? event.beta  : 0;
       const gamma = (event.gamma !== null && event.gamma !== undefined) ? event.gamma : 0;
-
-      // Only use tilt compensation when we have meaningful tilt data
-      if (Math.abs(beta) > 0.5 || Math.abs(gamma) > 0.5) {
-        heading = tiltCompensatedHeading(event.alpha, beta, gamma);
-      } else {
-        // Phone is flat on a table — raw alpha inversion is fine
-        heading = ((360 - event.alpha) % 360 + 360) % 360;
-      }
+      heading = computeHeadingFromEuler(event.alpha, beta, gamma, orientationAngle);
       if (event.absolute === true || isAbsolute) {
         isAbsoluteOrientation = true;
       }
     }
 
-    // Handle landscape/portrait orientation adjustments (modern standard + legacy fallback)
-    const orientationAngle = (screen.orientation && typeof screen.orientation.angle === 'number')
-      ? screen.orientation.angle
-      : (typeof window.orientation === 'number' ? window.orientation : 0);
-
-    // Compensate compass heading for device rotation (e.g. landscape mode)
-    if (orientationAngle) {
-      heading = ((heading + orientationAngle) % 360 + 360) % 360;
-    }
-
-    updateHeading(heading);
+    if (heading !== null) updateHeading(heading);
 
     // Pitch & Roll for bubble level
     let p = event.beta || 0;
@@ -1111,7 +1155,7 @@
         gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
 
         // Compute magnetic declination for True North
-        magneticDeclination = estimateMagneticDeclination(lat, lng);
+        magneticDeclination = estimateMagneticDeclination(lat, lng, alt !== null ? alt : 0);
         gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
         sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
       },
@@ -1754,7 +1798,12 @@ https://kuberansilks.com/`;
 
     if (btnZeroToNorth) {
       btnZeroToNorth.addEventListener('click', () => {
-        const neededOffset = (360 - (rawMagneticHeading % 360)) % 360;
+        if (!window.confirm('Only do this while pointing EXACTLY at true North (use an external reference). It permanently shifts the compass until reset. Continue?')) return;
+        // Make the CURRENT pointing read 0° (North). Offset is applied AFTER smoothing and BEFORE
+        // declination, so the reference must include the declination that will be added later.
+        const base = (smoothedHeading !== null ? normalizeAngle(smoothedHeading) : rawMagneticHeading)
+                   + (isTrueNorth ? magneticDeclination : 0);
+        const neededOffset = normalizeAngle(-base);
         setCalibrationOffset(neededOffset > 180 ? neededOffset - 360 : neededOffset);
         showToast('Zeroed to Current Heading');
       });
@@ -1922,6 +1971,10 @@ https://kuberansilks.com/`;
     updateCalibrationUI();
     updateHeading(0);
     updateInclinometer(0, 0);
+    // A saved manual offset shifts EVERY reading. Never let it hide silently.
+    if (Math.abs(calibrationOffset) >= 0.5) {
+      setTimeout(() => showToast(`Manual offset ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}° is active - reset it in Calibrate if the compass reads wrong`), 1200);
+    }
   }
 
   // Run on DOM load

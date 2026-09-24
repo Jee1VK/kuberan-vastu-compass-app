@@ -1,8 +1,9 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.6.1';
+const CACHE_NAME = 'kuberan-vastu-compass-v4.6.2';
 const ASSETS_TO_CACHE = [
   './index.html',
   './style.css',
   './vastu-data.js',
+  'https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js',
   './qrcode.min.js',
   './app.js',
   './manifest.webmanifest',
@@ -49,7 +50,9 @@ self.addEventListener('fetch', (event) => {
   const isPriorityAsset = isNavigation || 
                           url.pathname.endsWith('manifest.webmanifest') ||
                           url.pathname.includes('icon') ||
-                          url.pathname.endsWith('.svg');
+                          url.pathname.endsWith('.svg') ||
+                          url.pathname.endsWith('.js') ||
+                          url.pathname.endsWith('.css');
 
   if (isPriorityAsset) {
     event.respondWith(
@@ -81,3 +84,4 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
