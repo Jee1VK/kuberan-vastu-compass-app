@@ -1174,19 +1174,19 @@ body, button, input, select, textarea {
 
 /* Vastu Tools Toolbar */
 .vastu-tools-toolbar {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
   padding-bottom: 2px;
-  scrollbar-width: none;
-  justify-content: center;
 }
 
-.vastu-tools-toolbar::-webkit-scrollbar {
-  display: none;
-}
+
 
 .tool-chip {
+  justify-content: center;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -2384,3 +2384,5 @@ body.theme-gold .vastu-zone-text {
   color: #1a0808;
   transform: scale(0.98);
 }
+
+
