@@ -259,6 +259,118 @@
     return heading < 0 ? heading + 360 : heading;
   }
 
+
+/**
+ * Vastu Compass Smooth & Freeze Engine
+ * Solves endless jittering on stationary devices.
+ */
+class CompassStabilizer {
+    constructor(options = {}) {
+        this.alpha = options.alpha || 0.15;
+        this.deadzone = options.deadzone || 0.8;
+        this.lockThreshold = options.lockThreshold || 1.2;
+        this.lockDuration = options.lockDuration || 2000;
+        
+        this.currentHeading = null;
+        this.targetHeading = null;
+        this.lastRenderedHeading = 0;
+        
+        this.motionHistory = [];
+        this.isLocked = false;
+        this.animFrameId = null;
+
+        this.onHeadingChange = options.onHeadingChange || null;
+    }
+
+    updateRawHeading(rawHeading) {
+        if (typeof rawHeading !== 'number' || isNaN(rawHeading)) return;
+
+        let normalized = (rawHeading % 360 + 360) % 360;
+
+        if (this.currentHeading === null) {
+            this.currentHeading = normalized;
+            this.targetHeading = normalized;
+            if (this.onHeadingChange) this.onHeadingChange(this.currentHeading);
+            return;
+        }
+
+        this.targetHeading = normalized;
+        this.checkStationaryStatus(normalized);
+
+        if (!this.animFrameId) {
+            this.animFrameId = requestAnimationFrame(() => this.processLoop());
+        }
+    }
+
+    getShortestAngleDelta(from, to) {
+        from = (from % 360 + 360) % 360;
+        to = (to % 360 + 360) % 360;
+        let diff = (to - from + 180) % 360 - 180;
+        return diff < -180 ? diff + 360 : diff;
+    }
+
+    checkStationaryStatus(heading) {
+        const now = Date.now();
+        this.motionHistory.push({ heading, time: now });
+        this.motionHistory = this.motionHistory.filter(item => now - item.time <= this.lockDuration);
+
+        if (this.motionHistory.length > 5) {
+            const headings = this.motionHistory.map(m => m.heading);
+            let minDelta = 0;
+            let maxDelta = 0;
+            const ref = headings[0];
+            for (let i = 1; i < headings.length; i++) {
+                let d = this.getShortestAngleDelta(ref, headings[i]);
+                if (d < minDelta) minDelta = d;
+                if (d > maxDelta) maxDelta = d;
+            }
+            const totalSpread = maxDelta - minDelta;
+            this.isLocked = totalSpread < this.lockThreshold;
+        }
+    }
+
+    processLoop() {
+        if (this.isLocked) {
+            this.animFrameId = null;
+            return;
+        }
+
+        let delta = this.getShortestAngleDelta(this.currentHeading, this.targetHeading);
+
+        if (Math.abs(delta) < this.deadzone) {
+            this.animFrameId = null;
+            return;
+        }
+
+        // Accumulate angle to prevent CSS backward spinning
+        this.currentHeading = this.currentHeading + delta * this.alpha;
+
+        if (Math.abs(this.currentHeading - this.lastRenderedHeading) >= 0.1) {
+            this.lastRenderedHeading = this.currentHeading;
+            if (this.onHeadingChange) {
+                this.onHeadingChange(this.currentHeading);
+            }
+        }
+
+        this.animFrameId = requestAnimationFrame(() => this.processLoop());
+    }
+}
+
+const stabilizer = new CompassStabilizer({
+    alpha: 0.12,
+    deadzone: 0.7,
+    lockThreshold: 1.2,
+    onHeadingChange: (smoothedH) => {
+        smoothedHeading = smoothedH;
+        let calibratedHeading = smoothedHeading + calibrationOffset;
+        let trueHeading = calibratedHeading;
+        if (isTrueNorth) {
+          trueHeading = calibratedHeading + magneticDeclination;
+        }
+        updateHeadingUI(trueHeading);
+    }
+});
+
   // --- Angle Smoothing Helper (handles 0°/360° phase wrap-around) ---
   function smoothAngle(prev, target, factor) {
     if (prev === null) return target;
@@ -1659,7 +1771,7 @@ https://kuberansilks.com/`;
       if (isTrueNorth) {
         btnToggleNorth.classList.add('active');
         northPill.textContent = 'TRU';
-        if (northModeLabel) northModeLabel.textContent = 'TRUE NORTH';
+        if (false) northModeLabel.textContent = 'TRUE NORTH';
         showToast('True North mode active (Magnetic declination applied)');
       } else {
         btnToggleNorth.classList.remove('active');
@@ -1976,6 +2088,71 @@ https://kuberansilks.com/`;
       setTimeout(() => showToast(`Manual offset ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}° is active - reset it in Calibrate if the compass reads wrong`), 1200);
     }
   }
+
+  
+  // --- SETTINGS MODAL BINDINGS (v4.6.4) ---
+  const settingsModal = document.getElementById('settingsModal');
+  const btnSettings = document.getElementById('btnSettings');
+  const btnCloseSettings = document.getElementById('btnCloseSettings');
+
+  if (btnSettings && settingsModal) {
+    btnSettings.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    btnCloseSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+    
+    // Close on outside click
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) settingsModal.classList.add('hidden');
+    });
+  }
+
+  // Language setting
+  const selLang = document.getElementById('setting-lang');
+  if (selLang) {
+    selLang.value = currentLang;
+    selLang.addEventListener('change', (e) => setLanguage(e.target.value));
+  }
+
+  // Compass Ref (True/Magnetic)
+  const radiosRef = document.getElementsByName('compass-ref');
+  radiosRef.forEach(r => r.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      isTrueNorth = (e.target.value === 'true');
+      updateHeading(currentHeading);
+    }
+  }));
+
+  // Dial Style
+  const selDial = document.getElementById('setting-dial-style');
+  if (selDial) {
+    selDial.value = dialTheme;
+    selDial.addEventListener('change', (e) => setDialTheme(e.target.value));
+  }
+
+  // Compass Mode
+  const radiosMode = document.getElementsByName('compass-mode');
+  radiosMode.forEach(r => r.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      setCompassMode(e.target.value);
+    }
+  }));
+
+  // Property Type
+  const selProp = document.getElementById('setting-property');
+  if (selProp) {
+    selProp.value = propertyType;
+    selProp.addEventListener('change', (e) => {
+      propertyType = e.target.value;
+      if (typeof updateRoomList === 'function') updateRoomList();
+    });
+  }
+
+  // Zonal Division
+  const radiosZones = document.getElementsByName('zones');
+  radiosZones.forEach(r => r.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      setZoneSystem(e.target.value);
+    }
+  }));
 
   // Run on DOM load
   if (document.readyState === 'loading') {
