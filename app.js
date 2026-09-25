@@ -282,7 +282,7 @@ class CompassStabilizer {
         this.onHeadingChange = options.onHeadingChange || null;
     }
 
-    updateRawHeading(rawHeading) {
+        updateRawHeading(rawHeading) {
         if (typeof rawHeading !== 'number' || isNaN(rawHeading)) return;
 
         let normalized = (rawHeading % 360 + 360) % 360;
@@ -291,6 +291,12 @@ class CompassStabilizer {
             this.currentHeading = normalized;
             this.targetHeading = normalized;
             if (this.onHeadingChange) this.onHeadingChange(this.currentHeading);
+            return;
+        }
+
+        let sensorDelta = this.getShortestAngleDelta(this.targetHeading, normalized);
+        if (Math.abs(sensorDelta) < this.deadzone) {
+            this.checkStationaryStatus(normalized);
             return;
         }
 
@@ -329,7 +335,7 @@ class CompassStabilizer {
         }
     }
 
-    processLoop() {
+        processLoop() {
         if (this.isLocked) {
             this.animFrameId = null;
             return;
@@ -337,7 +343,13 @@ class CompassStabilizer {
 
         let delta = this.getShortestAngleDelta(this.currentHeading, this.targetHeading);
 
-        if (Math.abs(delta) < this.deadzone) {
+        // Snap to target if very close to save CPU
+        if (Math.abs(delta) < 0.1) {
+            this.currentHeading = this.currentHeading + delta;
+            if (Math.abs(this.currentHeading - this.lastRenderedHeading) >= 0.1) {
+                this.lastRenderedHeading = this.currentHeading;
+                if (this.onHeadingChange) this.onHeadingChange(this.currentHeading);
+            }
             this.animFrameId = null;
             return;
         }
