@@ -1340,33 +1340,38 @@ const stabilizer = new CompassStabilizer({
   }
 
   // --- UI Multi-Language Updating ---
+  function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
   function setLanguage(langCode) {
     if (!VASTU_DATA.UI[langCode]) return;
     currentLang = langCode;
-    langPill.textContent = langCode.toUpperCase();
+    if (langPill) langPill.textContent = langCode.toUpperCase();
 
     const dict = VASTU_DATA.UI[langCode];
 
     // Update Header
-    document.getElementById('lblModeVastu').textContent = dict.vastuMode || 'Vastu Compass';
-    document.getElementById('lblModeSimple').textContent = dict.simpleMode || 'Simple Compass';
-    btnZone8.textContent = dict.zones8 || '8 Zones';
-    btnZone16.textContent = dict.zones16 || '16 Zones';
-    btnZone32.textContent = dict.zones32 || '32 Padas';
+    setText('lblModeVastu', dict.vastuMode || 'Vastu Compass');
+    setText('lblModeSimple', dict.simpleMode || 'Simple Compass');
+    if (btnZone8) btnZone8.textContent = dict.zones8 || '8 Zones';
+    if (btnZone16) btnZone16.textContent = dict.zones16 || '16 Zones';
+    if (btnZone32) btnZone32.textContent = dict.zones32 || '32 Padas';
 
-    document.getElementById('lblToolRoom').textContent = dict.toolsRoomFinder || 'Room Finder';
-    document.getElementById('lblToolTilt').textContent = dict.toolsPlotTilt || 'Plot Tilt';
-    document.getElementById('lblToolCam').textContent = dict.toolsCamera || 'Camera AR';
-    document.getElementById('lblToolAudit').textContent = dict.toolsAudit || 'Vastu Report';
+    setText('lblToolRoom', dict.toolsRoomFinder || 'Room Finder');
+    setText('lblToolTilt', dict.toolsPlotTilt || 'Plot Tilt');
+    setText('lblToolCam', dict.toolsCamera || 'Camera AR');
+    setText('lblToolAudit', dict.toolsAudit || 'Vastu Report');
 
-    document.getElementById('lblDeity').textContent = dict.deity || 'Ruling Deity';
-    document.getElementById('lblFavorable').textContent = dict.favorableRooms || 'Favorable';
-    document.getElementById('lblAvoid').textContent = dict.avoidPlacements || 'Avoid';
+    setText('lblDeity', dict.deity || 'Ruling Deity');
+    setText('lblFavorable', dict.favorableRooms || 'Favorable');
+    setText('lblAvoid', dict.avoidPlacements || 'Avoid');
 
-    document.getElementById('lblPitch').textContent = dict.pitch || 'PITCH';
-    document.getElementById('lblRoll').textContent = dict.roll || 'ROLL';
-    document.getElementById('lblCopyCoords').textContent = dict.copyReport ? 'Copy Coords' : 'Copy Coords';
-    document.getElementById('lblInstallApp').textContent = dict.installApp || 'Install App';
+    setText('lblPitch', dict.pitch || 'PITCH');
+    setText('lblRoll', dict.roll || 'ROLL');
+    setText('lblCopyCoords', dict.copyReport ? 'Copy Coords' : 'Copy Coords');
+    setText('lblInstallApp', dict.installApp || 'Install App');
 
     // Calibration Studio Localized Strings
     const lblBtnCal = document.getElementById('lblBtnCalibrate');
@@ -1613,22 +1618,22 @@ https://kuberansilks.com/`;
   // --- Event Listeners Setup ---
   function setupEventListeners() {
     // Mode Switcher (Vastu vs Simple Compass)
-    btnModeVastu.addEventListener('click', () => {
+    if (btnModeVastu) btnModeVastu.addEventListener('click', () => {
       compassMode = 'vastu';
-      btnModeVastu.classList.add('active');
-      btnModeSimple.classList.remove('active');
-      vastuSubcontrols.classList.remove('hidden');
+      if (btnModeVastu) btnModeVastu.classList.add('active');
+      if (btnModeSimple) btnModeSimple.classList.remove('active');
+      if (vastuSubcontrols) vastuSubcontrols.classList.remove('hidden');
       vastuInspectorSection.classList.remove('hidden');
       buildDialSvg();
       updateVastuInspector(currentHeading);
       showToast('Switched to KUBERAN Vastu Compass');
     });
 
-    btnModeSimple.addEventListener('click', () => {
+    if (btnModeSimple) btnModeSimple.addEventListener('click', () => {
       compassMode = 'simple';
-      btnModeSimple.classList.add('active');
-      btnModeVastu.classList.remove('active');
-      vastuSubcontrols.classList.add('hidden');
+      if (btnModeSimple) btnModeSimple.classList.add('active');
+      if (btnModeVastu) btnModeVastu.classList.remove('active');
+      if (vastuSubcontrols) vastuSubcontrols.classList.add('hidden');
       vastuInspectorSection.classList.add('hidden');
       roomGuidanceBanner.classList.add('hidden');
       buildDialSvg();
@@ -1636,29 +1641,29 @@ https://kuberansilks.com/`;
     });
 
     // Zone Switcher (8 / 16 / 32)
-    btnZone8.addEventListener('click', () => {
+    if (btnZone8) btnZone8.addEventListener('click', () => {
       zoneSystem = '8';
-      btnZone8.classList.add('active');
-      btnZone16.classList.remove('active');
-      btnZone32.classList.remove('active');
+      if (btnZone8) btnZone8.classList.add('active');
+      if (btnZone16) btnZone16.classList.remove('active');
+      if (btnZone32) btnZone32.classList.remove('active');
       buildDialSvg();
       updateVastuInspector(currentHeading);
     });
 
-    btnZone16.addEventListener('click', () => {
+    if (btnZone16) btnZone16.addEventListener('click', () => {
       zoneSystem = '16';
-      btnZone16.classList.add('active');
-      btnZone8.classList.remove('active');
-      btnZone32.classList.remove('active');
+      if (btnZone16) btnZone16.classList.add('active');
+      if (btnZone8) btnZone8.classList.remove('active');
+      if (btnZone32) btnZone32.classList.remove('active');
       buildDialSvg();
       updateVastuInspector(currentHeading);
     });
 
-    btnZone32.addEventListener('click', () => {
+    if (btnZone32) btnZone32.addEventListener('click', () => {
       zoneSystem = '32';
-      btnZone32.classList.add('active');
-      btnZone8.classList.remove('active');
-      btnZone16.classList.remove('active');
+      if (btnZone32) btnZone32.classList.add('active');
+      if (btnZone8) btnZone8.classList.remove('active');
+      if (btnZone16) btnZone16.classList.remove('active');
       buildDialSvg();
       updateVastuInspector(currentHeading);
     });
@@ -1746,7 +1751,7 @@ https://kuberansilks.com/`;
     }
 
     // Dial Visual Theme Switcher (Elemental / Chakra / Royal Gold)
-    btnDialTheme.addEventListener('click', () => {
+    if (btnDialTheme) btnDialTheme.addEventListener('click', () => {
       currentDialThemeIndex = (currentDialThemeIndex + 1) % DIAL_THEMES.length;
       dialTheme = DIAL_THEMES[currentDialThemeIndex];
 
@@ -1759,24 +1764,24 @@ https://kuberansilks.com/`;
     });
 
     // Language Switcher Trigger
-    btnLanguage.addEventListener('click', () => {
+    if (btnLanguage) btnLanguage.addEventListener('click', () => {
       renderLangModal();
       langModal.classList.remove('hidden');
     });
-    btnCloseLangModal.addEventListener('click', () => langModal.classList.add('hidden'));
+    if (btnCloseLangModal) btnCloseLangModal.addEventListener('click', () => langModal.classList.add('hidden'));
 
     // North Mode Toggle (True North default)
-    btnToggleNorth.addEventListener('click', () => {
+    if (btnToggleNorth) btnToggleNorth.addEventListener('click', () => {
       isTrueNorth = !isTrueNorth;
       if (isTrueNorth) {
         btnToggleNorth.classList.add('active');
-        northPill.textContent = 'TRU';
+        if (northPill) northPill.textContent = 'TRU';
         if (false) northModeLabel.textContent = 'TRUE NORTH';
         showToast('True North mode active (Magnetic declination applied)');
       } else {
         btnToggleNorth.classList.remove('active');
-        northPill.textContent = 'MAG';
-        if (northModeLabel) northModeLabel.textContent = 'MAGNETIC NORTH';
+        if (northPill) northPill.textContent = 'MAG';
+        if (false) northModeLabel.textContent = 'MAGNETIC NORTH';
         showToast('Magnetic North mode active');
       }
       sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
@@ -2162,3 +2167,8 @@ https://kuberansilks.com/`;
   }
 
 })();
+
+
+
+
+
