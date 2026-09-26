@@ -2388,6 +2388,8 @@ https://kuberansilks.com/`;
     selDial.value = dialTheme;
     selDial.addEventListener('change', (e) => {
       dialTheme = e.target.value;
+      document.body.classList.remove('theme-elemental', 'theme-chakra', 'theme-gold');
+      document.body.classList.add('theme-' + dialTheme);
       buildDialSvg(); // redraw the dial immediately
     });
   }
