@@ -1550,6 +1550,13 @@ const stabilizer = new CompassStabilizer({
       reportDoor.textContent = 'Switch to 32-Pada mode for door analysis';
     }
 
+    const currentRoomObj = activeRoom ? (VASTU_DATA.ROOMS.find(r => r.id === activeRoom) || VASTU_DATA.COMMERCIAL_ROOMS.find(r => r.id === activeRoom)) : null;
+    const dirName = activeZone8.names[currentLang] || activeZone8.names.en;
+    
+    // Trigger Vastu Analysis API (Local Mock)
+    const zKey = activeZone8.id || Object.keys(VASTU_DATA.ZONES_8).find(k => VASTU_DATA.ZONES_8[k] === activeZone8);
+    fetchVastuAnalysis(dirName, currentRoomObj, zKey);
+
     if (plotTiltReading) {
       reportPlot.textContent = `${plotTiltReading.type} (${plotTiltReading.dev}° tilt)`;
     } else {
@@ -2370,14 +2377,26 @@ https://kuberansilks.com/`;
   const selDial = document.getElementById('setting-dial-style');
   if (selDial) {
     selDial.value = dialTheme;
-    selDial.addEventListener('change', (e) => setDialTheme(e.target.value));
+    selDial.addEventListener('change', (e) => {
+      dialTheme = e.target.value;
+      buildDialSvg(); // redraw the dial immediately
+    });
   }
 
   // Compass Mode
   const radiosMode = document.getElementsByName('compass-mode');
   radiosMode.forEach(r => r.addEventListener('change', (e) => {
     if (e.target.checked) {
-      setCompassMode(e.target.value);
+      compassMode = e.target.value;
+      if (compassMode === 'simple') {
+        if (zoneInspector) zoneInspector.classList.add('hidden');
+        if (padaEntranceCard) padaEntranceCard.classList.add('hidden');
+      } else {
+        if (zoneInspector) zoneInspector.classList.remove('hidden');
+        if (zoneSystem === '32' && padaEntranceCard) padaEntranceCard.classList.remove('hidden');
+      }
+      updateVastuInspector(currentHeading);
+      buildDialSvg();
     }
   }));
 
@@ -2387,7 +2406,27 @@ https://kuberansilks.com/`;
     selProp.value = propertyType;
     selProp.addEventListener('change', (e) => {
       propertyType = e.target.value;
-      if (typeof updateRoomList === 'function') updateRoomList();
+      roomCategoryTab = propertyType;
+      
+      const retailProfileStrip = document.getElementById('retailProfileStrip');
+      const tabResRooms = document.getElementById('tabResRooms');
+      const tabCommRooms = document.getElementById('tabCommRooms');
+      
+      if (propertyType === 'commercial') {
+        if (retailProfileStrip) retailProfileStrip.classList.remove('hidden');
+        if (tabCommRooms) tabCommRooms.classList.add('active');
+        if (tabResRooms) tabResRooms.classList.remove('active');
+        showToast('Switched to Commercial Vastu');
+      } else {
+        if (retailProfileStrip) retailProfileStrip.classList.add('hidden');
+        if (tabResRooms) tabResRooms.classList.add('active');
+        if (tabCommRooms) tabCommRooms.classList.remove('active');
+        showToast('Switched to Residential Vastu');
+      }
+      
+      if (typeof renderRoomsGrid === "function") renderRoomsGrid();
+      updateVastuInspector(currentHeading);
+      buildDialSvg();
     });
   }
 
@@ -2395,7 +2434,14 @@ https://kuberansilks.com/`;
   const radiosZones = document.getElementsByName('zones');
   radiosZones.forEach(r => r.addEventListener('change', (e) => {
     if (e.target.checked) {
-      setZoneSystem(e.target.value);
+      zoneSystem = e.target.value;
+      if (zoneSystem === '32' && compassMode === 'vastu') {
+        if (padaEntranceCard) padaEntranceCard.classList.remove('hidden');
+      } else {
+        if (padaEntranceCard) padaEntranceCard.classList.add('hidden');
+      }
+      updateVastuInspector(currentHeading);
+      buildDialSvg();
     }
   }));
 
