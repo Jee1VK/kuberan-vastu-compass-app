@@ -31,6 +31,7 @@
   let deferredPrompt = null;
   let lastVibrateTime = 0;
   let lastVibratedCardinal = -1;
+  let lastVibratedRoomZone = null;
   let lastVibratedPada = null;
 
   // App Modes & Vastu State
@@ -956,14 +957,23 @@ const stabilizer = new CompassStabilizer({
     }
 
     // Cardinal Haptic Tick (exact 0°, 90°, 180°, 270° within 1.5°)
+    
     const cardinalAngles = [0, 90, 180, 270];
-    const isExactCardinal = cardinalAngles.some(ang => Math.abs(displayHeading - ang) <= 1.2 || Math.abs(displayHeading - 360) <= 1.2);
-    if (isExactCardinal && lastVibratedCardinal !== rounded) {
-      lastVibratedCardinal = rounded;
+    let matchedCardinal = -1;
+    for (const ang of cardinalAngles) {
+      if (Math.abs(displayHeading - ang) <= 1.2 || Math.abs(displayHeading - 360) <= 1.2) {
+        matchedCardinal = ang === 360 ? 0 : ang;
+        break;
+      }
+    }
+    
+    if (matchedCardinal !== -1 && lastVibratedCardinal !== matchedCardinal) {
+      lastVibratedCardinal = matchedCardinal;
       triggerHapticTick(20);
-    } else if (!isExactCardinal) {
+    } else if (matchedCardinal === -1) {
       lastVibratedCardinal = -1;
     }
+
 
     // Update Vastu Inspector Card
     updateVastuInspector(displayHeading);
