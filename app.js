@@ -1550,7 +1550,7 @@ const stabilizer = new CompassStabilizer({
       reportDoor.textContent = 'Switch to 32-Pada mode for door analysis';
     }
 
-    const currentRoomObj = activeRoom ? (VASTU_DATA.ROOMS.find(r => r.id === activeRoom) || VASTU_DATA.COMMERCIAL_ROOMS.find(r => r.id === activeRoom)) : null;
+    const currentRoomObj = activeRoom;
     const dirName = activeZone8.names[currentLang] || activeZone8.names.en;
     
     // Trigger Vastu Analysis API (Local Mock)
@@ -2297,12 +2297,21 @@ https://kuberansilks.com/`;
     const remedyCardClass = isRemedyEnabled ? 'remedy-card' : 'remedy-card hidden';
 
     if (data.isCompliant) {
-      container.innerHTML = `
-        <div class="vastu-success" style="padding:10px; text-align:left;">
-          <h3 style="font-size:1.1rem;">✅ ${data.direction} - ${data.room}</h3>
-          <p style="font-size:0.9rem; opacity:0.9; margin:0;">This placement is fully compliant with Vastu Shastra rules.</p>
-        </div>
-      `;
+      if (data.room === 'General Layout') {
+        container.innerHTML = `
+          <div class="vastu-success" style="padding:10px; text-align:left;">
+            <h3 style="font-size:1.1rem;">ℹ️ Select a Room</h3>
+            <p style="font-size:0.9rem; opacity:0.9; margin:0;">Please use the <strong>Zone Finder</strong> (grid icon) to select a room (e.g. Kitchen, Master Bedroom). Then open this report to generate an AI Vastu Dosha analysis and view remedies.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="vastu-success" style="padding:10px; text-align:left;">
+            <h3 style="font-size:1.1rem;">✅ ${data.direction} - ${data.room}</h3>
+            <p style="font-size:0.9rem; opacity:0.9; margin:0;">Excellent! This placement is fully compliant with Vastu Shastra rules. No remedies required.</p>
+          </div>
+        `;
+      }
       return;
     }
 
