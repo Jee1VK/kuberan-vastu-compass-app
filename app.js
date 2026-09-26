@@ -1682,7 +1682,7 @@ https://kuberansilks.com/`;
 
     // Property Type Switcher (Residential vs Commercial & Retail)
     if (btnPropResidential && btnPropCommercial) {
-      btnPropResidential.addEventListener('click', () => {
+      if (btnPropResidential) btnPropResidential.addEventListener('click', () => {
         propertyType = 'residential';
         btnPropResidential.classList.add('active');
         btnPropCommercial.classList.remove('active');
@@ -1695,7 +1695,7 @@ https://kuberansilks.com/`;
         showToast('Switched to Residential Vastu');
       });
 
-      btnPropCommercial.addEventListener('click', () => {
+      if (btnPropCommercial) btnPropCommercial.addEventListener('click', () => {
         propertyType = 'commercial';
         btnPropCommercial.classList.add('active');
         btnPropResidential.classList.remove('active');
@@ -1728,7 +1728,7 @@ https://kuberansilks.com/`;
 
     // Room Category Tabs in Room Finder Modal
     if (tabResRooms) {
-      tabResRooms.addEventListener('click', () => {
+      if (tabResRooms) tabResRooms.addEventListener('click', () => {
         roomCategoryTab = 'residential';
         tabResRooms.classList.add('active');
         if (tabCommRooms) tabCommRooms.classList.remove('active');
@@ -1736,7 +1736,7 @@ https://kuberansilks.com/`;
       });
     }
     if (tabCommRooms) {
-      tabCommRooms.addEventListener('click', () => {
+      if (tabCommRooms) tabCommRooms.addEventListener('click', () => {
         roomCategoryTab = 'commercial';
         tabCommRooms.classList.add('active');
         if (tabResRooms) tabResRooms.classList.remove('active');
@@ -1801,7 +1801,7 @@ https://kuberansilks.com/`;
     });
 
     // Target Bearing Lock
-    btnBearingLock.addEventListener('click', () => {
+    if (btnBearingLock) btnBearingLock.addEventListener('click', () => {
       if (targetHeading === null) {
         targetHeading = Math.round(currentHeading);
         targetValue.textContent = `${targetHeading}°`;
@@ -1820,7 +1820,7 @@ https://kuberansilks.com/`;
       updateHeadingUI(currentHeading);
     });
 
-    btnClearTarget.addEventListener('click', () => {
+    if (btnClearTarget) btnClearTarget.addEventListener('click', () => {
       targetHeading = null;
       targetValue.textContent = '--';
       btnBearingLock.classList.remove('active');
@@ -1829,21 +1829,21 @@ https://kuberansilks.com/`;
     });
 
     // Vastu Tool: Room Finder
-    btnToolRoomFinder.addEventListener('click', () => {
+    if (btnToolRoomFinder) btnToolRoomFinder.addEventListener('click', () => {
       renderRoomsGrid();
       roomFinderModal.classList.remove('hidden');
     });
-    btnCloseRoomModal.addEventListener('click', () => roomFinderModal.classList.add('hidden'));
-    btnCloseRoomGuide.addEventListener('click', clearActiveRoom);
+    if (btnCloseRoomModal) btnCloseRoomModal.addEventListener('click', () => roomFinderModal.classList.add('hidden'));
+    if (btnCloseRoomGuide) btnCloseRoomGuide.addEventListener('click', clearActiveRoom);
 
     // Vastu Tool: Plot Tilt Detector
-    btnToolPlotTilt.addEventListener('click', () => {
+    if (btnToolPlotTilt) btnToolPlotTilt.addEventListener('click', () => {
       updatePlotTiltUI(currentHeading);
       plotTiltModal.classList.remove('hidden');
     });
-    btnCloseTiltModal.addEventListener('click', () => plotTiltModal.classList.add('hidden'));
+    if (btnCloseTiltModal) btnCloseTiltModal.addEventListener('click', () => plotTiltModal.classList.add('hidden'));
 
-    btnLockPlotTilt.addEventListener('click', () => {
+    if (btnLockPlotTilt) btnLockPlotTilt.addEventListener('click', () => {
       const heading = parseFloat(currentHeading.toFixed(1));
       let dev = ((heading % 90) + 45) % 90 - 45;
       const absDev = Math.abs(dev).toFixed(1);
@@ -1857,13 +1857,13 @@ https://kuberansilks.com/`;
     });
 
     // Vastu Tool: Camera AR
-    btnToolCamera.addEventListener('click', toggleCameraAR);
+    if (btnToolCamera) btnToolCamera.addEventListener('click', toggleCameraAR);
 
     // Vastu Tool: Audit Export Report
-    btnToolAudit.addEventListener('click', openAuditModal);
-    btnCloseAuditModal.addEventListener('click', () => auditModal.classList.add('hidden'));
+    if (btnToolAudit) btnToolAudit.addEventListener('click', openAuditModal);
+    if (btnCloseAuditModal) btnCloseAuditModal.addEventListener('click', () => auditModal.classList.add('hidden'));
 
-    btnCopyAuditReport.addEventListener('click', async () => {
+    if (btnCopyAuditReport) btnCopyAuditReport.addEventListener('click', async () => {
       const text = generateAuditTextReport();
       try {
         await navigator.clipboard.writeText(text);
@@ -1873,7 +1873,7 @@ https://kuberansilks.com/`;
       }
     });
 
-    btnShareAuditReport.addEventListener('click', async () => {
+    if (btnShareAuditReport) btnShareAuditReport.addEventListener('click', async () => {
       const text = generateAuditTextReport();
       if (navigator.share) {
         try {
@@ -1889,32 +1889,32 @@ https://kuberansilks.com/`;
     });
 
     // Info Modal
-    btnInfo.addEventListener('click', () => {
+    if (btnInfo) btnInfo.addEventListener('click', () => {
       infoModal.classList.remove('hidden');
       generateQrCode();
     });
-    btnCloseModal.addEventListener('click', () => infoModal.classList.add('hidden'));
+    if (btnCloseModal) btnCloseModal.addEventListener('click', () => infoModal.classList.add('hidden'));
 
     // Calibration Modal Trigger & Controls
     if (btnCalibrate) {
-      btnCalibrate.addEventListener('click', () => {
+      if (btnCalibrate) btnCalibrate.addEventListener('click', () => {
         calibrationModal.classList.remove('hidden');
         updateCalibrationUI();
       });
     }
     if (telemetryCalibrationItem) {
-      telemetryCalibrationItem.addEventListener('click', () => {
+      if (telemetryCalibrationItem) telemetryCalibrationItem.addEventListener('click', () => {
         calibrationModal.classList.remove('hidden');
         updateCalibrationUI();
       });
     }
     if (btnCloseCalModal) {
-      btnCloseCalModal.addEventListener('click', () => {
+      if (btnCloseCalModal) btnCloseCalModal.addEventListener('click', () => {
         calibrationModal.classList.add('hidden');
       });
     }
     if (calibrationModal) {
-      calibrationModal.addEventListener('click', (e) => {
+      if (calibrationModal) calibrationModal.addEventListener('click', (e) => {
         if (e.target === calibrationModal) calibrationModal.classList.add('hidden');
       });
     }
@@ -1926,7 +1926,7 @@ https://kuberansilks.com/`;
     if (btnOffsetPlus5) btnOffsetPlus5.addEventListener('click', () => adjustCalibrationOffset(5));
 
     if (btnZeroToNorth) {
-      btnZeroToNorth.addEventListener('click', () => {
+      if (btnZeroToNorth) btnZeroToNorth.addEventListener('click', () => {
         if (!window.confirm('Only do this while pointing EXACTLY at true North (use an external reference). It permanently shifts the compass until reset. Continue?')) return;
         // Make the CURRENT pointing read 0° (North). Offset is applied AFTER smoothing and BEFORE
         // declination, so the reference must include the declination that will be added later.
@@ -1939,7 +1939,7 @@ https://kuberansilks.com/`;
     }
 
     // Copy Coordinates Button
-    btnCopyCoords.addEventListener('click', async () => {
+    if (btnCopyCoords) btnCopyCoords.addEventListener('click', async () => {
       const lat = gpsLat.textContent;
       const lng = gpsLng.textContent;
       const str = `${lat}, ${lng} (Heading: ${Math.round(currentHeading)}° ${headingCardinal.textContent})`;
@@ -1952,9 +1952,9 @@ https://kuberansilks.com/`;
     });
 
     // iOS Sensor Permission Button
-    btnGrantSensor.addEventListener('click', requestSensorPermission);
+    if (btnGrantSensor) btnGrantSensor.addEventListener('click', requestSensorPermission);
     if (btnDismissSensor) {
-      btnDismissSensor.addEventListener('click', () => {
+      if (btnDismissSensor) btnDismissSensor.addEventListener('click', () => {
         try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
         iosPermissionBanner.classList.add('hidden');
       });
@@ -2078,7 +2078,7 @@ https://kuberansilks.com/`;
       btnInstallApp.classList.remove('hidden');
     });
 
-    btnInstallApp.addEventListener('click', async () => {
+    if (btnInstallApp) btnInstallApp.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
