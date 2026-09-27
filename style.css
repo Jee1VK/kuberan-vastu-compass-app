@@ -2589,3 +2589,9 @@ input:checked + .slider:before {
 #vastu-analysis-container {
   margin: 15px 0;
 }
+
+.icon-btn.active {
+  border-color: var(--kuberan-gold);
+  color: var(--kuberan-gold);
+  box-shadow: 0 0 10px rgba(212, 163, 89, 0.3);
+}

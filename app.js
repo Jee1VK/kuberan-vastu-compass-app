@@ -128,7 +128,6 @@
   const btnZone32 = document.getElementById('btnZone32');
   const btnToolRoomFinder = document.getElementById('btnToolRoomFinder');
   const btnToolPlotTilt = document.getElementById('btnToolPlotTilt');
-  const btnToolCamera = document.getElementById('btnToolCamera');
   const btnToolAudit = document.getElementById('btnToolAudit');
   const vastuInspectorSection = document.getElementById('vastuInspectorSection');
 
@@ -1874,7 +1873,15 @@ https://kuberansilks.com/`;
     });
 
     // Vastu Tool: Camera AR
-    if (btnToolCamera) btnToolCamera.addEventListener('click', toggleCameraAR);
+    
+    const toggleCamera = document.getElementById('toggle-camera-ar');
+    if (toggleCamera) {
+      toggleCamera.addEventListener('change', (e) => {
+         if (e.target.checked && !cameraStream) toggleCameraAR();
+         else if (!e.target.checked && cameraStream) toggleCameraAR();
+      });
+    }
+
 
     // Vastu Tool: Audit Export Report
     if (btnToolAudit) btnToolAudit.addEventListener('click', openAuditModal);
