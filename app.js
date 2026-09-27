@@ -2136,6 +2136,9 @@ https://kuberansilks.com/`;
     toggleRemedies.addEventListener('change', (e) => {
       localStorage.setItem(REMEDY_SETTING_KEY, e.target.checked);
       applyRemedyVisibility(e.target.checked);
+      if (e.target.checked) {
+        showToast('Please use the Zone Finder (grid icon) to select a room... Then open this report to generate an AI Vastu Dosha analysis and view remedies.');
+      }
     });
   }
 
