@@ -1643,6 +1643,84 @@ https://kuberansilks.com/`;
     setTimeout(() => toast.classList.add('hidden'), 2600);
   }
 
+
+  // --- Ayadi Shadvarga Calculator ---
+  const btnToolAyadi = document.getElementById('btnToolAyadi');
+  const ayadiModal = document.getElementById('ayadiModal');
+  const btnCloseAyadiModal = document.getElementById('btnCloseAyadiModal');
+  const btnCalculateAyadi = document.getElementById('btnCalculateAyadi');
+  const ayadiLength = document.getElementById('ayadiLength');
+  const ayadiWidth = document.getElementById('ayadiWidth');
+  const ayadiResults = document.getElementById('ayadiResults');
+  const ayadiReportContent = document.getElementById('ayadiReportContent');
+
+  if (btnToolAyadi) {
+    btnToolAyadi.addEventListener('click', () => {
+      ayadiModal.classList.remove('hidden');
+    });
+  }
+
+  if (btnCloseAyadiModal) {
+    btnCloseAyadiModal.addEventListener('click', () => {
+      ayadiModal.classList.add('hidden');
+    });
+  }
+
+  if (btnCalculateAyadi) {
+    btnCalculateAyadi.addEventListener('click', () => {
+      const l = parseFloat(ayadiLength.value);
+      const w = parseFloat(ayadiWidth.value);
+      
+      if (isNaN(l) || isNaN(w) || l <= 0 || w <= 0) {
+        showToast('Please enter valid length and width');
+        return;
+      }
+
+      // Convert feet to Hastas (approx 1 Hasta = 2.75 feet or 33 inches)
+      const hastaL = l / 2.75;
+      const hastaW = w / 2.75;
+      const area = Math.round(hastaL * hastaW);
+
+      if (area <= 0) {
+        showToast('Area too small to calculate');
+        return;
+      }
+
+      // Traditional Ayadi Formulas based on Area (Kshetra)
+      const aaya = (area * 8) % 12; // Income
+      const vyaya = (area * 9) % 10; // Expenditure
+      let yoni = (area * 3) % 8; // Direction/Life breath (1=Dhvaja, 2=Dhuma, 3=Simha, 4=Shva, 5=Vrshabha, 6=Khara, 7=Gaja, 0/8=Kaka)
+      if (yoni === 0) yoni = 8;
+      
+      const nakshatra = (area * 8) % 27;
+      
+      let html = '';
+      
+      // Aaya vs Vyaya
+      html += `<p><strong>Aaya (Income):</strong> ${aaya}</p>`;
+      html += `<p><strong>Vyaya (Expense):</strong> ${vyaya}</p>`;
+      if (aaya > vyaya) {
+        html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ Auspicious (Income is greater than Expense)</p>`;
+      } else {
+        html += `<p style="color:#fca5a5; margin-bottom:10px;">⚠️ Inauspicious (Expense is greater than or equal to Income). Consider adjusting dimensions slightly.</p>`;
+      }
+
+      // Yoni
+      const yoniNames = {1: 'Dhvaja (Flag - East - Very Auspicious)', 2: 'Dhuma (Smoke - SE - Inauspicious)', 3: 'Simha (Lion - South - Auspicious)', 4: 'Shva (Dog - SW - Inauspicious)', 5: 'Vrshabha (Bull - West - Auspicious)', 6: 'Khara (Donkey - NW - Inauspicious)', 7: 'Gaja (Elephant - North - Auspicious)', 8: 'Kaka (Crow - NE - Inauspicious)'};
+      html += `<p><strong>Yoni (Cosmic Orientation):</strong> ${yoni} - ${yoniNames[yoni]}</p>`;
+      
+      if (yoni % 2 !== 0) {
+        html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ Auspicious Yoni (Odd numbers are beneficial)</p>`;
+      } else {
+        html += `<p style="color:#fca5a5; margin-bottom:10px;">⚠️ Inauspicious Yoni (Even numbers bring distress)</p>`;
+      }
+
+      ayadiReportContent.innerHTML = html;
+      ayadiResults.classList.remove('hidden');
+    });
+  }
+
+
   // --- Event Listeners Setup ---
   function setupEventListeners() {
     // Mode Switcher (Vastu vs Simple Compass)
