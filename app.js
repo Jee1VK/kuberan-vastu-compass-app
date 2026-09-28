@@ -1952,6 +1952,16 @@ https://kuberansilks.com/`;
 
     // Vastu Tool: Camera AR
     
+    const toggleGridListener = document.getElementById('toggle-vastu-grid');
+    if (toggleGridListener) {
+      const gridSaved = localStorage.getItem('kuberan_vastu_grid') === 'true';
+      toggleGridListener.checked = gridSaved;
+      toggleGridListener.addEventListener('change', (e) => {
+        localStorage.setItem('kuberan_vastu_grid', e.target.checked);
+        buildDialSvg();
+      });
+    }
+
     const toggleCamera = document.getElementById('toggle-camera-ar');
     if (toggleCamera) {
       toggleCamera.addEventListener('change', (e) => {
