@@ -257,7 +257,7 @@ const VASTU_DATA = {
       centerDeg: 180,
       sanskrit: 'Dakṣiṇa (दक्षिण)',
       deity: 'Yama Dharmaraja (यम धर्मराज)',
-      element: 'earth',
+      element: 'fire',
       auspiciousness: 'medium',
       names: {
         en: 'South',
