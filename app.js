@@ -940,7 +940,7 @@ const stabilizer = new CompassStabilizer({
       if (now - lastVibrateTime > 250) {
         lastVibrateTime = now;
         try {
-          navigator.vibrate(duration);
+          (localStorage.getItem('kuberan_haptics') !== 'false') && navigator.vibrate(duration);
         } catch (e) {}
       }
     }
@@ -1204,7 +1204,10 @@ const stabilizer = new CompassStabilizer({
   }
 
   // --- Desktop / Fallback Drag Simulation ---
+  let dragSimulationInitialized = false;
   function initDesktopDragSimulation() {
+    if (dragSimulationInitialized) return;
+    dragSimulationInitialized = true;
     let isDragging = false;
     let startAngle = 0;
     let startHeading = 0;
@@ -1385,7 +1388,7 @@ const stabilizer = new CompassStabilizer({
       cameraFeed.classList.add('hidden');
       cameraScrim.classList.add('hidden');
       compassViewport.classList.remove('camera-active');
-      btnToolCamera.classList.remove('active');
+      // btnToolCamera removed (now in Settings)
       showToast('Camera AR disabled');
     } else {
       // Turn ON
@@ -1398,7 +1401,7 @@ const stabilizer = new CompassStabilizer({
         cameraFeed.classList.remove('hidden');
         cameraScrim.classList.remove('hidden');
         compassViewport.classList.add('camera-active');
-        btnToolCamera.classList.add('active');
+        // btnToolCamera removed (now in Settings)
         showToast('Camera AR active: Align phone with room walls');
       } catch (err) {
         showToast('Camera access permission denied or unavailable');
@@ -1599,7 +1602,7 @@ const stabilizer = new CompassStabilizer({
     const dirName = activeZone8.names[currentLang] || activeZone8.names.en;
     
     // Trigger Vastu Analysis API (Local Mock)
-    const zKey = activeZone8.id || Object.keys(VASTU_DATA.ZONES_8).find(k => VASTU_DATA.ZONES_8[k] === activeZone8);
+    const zKey = activeZone8.code;
     fetchVastuAnalysis(dirName, currentRoomObj, zKey);
 
     if (plotTiltReading) {
@@ -1733,8 +1736,8 @@ https://kuberansilks.com/`;
       }
 
       // Traditional Ayadi Formulas based on Area (Kshetra)
-      const aaya = (area * 8) % 12; // Income
-      const vyaya = (area * 9) % 10; // Expenditure
+      const aaya = ((area * 8) % 12) || 12; // Income
+      const vyaya = ((area * 9) % 10) || 10; // Expenditure
       let yoni = (area * 3) % 8; // Direction/Life breath (1=Dhvaja, 2=Dhuma, 3=Simha, 4=Shva, 5=Vrshabha, 6=Khara, 7=Gaja, 0/8=Kaka)
       if (yoni === 0) yoni = 8;
       
@@ -1928,12 +1931,12 @@ https://kuberansilks.com/`;
       if (isTrueNorth) {
         btnToggleNorth.classList.add('active');
         if (northPill) northPill.textContent = 'TRU';
-        if (false) northModeLabel.textContent = 'TRUE NORTH';
+        // northModeLabel removed
         showToast('True North mode active (Magnetic declination applied)');
       } else {
         btnToggleNorth.classList.remove('active');
         if (northPill) northPill.textContent = 'MAG';
-        if (false) northModeLabel.textContent = 'MAGNETIC NORTH';
+        // northModeLabel removed
         showToast('Magnetic North mode active');
       }
       sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
@@ -1998,6 +2001,20 @@ https://kuberansilks.com/`;
 
     // Vastu Tool: Camera AR
     
+    
+    // Haptic Feedback Toggle
+    const toggleHaptics = document.getElementById('toggle-haptics');
+    if (toggleHaptics) {
+      const hapticSaved = localStorage.getItem('kuberan_haptics');
+      if (hapticSaved !== null) {
+        toggleHaptics.checked = hapticSaved === 'true';
+      }
+      toggleHaptics.addEventListener('change', (e) => {
+        localStorage.setItem('kuberan_haptics', e.target.checked);
+        showToast(e.target.checked ? 'Haptic feedback enabled' : 'Haptic feedback disabled');
+      });
+    }
+
     const toggleGridListener = document.getElementById('toggle-vastu-grid');
     if (toggleGridListener) {
       const gridSaved = localStorage.getItem('kuberan_vastu_grid') === 'true';
@@ -2311,6 +2328,7 @@ https://kuberansilks.com/`;
 
   
   
+  let remedyToastTimer;
   // --- VASTU REMEDIES OFFLINE ENGINE ---
   const REMEDY_SETTING_KEY = 'kuberan_show_vastu_remedies';
   const toggleRemedies = document.getElementById('toggle-remedies');
@@ -2363,8 +2381,8 @@ https://kuberansilks.com/`;
         
         remedyToast.style.display = 'flex';
         
-        if (window.remedyToastTimer) clearTimeout(window.remedyToastTimer);
-        window.remedyToastTimer = setTimeout(() => {
+        if (remedyToastTimer) clearTimeout(remedyToastTimer);
+        remedyToastTimer = setTimeout(() => {
           if (remedyToast) remedyToast.style.display = 'none';
         }, 30000);
       }
@@ -2620,6 +2638,7 @@ https://kuberansilks.com/`;
     selDial.value = dialTheme;
     selDial.addEventListener('change', (e) => {
       dialTheme = e.target.value;
+      currentDialThemeIndex = DIAL_THEMES.indexOf(dialTheme);
       document.body.classList.remove('theme-elemental', 'theme-chakra', 'theme-gold');
       document.body.classList.add('theme-' + dialTheme);
       buildDialSvg(); // redraw the dial immediately
