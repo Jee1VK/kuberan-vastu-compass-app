@@ -2312,8 +2312,8 @@ https://kuberansilks.com/`;
 
   // --- Bootstrap App ---
   function init() {
-    buildDialSvg();
     setupEventListeners();
+    buildDialSvg();
     initSensors();
     initGPS();
     initPWA();
