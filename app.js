@@ -476,6 +476,8 @@ const stabilizer = new CompassStabilizer({
     const cy = 250;
     const rOuter = 240;
     let svgContent = '';
+    const toggleGrid = document.getElementById('toggle-vastu-grid');
+    const showGrid = toggleGrid && toggleGrid.checked;
 
     if (compassMode === 'simple') {
       // -------------------------------------------------------------
@@ -759,6 +761,32 @@ const stabilizer = new CompassStabilizer({
         const strokeColor = (deg === 0) ? 'var(--accent-north)' : 'currentColor';
         svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}"/>`;
       }
+    }
+
+    
+    // Vastu Purusha Mandala Grid (81 Padas)
+    if (showGrid && compassMode === 'vastu') {
+      const gridSize = 360; 
+      const cell = gridSize / 9;
+      const startX = cx - (gridSize / 2);
+      const startY = cy - (gridSize / 2);
+
+      // Draw grid lines
+      for (let i = 0; i <= 9; i++) {
+        const pos = startX + i * cell;
+        // vertical
+        svgContent += `<line x1="${pos}" y1="${startY}" x2="${pos}" y2="${startY + gridSize}" stroke="var(--kuberan-gold)" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="4,4"/>`;
+        // horizontal
+        svgContent += `<line x1="${startX}" y1="${pos}" x2="${startX + gridSize}" y2="${pos}" stroke="var(--kuberan-gold)" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="4,4"/>`;
+      }
+
+      // Highlight Brahmasthan (Center 3x3 = 9 squares)
+      const bStart = startX + 3 * cell;
+      svgContent += `<rect x="${bStart}" y="${bStart}" width="${3*cell}" height="${3*cell}" fill="var(--kuberan-gold)" fill-opacity="0.1" stroke="var(--kuberan-gold)" stroke-width="2"/>`;
+      svgContent += `<text x="${cx}" y="${cy}" fill="var(--kuberan-gold)" font-size="12" font-weight="bold" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle" opacity="0.9">BRAHMASTHAN</text>`;
+      
+      // Outer rim box
+      svgContent += `<rect x="${startX}" y="${startY}" width="${gridSize}" height="${gridSize}" fill="none" stroke="var(--kuberan-gold)" stroke-width="2" stroke-opacity="0.6"/>`;
     }
 
     dialSvg.innerHTML = svgContent;

@@ -6,7 +6,7 @@
   <title>KUBERAN Vastu Compass - Vedic Architecture & Precision Compass</title>
 
   <!-- PWA Settings -->
-  <link rel="manifest" href="manifest.webmanifest?v=4.8.3">
+  <link rel="manifest" href="manifest.webmanifest?v=4.8.4">
   <meta name="theme-color" content="#08111e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,19 +16,19 @@
   <!-- Social & Preview Cards -->
   <meta property="og:title" content="KUBERAN Vastu Compass">
   <meta property="og:description" content="Vedic Vastu Shastra & Precision Mobile Compass by Kuberan Silks">
-  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.8.3">
+  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.8.4">
   <meta property="og:url" content="https://jee1vk.github.io/kuberan-vastu-compass-app/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.8.3">
+  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=4.8.4">
 
   <!-- Icons & Favicon -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.8.3">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.8.3">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.8.3">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=4.8.3">
-  <link rel="shortcut icon" href="icon-192.png?v=4.8.3">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4.8.4">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.8.4">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.8.4">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=4.8.4">
+  <link rel="shortcut icon" href="icon-192.png?v=4.8.4">
 
-  <link rel="stylesheet" href="style.css?v=4.8.3">
+  <link rel="stylesheet" href="style.css?v=4.8.4">
 </head>
 <body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
@@ -838,8 +838,41 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v4.8.3 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v4.8.4 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- Ayadi Calculator Modal -->
+  <div id="ayadiModal" class="modal-overlay hidden" style="z-index:9999;">
+    <div class="modal-content" style="max-width:90%; padding:20px;">
+      <div class="modal-header">
+        <h2 style="font-size:1.2rem; color:var(--kuberan-gold);">📐 Ayadi Shadvarga Calculator</h2>
+        <button id="btnCloseAyadiModal" class="close-btn" style="font-size:2rem;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.9rem; opacity:0.8; margin-bottom:15px;">Calculate the architectural dimensions (Aaya, Vyaya, Yoni) of your plot or building to ensure it resonates with cosmic energy.</p>
+        
+        <div class="setting-group" style="margin-bottom: 20px;">
+          <div class="setting-item" style="border:none; padding:0; display:flex;">
+            <div style="flex:1;">
+              <label>Length (Feet)</label>
+              <input type="number" id="ayadiLength" placeholder="e.g. 40" style="width:100%; padding:8px; margin-top:5px; background:var(--bg-glass); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; box-sizing:border-box;">
+            </div>
+            <div style="flex:1; margin-left:10px;">
+              <label>Width (Feet)</label>
+              <input type="number" id="ayadiWidth" placeholder="e.g. 30" style="width:100%; padding:8px; margin-top:5px; background:var(--bg-glass); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; box-sizing:border-box;">
+            </div>
+          </div>
+          <button id="btnCalculateAyadi" class="primary-btn" style="width:100%; margin-top:15px; padding:10px;">Calculate Ayadi</button>
+        </div>
+
+        <div id="ayadiResults" class="vastu-defect hidden" style="text-align:left; padding:15px; border-color:var(--kuberan-gold);">
+          <h3 style="font-size:1.1rem; color:var(--kuberan-gold); margin-bottom:10px;">Cosmic Dimensions Report</h3>
+          <div id="ayadiReportContent" style="font-size:0.95rem; line-height:1.5;"></div>
         </div>
       </div>
     </div>
@@ -847,9 +880,9 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js"></script>
-  <script src="vastu-data.js?v=4.8.3"></script>
-  <script src="qrcode.min.js?v=4.8.3"></script>
-  <script src="app.js?v=4.8.3"></script>
+  <script src="vastu-data.js?v=4.8.4"></script>
+  <script src="qrcode.min.js?v=4.8.4"></script>
+  <script src="app.js?v=4.8.4"></script>
 </body>
 </html>
 
