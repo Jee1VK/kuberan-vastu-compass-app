@@ -401,9 +401,21 @@ const stabilizer = new CompassStabilizer({
   // --- Helper: WGS84 Declination Estimator ---
   function estimateMagneticDeclination(latitude, longitude) {
     if (isNaN(latitude) || isNaN(longitude)) return 0;
-    // World Magnetic Model approximation for Indian subcontinent & global fallback
+    
+    // 1. High-Precision World Magnetic Model (WMM)
+    if (typeof geomagnetism !== 'undefined') {
+      try {
+        const info = geomagnetism.model().point([latitude, longitude]);
+        if (info && typeof info.decl !== 'undefined') {
+          return parseFloat(info.decl.toFixed(2));
+        }
+      } catch (err) {
+        console.error('WMM calculation failed, using fallback', err);
+      }
+    }
+
+    // 2. Fallback: Crude linear approximation for Indian subcontinent
     if (latitude >= 6 && latitude <= 38 && longitude >= 68 && longitude <= 98) {
-      // In India, magnetic declination ranges between -2.0° to +1.5°
       const latFraction = (latitude - 8) / 30;
       const lngFraction = (longitude - 77) / 20;
       return parseFloat((-0.5 + latFraction * 0.8 - lngFraction * 1.2).toFixed(1));
@@ -784,6 +796,12 @@ const stabilizer = new CompassStabilizer({
       const bStart = startX + 3 * cell;
       svgContent += `<rect x="${bStart}" y="${bStart}" width="${3*cell}" height="${3*cell}" fill="var(--kuberan-gold)" fill-opacity="0.1" stroke="var(--kuberan-gold)" stroke-width="2"/>`;
       svgContent += `<text x="${cx}" y="${cy}" fill="var(--kuberan-gold)" font-size="12" font-weight="bold" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle" opacity="0.9">BRAHMASTHAN</text>`;
+      
+      // Maha Marmas (Critical Energy Diagonals: NE-SW Spine & NW-SE)
+      // NW to SE diagonal
+      svgContent += `<line x1="${startX}" y1="${startY}" x2="${startX + gridSize}" y2="${startY + gridSize}" stroke="#ef4444" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="6,4"/>`;
+      // NE to SW diagonal (The Primary Spine)
+      svgContent += `<line x1="${startX + gridSize}" y1="${startY}" x2="${startX}" y2="${startY + gridSize}" stroke="#ef4444" stroke-opacity="0.5" stroke-width="2.5" stroke-dasharray="6,4"/>`;
       
       // Outer rim box
       svgContent += `<rect x="${startX}" y="${startY}" width="${gridSize}" height="${gridSize}" fill="none" stroke="var(--kuberan-gold)" stroke-width="2" stroke-opacity="0.6"/>`;
