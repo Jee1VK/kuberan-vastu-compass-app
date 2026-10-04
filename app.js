@@ -18,7 +18,7 @@
     if (savedOffset !== null) {
       calibrationOffset = parseFloat(savedOffset) || 0;
     }
-  } catch(e) {}
+  } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
   let sensorAccuracy = null;
   let isAbsoluteOrientation = false;
   let targetHeading = null;
@@ -117,7 +117,6 @@
   const btnOffsetPlus5 = document.getElementById('btnOffsetPlus5');
   const btnZeroToNorth = document.getElementById('btnZeroToNorth');
   const toast = document.getElementById('toast');
-  const githubRepoLink = document.getElementById('githubRepoLink');
 
   // Vastu Mode Switcher & Controls Elements
   const btnModeVastu = document.getElementById('btnModeVastu');
@@ -491,10 +490,8 @@ const stabilizer = new CompassStabilizer({
     const toggleGrid = document.getElementById('toggle-vastu-grid');
     const showGrid = toggleGrid && toggleGrid.checked;
 
-    if (compassMode === 'simple') {
-      // -------------------------------------------------------------
-      // SIMPLE COMPASS DIAL (Authentic Nautical Precision Dial)
-      // -------------------------------------------------------------
+    if (false /* compassMode === 'simple' — removed: app locked to Vastu mode */) {
+      // SIMPLE COMPASS DIAL — Dead code, kept for reference
       svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="currentColor" stroke-opacity="0.25" stroke-width="2"/>`;
       svgContent += `<circle cx="${cx}" cy="${cy}" r="${rOuter - 18}" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-width="1"/>`;
       svgContent += `<circle cx="${cx}" cy="${cy}" r="116" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="4,4"/>`;
@@ -941,7 +938,7 @@ const stabilizer = new CompassStabilizer({
         lastVibrateTime = now;
         try {
           (localStorage.getItem('kuberan_haptics') !== 'false') && navigator.vibrate(duration);
-        } catch (e) {}
+        } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
       }
     }
   }
@@ -1153,7 +1150,7 @@ const stabilizer = new CompassStabilizer({
     if (iosPermissionBanner && !iosPermissionBanner.classList.contains('hidden')) {
       iosPermissionBanner.classList.add('hidden');
     }
-    try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) {}
+    try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
 
     // First real sensor sample: drop the placeholder 0° so the filter starts from the true heading
     if (firstSample) smoothedHeading = null;
@@ -1304,7 +1301,7 @@ const stabilizer = new CompassStabilizer({
     while (calibrationOffset < -180) calibrationOffset += 360;
     try {
       localStorage.setItem('kuberan-vastu-compass-offset', calibrationOffset.toString());
-    } catch(e) {}
+    } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
     updateCalibrationUI();
     updateHeading(rawMagneticHeading);
     showToast(`Offset: ${calibrationOffset >= 0 ? '+' : ''}${calibrationOffset.toFixed(1)}°`);
@@ -1337,7 +1334,7 @@ const stabilizer = new CompassStabilizer({
         gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
 
         // Compute magnetic declination for True North
-        magneticDeclination = estimateMagneticDeclination(lat, lng, alt !== null ? alt : 0);
+        magneticDeclination = estimateMagneticDeclination(lat, lng);
         gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
         sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
       },
@@ -1725,43 +1722,78 @@ https://kuberansilks.com/`;
         return;
       }
 
-      // Convert feet to Hastas (approx 1 Hasta = 2.75 feet or 33 inches)
-      const hastaL = l / 2.75;
-      const hastaW = w / 2.75;
+      // Convert feet to Hastas (1 Hasta = 18 inches = 1.5 feet per Manasara/Mayamatam)
+      const hastaL = l / 1.5;
+      const hastaW = w / 1.5;
+      const perimeter = Math.round(2 * (hastaL + hastaW));
       const area = Math.round(hastaL * hastaW);
 
-      if (area <= 0) {
-        showToast('Area too small to calculate');
+      if (perimeter <= 0 || area <= 0) {
+        showToast('Dimensions too small to calculate');
         return;
       }
 
-      // Traditional Ayadi Formulas based on Area (Kshetra)
-      const aaya = ((area * 8) % 12) || 12; // Income
-      const vyaya = ((area * 9) % 10) || 10; // Expenditure
-      let yoni = (area * 3) % 8; // Direction/Life breath (1=Dhvaja, 2=Dhuma, 3=Simha, 4=Shva, 5=Vrshabha, 6=Khara, 7=Gaja, 0/8=Kaka)
+      // Ayadi Shadvarga Formulas (Perimeter-based per Manasara Shilpa Shastra)
+      // Using perimeter (Paridhi) which is the primary input in classical texts
+      const aaya = ((perimeter * 8) % 12) || 12;     // Aaya (Income/Growth)
+      const vyaya = ((perimeter * 9) % 10) || 10;    // Vyaya (Expenditure/Loss)
+      let yoni = ((perimeter * 3) % 8);               // Yoni (Cosmic Orientation)
       if (yoni === 0) yoni = 8;
-      
-      const nakshatra = (area * 8) % 27;
-      
+      const nakshatra = ((perimeter * 8) % 27) || 27; // Nakshatra (Lunar Mansion)
+      const vaara = ((perimeter * 9) % 7) || 7;       // Vaara (Day of the Week)
+      const tithi = ((perimeter * 8) % 30) || 30;     // Tithi (Lunar Day)
+
+      const yoniNames = {
+        1: 'Dhvaja (Flag - East)',
+        2: 'Dhuma (Smoke - SE)',
+        3: 'Simha (Lion - South)',
+        4: 'Shva (Dog - SW)',
+        5: 'Vrshabha (Bull - West)',
+        6: 'Khara (Donkey - NW)',
+        7: 'Gaja (Elephant - North)',
+        8: 'Kaka (Crow - NE)'
+      };
+      const yoniAuspicious = {1: true, 3: true, 5: true, 7: true, 2: false, 4: false, 6: false, 8: false};
+
+      const nakshatraNames = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','P.Phalguni','U.Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','P.Ashadha','U.Ashadha','Shravana','Dhanishta','Shatabhisha','P.Bhadrapada','U.Bhadrapada','Revati'];
+      const vaaraNames = ['', 'Sunday (Ravi)', 'Monday (Soma)', 'Tuesday (Mangal)', 'Wednesday (Budha)', 'Thursday (Guru)', 'Friday (Shukra)', 'Saturday (Shani)'];
+
       let html = '';
-      
+
+      // Input Summary
+      html += `<p style="opacity:0.7; font-size:0.85rem; margin-bottom:10px;">Dimensions: ${l}ft × ${w}ft → ${hastaL.toFixed(1)} × ${hastaW.toFixed(1)} Hastas (1 Hasta = 18")<br>Perimeter: ${perimeter} Hastas · Area: ${area} sq. Hastas</p>`;
+
       // Aaya vs Vyaya
-      html += `<p><strong>Aaya (Income):</strong> ${aaya}</p>`;
-      html += `<p><strong>Vyaya (Expense):</strong> ${vyaya}</p>`;
+      html += `<p><strong>Aaya (Income):</strong> ${aaya} &nbsp;|&nbsp; <strong>Vyaya (Expense):</strong> ${vyaya}</p>`;
       if (aaya > vyaya) {
-        html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ Auspicious (Income is greater than Expense)</p>`;
+        html += `<p style="color:#a7f3d0; margin-bottom:12px;">✅ <strong>Auspicious</strong> — Income exceeds Expense (Prosperity indicated)</p>`;
+      } else if (aaya === vyaya) {
+        html += `<p style="color:#fde68a; margin-bottom:12px;">⚠️ <strong>Neutral</strong> — Income equals Expense (No net gain or loss)</p>`;
       } else {
-        html += `<p style="color:#fca5a5; margin-bottom:10px;">⚠️ Inauspicious (Expense is greater than or equal to Income). Consider adjusting dimensions slightly.</p>`;
+        html += `<p style="color:#fca5a5; margin-bottom:12px;">❌ <strong>Inauspicious</strong> — Expense exceeds Income. Adjust dimensions by ±6 inches and recalculate.</p>`;
       }
 
       // Yoni
-      const yoniNames = {1: 'Dhvaja (Flag - East - Very Auspicious)', 2: 'Dhuma (Smoke - SE - Inauspicious)', 3: 'Simha (Lion - South - Auspicious)', 4: 'Shva (Dog - SW - Inauspicious)', 5: 'Vrshabha (Bull - West - Auspicious)', 6: 'Khara (Donkey - NW - Inauspicious)', 7: 'Gaja (Elephant - North - Auspicious)', 8: 'Kaka (Crow - NE - Inauspicious)'};
-      html += `<p><strong>Yoni (Cosmic Orientation):</strong> ${yoni} - ${yoniNames[yoni]}</p>`;
-      
-      if (yoni % 2 !== 0) {
-        html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ Auspicious Yoni (Odd numbers are beneficial)</p>`;
+      html += `<p><strong>Yoni:</strong> ${yoni} — ${yoniNames[yoni]}</p>`;
+      if (yoniAuspicious[yoni]) {
+        html += `<p style="color:#a7f3d0; margin-bottom:12px;">✅ Auspicious Yoni (Odd-numbered Yonis bring prosperity)</p>`;
       } else {
-        html += `<p style="color:#fca5a5; margin-bottom:10px;">⚠️ Inauspicious Yoni (Even numbers bring distress)</p>`;
+        html += `<p style="color:#fca5a5; margin-bottom:12px;">❌ Inauspicious Yoni (Even-numbered Yonis bring hardship)</p>`;
+      }
+
+      // Nakshatra, Vaara, Tithi
+      html += `<p><strong>Nakshatra:</strong> ${nakshatra} — ${nakshatraNames[(nakshatra - 1) % 27]}</p>`;
+      html += `<p><strong>Vaara (Day):</strong> ${vaaraNames[vaara]}</p>`;
+      html += `<p><strong>Tithi:</strong> ${tithi}</p>`;
+
+      // Overall Verdict
+      const score = (aaya > vyaya ? 1 : 0) + (yoniAuspicious[yoni] ? 1 : 0);
+      if (score === 2) {
+        html += `<div style="margin-top:15px; padding:10px; background:rgba(167,243,208,0.15); border:1px solid #a7f3d0; border-radius:8px;"><strong style="color:#a7f3d0;">🕉️ OVERALL: HIGHLY AUSPICIOUS</strong><br><span style="font-size:0.85rem;">These dimensions are cosmically aligned. Proceed with construction.</span></div>`;
+      } else if (score === 1) {
+        html += `<div style="margin-top:15px; padding:10px; background:rgba(253,230,138,0.15); border:1px solid #fde68a; border-radius:8px;"><strong style="color:#fde68a;">⚠️ OVERALL: PARTIALLY AUSPICIOUS</strong><br><span style="font-size:0.85rem;">One parameter is unfavorable. Consider adjusting dimensions by small increments.</span></div>`;
+      } else {
+        html += `<div style="margin-top:15px; padding:10px; background:rgba(252,165,165,0.15); border:1px solid #fca5a5; border-radius:8px;"><strong style="color:#fca5a5;">❌ OVERALL: INAUSPICIOUS</strong><br><span style="font-size:0.85rem;">Both Aaya and Yoni are unfavorable. Strongly recommended to adjust the building dimensions.</span></div>`;
       }
 
       ayadiReportContent.innerHTML = html;
@@ -1772,28 +1804,7 @@ https://kuberansilks.com/`;
 
   // --- Event Listeners Setup ---
   function setupEventListeners() {
-    // Mode Switcher (Vastu vs Simple Compass)
-    if (btnModeVastu) btnModeVastu.addEventListener('click', () => {
-      compassMode = 'vastu';
-      if (btnModeVastu) btnModeVastu.classList.add('active');
-      if (btnModeSimple) btnModeSimple.classList.remove('active');
-      if (vastuSubcontrols) vastuSubcontrols.classList.remove('hidden');
-      vastuInspectorSection.classList.remove('hidden');
-      buildDialSvg();
-      updateVastuInspector(currentHeading);
-      showToast('Switched to KUBERAN Vastu Compass');
-    });
-
-    if (btnModeSimple) btnModeSimple.addEventListener('click', () => {
-      compassMode = 'simple';
-      if (btnModeSimple) btnModeSimple.classList.add('active');
-      if (btnModeVastu) btnModeVastu.classList.remove('active');
-      if (vastuSubcontrols) vastuSubcontrols.classList.add('hidden');
-      vastuInspectorSection.classList.add('hidden');
-      roomGuidanceBanner.classList.add('hidden');
-      buildDialSvg();
-      showToast('Switched to Simple Compass');
-    });
+    // Mode Switcher removed (app locked to Vastu mode)
 
     // Zone Switcher (8 / 16 / 32)
     if (btnZone8) btnZone8.addEventListener('click', () => {
@@ -2056,7 +2067,7 @@ https://kuberansilks.com/`;
             title: 'KUBERAN Vastu Compass Audit',
             text: text
           });
-        } catch (e) {}
+        } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
       } else {
         await navigator.clipboard.writeText(text);
         showToast('Report copied (Share not supported on this browser)');
@@ -2078,18 +2089,18 @@ https://kuberansilks.com/`;
       });
     }
     if (telemetryCalibrationItem) {
-      if (telemetryCalibrationItem) telemetryCalibrationItem.addEventListener('click', () => {
+      telemetryCalibrationItem.addEventListener('click', () => {
         calibrationModal.classList.remove('hidden');
         updateCalibrationUI();
       });
     }
     if (btnCloseCalModal) {
-      if (btnCloseCalModal) btnCloseCalModal.addEventListener('click', () => {
+      btnCloseCalModal.addEventListener('click', () => {
         calibrationModal.classList.add('hidden');
       });
     }
     if (calibrationModal) {
-      if (calibrationModal) calibrationModal.addEventListener('click', (e) => {
+      calibrationModal.addEventListener('click', (e) => {
         if (e.target === calibrationModal) calibrationModal.classList.add('hidden');
       });
     }
@@ -2101,7 +2112,7 @@ https://kuberansilks.com/`;
     if (btnOffsetPlus5) btnOffsetPlus5.addEventListener('click', () => adjustCalibrationOffset(5));
 
     if (btnZeroToNorth) {
-      if (btnZeroToNorth) btnZeroToNorth.addEventListener('click', () => {
+      btnZeroToNorth.addEventListener('click', () => {
         if (!window.confirm('Only do this while pointing EXACTLY at true North (use an external reference). It permanently shifts the compass until reset. Continue?')) return;
         // Make the CURRENT pointing read 0° (North). Offset is applied AFTER smoothing and BEFORE
         // declination, so the reference must include the declination that will be added later.
@@ -2129,8 +2140,8 @@ https://kuberansilks.com/`;
     // iOS Sensor Permission Button
     if (btnGrantSensor) btnGrantSensor.addEventListener('click', requestSensorPermission);
     if (btnDismissSensor) {
-      if (btnDismissSensor) btnDismissSensor.addEventListener('click', () => {
-        try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
+      btnDismissSensor.addEventListener('click', () => {
+        try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
         iosPermissionBanner.classList.add('hidden');
       });
     }
@@ -2157,13 +2168,13 @@ https://kuberansilks.com/`;
   function requestSensorPermission() {
     try {
       localStorage.setItem('kuberan_compass_sensor_enabled', 'true');
-    } catch (e) {}
+    } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
 
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
         .then((response) => {
           if (response === 'granted') {
-            try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
+            try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
             attachSensorListeners();
             iosPermissionBanner.classList.add('hidden');
             showToast('Compass sensors activated');
@@ -2172,7 +2183,7 @@ https://kuberansilks.com/`;
           }
         })
         .catch(() => {
-          try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch (e) {}
+          try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
           attachSensorListeners();
           iosPermissionBanner.classList.add('hidden');
         });
@@ -2206,17 +2217,24 @@ https://kuberansilks.com/`;
             if (!interferenceWarningActive) {
               interferenceWarningActive = true;
               showToast('⚠️ HIGH MAGNETIC INTERFERENCE: Step away from metal/electronics for accurate Vastu reading');
-              sensorStatus.textContent = '⚠️ High Interference Detected (' + Math.round(fieldStrength) + ' µT)';
-              sensorStatus.style.color = '#fca5a5';
+              if (sensorStatus) sensorStatus.textContent = '⚠️ High Interference Detected (' + Math.round(fieldStrength) + ' µT)';
+              if (sensorStatus) sensorStatus.style.color = '#fca5a5';
               document.querySelector('.compass-container').style.boxShadow = '0 0 20px rgba(252, 165, 165, 0.4)';
             }
           } else {
             if (interferenceWarningActive) {
               interferenceWarningActive = false;
-              sensorStatus.textContent = 'North tracking active';
-              sensorStatus.style.color = 'var(--text-main)';
+              if (sensorStatus) sensorStatus.textContent = 'North tracking active';
+              if (sensorStatus) sensorStatus.style.color = 'var(--text-main)';
               document.querySelector('.compass-container').style.boxShadow = 'none';
             }
+          }
+        });
+        magnetometer.addEventListener('error', (e) => {
+          console.warn('Magnetometer error:', e.error.name, e.error.message);
+          // NotReadableError means sensor is blocked by another app or hardware issue
+          if (e.error.name === 'NotAllowedError') {
+            console.log('Magnetometer permission denied');
           }
         });
         magnetometer.start();
@@ -2233,7 +2251,7 @@ https://kuberansilks.com/`;
     let isAlreadyEnabled = false;
     try {
       isAlreadyEnabled = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true';
-    } catch (e) {}
+    } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
 
     // Always attach available listeners immediately
     attachSensorListeners();
@@ -2246,7 +2264,7 @@ https://kuberansilks.com/`;
         // Only show if orientation data does not arrive automatically within 800ms
         setTimeout(() => {
           let enabledNow = false;
-          try { enabledNow = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true'; } catch (e) {}
+          try { enabledNow = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true'; } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
           if (!hasSensorData && !enabledNow) {
             iosPermissionBanner.classList.remove('hidden');
           }

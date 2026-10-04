@@ -1,5 +1,6 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v4.9.3';
+const CACHE_NAME = 'kuberan-vastu-compass-v5.0.0';
 const ASSETS_TO_CACHE = [
+  './',
   './index.html',
   './style.css',
   './vastu-data.js',
@@ -19,11 +20,8 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Use Promise.allSettled or catch individual errors so one missing file (like './') doesn't break the entire SW install
-      return Promise.all(
-        ASSETS_TO_CACHE.map(url => {
-          return cache.add(url).catch(err => console.warn('SW Install: failed to cache', url, err));
-        })
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map(url => cache.add(url).catch(err => console.warn('SW: failed to cache', url, err)))
       );
     })
   );
@@ -43,18 +41,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
-  const isNavigation = event.request.mode === 'navigate' || 
-                       (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
-  
-  // Icon files, manifest, and HTML: ALWAYS Network-First so updates appear instantly
-  const isPriorityAsset = isNavigation || 
-                          url.pathname.endsWith('manifest.webmanifest') ||
-                          url.pathname.includes('icon') ||
-                          url.pathname.endsWith('.svg') ||
-                          url.pathname.endsWith('.js') ||
-                          url.pathname.endsWith('.css');
+  const isNavigation = event.request.mode === 'navigate' ||
+    (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
 
-  if (isPriorityAsset) {
+  // HTML Navigation: Network-First (so updates appear instantly)
+  if (isNavigation) {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
@@ -64,24 +55,23 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => caches.match(event.request, { ignoreSearch: true }))
+        .catch(() => caches.match(event.request, { ignoreSearch: true })
+          .then(r => r || caches.match('./index.html')))
     );
     return;
   }
 
-  // Cache-First with background revalidation for other static assets
+  // JS, CSS, Icons: Stale-While-Revalidate (instant load + background update)
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-      if (cachedResponse) {
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-      return fetch(event.request);
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
+        }
+        return networkResponse;
+      }).catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
-
