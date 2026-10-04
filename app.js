@@ -1,13 +1,41 @@
 /**
- * KUBERAN VASTU COMPASS APP - High Precision Vedic Architecture & Mobile Compass
- * Built for iOS Safari, Android Chrome, and Desktop Browsers.
- * Features: True North Default, 8/16/32 Zones, Room Finder, Plot Tilt (Vidisha), Camera AR, Trilingual + Tamil + Telugu
+ * KUBERAN VASTU COMPASS APP v5.1.0
+ * High Precision Vedic Architecture & Mobile Compass
+ * 
+ * ═══════════════════════════════════════════════════════════════════
+ * ARCHITECTURE: Single-file IIFE with logical section organization
+ * ═══════════════════════════════════════════════════════════════════
+ * 
+ * SECTION MAP (search for these markers to navigate):
+ * 
+ *   §1  STATE          — All mutable application state variables
+ *   §2  DOM            — All document.getElementById references
+ *   §3  MATH           — Heading computation, angle normalization, declination
+ *   §4  STABILIZER     — CompassStabilizer class (RAF-based smooth interpolation)
+ *   §5  VASTU_ENGINE   — Zone lookups (8/16/32), SVG dial rendering
+ *   §6  UI_UPDATES     — Heading display, inclinometer, inspector panel
+ *   §7  SENSORS        — DeviceOrientation handlers, magnetometer, GPS
+ *   §8  CALIBRATION    — Manual offset, accuracy display
+ *   §9  TOOLS          — Plot Tilt, Camera AR, Room Finder, Audit Report
+ *   §10 LANGUAGE       — Multi-language switching (EN/HI/KN/TA/TE)
+ *   §11 AYADI          — Shadvarga Calculator (perimeter-based formulas)
+ *   §12 REMEDIES       — Vastu Dosha analysis engine & element-zone mapping
+ *   §13 PWA            — Service Worker registration, install prompt
+ *   §14 EVENTS         — All event listener bindings
+ *   §15 BOOTSTRAP      — init() entry point
+ * 
+ * FUTURE MIGRATION PATH:
+ *   When moving to a framework (React/Vue/Flutter), extract each §section
+ *   into its own module. State → store/provider, DOM → component refs,
+ *   Math → utility library, Sensors → custom hook/service.
+ * ═══════════════════════════════════════════════════════════════════
  */
 
 (function() {
   'use strict';
 
-  // --- State Variables ---
+  // ═══ §1 STATE ═══════════════════════════════════════════════════
+  // All mutable application state. Future: extract to state.js or a Zustand/Redux store.
   let currentHeading = 0;
   let rawMagneticHeading = 0;
   let smoothedHeading = null;
@@ -51,7 +79,8 @@
   const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
   let currentDialThemeIndex = 0;
 
-  // DOM Elements
+  // ═══ §2 DOM ════════════════════════════════════════════════════
+  // All getElementById references. Future: extract to dom.js or component refs.
   const compassCard = document.getElementById('compassCard');
   const dialSvg = document.getElementById('dialSvg');
   const compassViewport = document.getElementById('compassViewport');
@@ -263,6 +292,9 @@
  * Vastu Compass Smooth & Freeze Engine
  * Solves endless jittering on stationary devices.
  */
+  // ═══ §4 STABILIZER ════════════════════════════════════════════
+  // RAF-based smooth heading interpolation with deadzone & lock.
+  // Future: extract to CompassStabilizer.js class module.
 class CompassStabilizer {
     constructor(options = {}) {
         this.alpha = options.alpha || 0.15;
@@ -382,6 +414,8 @@ const stabilizer = new CompassStabilizer({
     }
 });
 
+  // ═══ §3 MATH ═══════════════════════════════════════════════════
+  // Pure math functions. Future: extract to math.js utility module.
   // --- Angle Smoothing Helper (handles 0°/360° phase wrap-around) ---
   function smoothAngle(prev, target, factor) {
     if (prev === null) return target;
@@ -443,6 +477,9 @@ const stabilizer = new CompassStabilizer({
     });
   }
 
+  // ═══ §5 VASTU_ENGINE ══════════════════════════════════════════
+  // Zone lookups and SVG dial rendering.
+  // Future: extract zone lookups to vastu.js, dial rendering to DialRenderer.js.
   // --- Vastu Calculations Engine ---
   function getActiveZone8(heading) {
     const h = normalizeAngle(heading);
@@ -807,7 +844,9 @@ const stabilizer = new CompassStabilizer({
     dialSvg.innerHTML = svgContent;
   }
 
-  // --- Dynamic Live Vastu Inspector Updates ---
+  // ═══ §6 UI_UPDATES ════════════════════════════════════════════
+  // Heading display, inclinometer, inspector panel updates.
+  // Future: extract to UI update layer or React/Vue computed props.
   function updateVastuInspector(heading) {
     if (compassMode !== 'vastu') return;
 
@@ -1084,7 +1123,9 @@ const stabilizer = new CompassStabilizer({
     updateHeadingUI(trueHeading);
   }
 
-  // --- Dual-Stream Orientation Processing ---
+  // ═══ §7 SENSORS ═══════════════════════════════════════════════
+  // DeviceOrientation handlers, magnetometer, GPS.
+  // Future: extract to sensors.js service module.
   // Chromium (Android): plain `deviceorientation` is RELATIVE (alpha = 0 at page load, NOT north),
   // only `deviceorientationabsolute` is north-referenced. Mixing them made the needle jump.
   // iOS: `deviceorientation` carries webkitCompassHeading (north-referenced).
@@ -1247,7 +1288,9 @@ const stabilizer = new CompassStabilizer({
     window.addEventListener('touchend', onEnd);
   }
 
-  // --- Calibration & Alignment Studio Engine ---
+  // ═══ §8 CALIBRATION ═══════════════════════════════════════════
+  // Manual offset, accuracy display, zero-to-north.
+  // Future: extract to calibration.js.
   function updateCalibrationUI() {
     const formattedOffset = `${calibrationOffset >= 0 ? '+' : ''}${calibrationOffset.toFixed(1)}°`;
     if (calActiveOffsetVal) calActiveOffsetVal.textContent = formattedOffset;
@@ -1346,7 +1389,9 @@ const stabilizer = new CompassStabilizer({
     );
   }
 
-  // --- Plot Tilt / Vidisha Diagnostic Logic ---
+  // ═══ §9 TOOLS ═════════════════════════════════════════════════
+  // Plot Tilt, Camera AR, Room Finder, Audit Report.
+  // Future: extract each tool to its own module.
   function updatePlotTiltUI(heading) {
     const roundedHeading = parseFloat(heading.toFixed(1));
     plotHeadingVal.textContent = `${roundedHeading}°`;
@@ -1407,7 +1452,8 @@ const stabilizer = new CompassStabilizer({
     }
   }
 
-  // --- UI Multi-Language Updating ---
+  // ═══ §10 LANGUAGE ═════════════════════════════════════════════
+  // Multi-language switching (EN/HI/KN/TA/TE).
   function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
@@ -1691,7 +1737,9 @@ https://kuberansilks.com/`;
   }
 
 
-  // --- Ayadi Shadvarga Calculator ---
+  // ═══ §11 AYADI ════════════════════════════════════════════════
+  // Shadvarga Calculator (perimeter-based formulas per Manasara).
+  // Future: extract to AyadiCalculator.js.
   const btnToolAyadi = document.getElementById('btnToolAyadi');
   const ayadiModal = document.getElementById('ayadiModal');
   const btnCloseAyadiModal = document.getElementById('btnCloseAyadiModal');
@@ -1803,7 +1851,9 @@ https://kuberansilks.com/`;
   }
 
 
-  // --- Event Listeners Setup ---
+  // ═══ §14 EVENTS ═══════════════════════════════════════════════
+  // All event listener bindings.
+  // Future: extract to events.js or framework component lifecycle.
   function setupEventListeners() {
     // Mode Switcher removed (app locked to Vastu mode)
 
@@ -2276,7 +2326,8 @@ https://kuberansilks.com/`;
     }
   }
 
-  // --- PWA Service Worker Registration ---
+  // ═══ §13 PWA ══════════════════════════════════════════════════
+  // Service Worker registration, install prompt, update detection.
   function initPWA() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -2329,7 +2380,8 @@ https://kuberansilks.com/`;
     });
   }
 
-  // --- Bootstrap App ---
+  // ═══ §15 BOOTSTRAP ════════════════════════════════════════════
+  // Application entry point.
   function init() {
     setupEventListeners();
     buildDialSvg();
@@ -2348,7 +2400,9 @@ https://kuberansilks.com/`;
   
   
   let remedyToastTimer;
-  // --- VASTU REMEDIES OFFLINE ENGINE ---
+  // ═══ §12 REMEDIES ═════════════════════════════════════════════
+  // Vastu Dosha analysis engine & element-zone remedy mapping.
+  // Future: extract to RemediesEngine.js.
   const REMEDY_SETTING_KEY = 'kuberan_show_vastu_remedies';
   const toggleRemedies = document.getElementById('toggle-remedies');
   
