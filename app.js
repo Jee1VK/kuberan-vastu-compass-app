@@ -1382,6 +1382,7 @@ const stabilizer = new CompassStabilizer({
       // Turn OFF
       cameraStream.getTracks().forEach(t => t.stop());
       cameraStream = null;
+      if (cameraFeed) cameraFeed.srcObject = null; // Free video buffer memory
       cameraFeed.classList.add('hidden');
       cameraScrim.classList.add('hidden');
       compassViewport.classList.remove('camera-active');
