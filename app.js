@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.2.0
+ * KUBERAN VASTU COMPASS APP v5.2.1
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -79,6 +79,13 @@
   const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
   let currentDialThemeIndex = 0;
   let gpsWatchId = null;
+
+  // Performance Cache: Prevent full DOM destruction when heading rotates within the same zone
+  let cachedInspectorZone = null;
+  let cachedInspectorLang = null;
+  let cachedInspectorPropType = null;
+  let cachedInspectorPada = null;
+  let cachedInspectorRetail = null;
 
   // ═══ §2 DOM ════════════════════════════════════════════════════
   // All getElementById references. Future: extract to dom.js or component refs.
@@ -855,102 +862,120 @@ const stabilizer = new CompassStabilizer({
     const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
     const dict = VASTU_DATA.UI[currentLang] || VASTU_DATA.UI.en;
 
-    // Header Zone Badge & Name
-    inspZoneBadge.textContent = activeZone8.code;
-    inspZoneName.textContent = activeZone8.names[currentLang] || activeZone8.names.en;
-    inspSanskrit.textContent = activeZone8.sanskrit;
+    const isZoneChanged = activeZone8.code !== cachedInspectorZone ||
+                          currentLang !== cachedInspectorLang ||
+                          propertyType !== cachedInspectorPropType ||
+                          retailProfile !== cachedInspectorRetail;
 
-    // Element Badge
-    inspElementDot.style.background = elem.color;
-    inspElementDot.style.boxShadow = `0 0 8px ${elem.color}`;
-    inspElementName.textContent = elem.names[currentLang] || elem.names.en;
+    if (isZoneChanged) {
+      cachedInspectorZone = activeZone8.code;
+      cachedInspectorLang = currentLang;
+      cachedInspectorPropType = propertyType;
+      cachedInspectorRetail = retailProfile;
 
-    // Ruling Deity & Classical Summary
-    inspDeityVal.textContent = activeZone8.deityNames[currentLang] || activeZone8.deityNames.en;
-    inspSummaryText.textContent = activeZone8.summary[currentLang] || activeZone8.summary.en;
+      // Header Zone Badge & Name
+      if (inspZoneBadge) inspZoneBadge.textContent = activeZone8.code;
+      if (inspZoneName) inspZoneName.textContent = activeZone8.names[currentLang] || activeZone8.names.en;
+      if (inspSanskrit) inspSanskrit.textContent = activeZone8.sanskrit;
 
-    // Favorable & Avoid Placements Cloud & Commercial Inspector
-    if (propertyType === 'commercial') {
-      commercialInspectorBox.classList.remove('hidden');
-      const commZone = VASTU_DATA.COMMERCIAL_ZONES && VASTU_DATA.COMMERCIAL_ZONES[activeZone8.code];
-      if (commZone) {
-        inspCommSuitability.textContent = commZone.commercial_suitability.join(' • ');
-        const impactText = typeof commZone.business_impact === 'object'
-          ? (commZone.business_impact[currentLang] || commZone.business_impact.en)
-          : commZone.business_impact;
-        inspBusinessImpact.textContent = impactText;
+      // Element Badge
+      if (inspElementDot) {
+        inspElementDot.style.background = elem.color;
+        inspElementDot.style.boxShadow = `0 0 8px ${elem.color}`;
+      }
+      if (inspElementName) inspElementName.textContent = elem.names[currentLang] || elem.names.en;
 
+      // Ruling Deity & Classical Summary
+      if (inspDeityVal) inspDeityVal.textContent = activeZone8.deityNames[currentLang] || activeZone8.deityNames.en;
+      if (inspSummaryText) inspSummaryText.textContent = activeZone8.summary[currentLang] || activeZone8.summary.en;
+
+      // Favorable & Avoid Placements Cloud & Commercial Inspector
+      if (propertyType === 'commercial') {
+        if (commercialInspectorBox) commercialInspectorBox.classList.remove('hidden');
+        const commZone = VASTU_DATA.COMMERCIAL_ZONES && VASTU_DATA.COMMERCIAL_ZONES[activeZone8.code];
+        if (commZone) {
+          if (inspCommSuitability) inspCommSuitability.textContent = commZone.commercial_suitability.join(' • ');
+          const impactText = typeof commZone.business_impact === 'object'
+            ? (commZone.business_impact[currentLang] || commZone.business_impact.en)
+            : commZone.business_impact;
+          if (inspBusinessImpact) inspBusinessImpact.textContent = impactText;
+
+          let favHtml = '';
+          commZone.commercial_suitability.forEach(item => {
+            favHtml += `<span class="room-tag">🏢 ${item}</span>`;
+          });
+          if (favorableTags) favorableTags.innerHTML = favHtml || '<span class="room-tag">Commercial</span>';
+
+          let avoidHtml = '';
+          commZone.avoid.forEach(item => {
+            avoidHtml += `<span class="room-tag tag-avoid">❌ ${item}</span>`;
+          });
+          if (avoidTags) avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Incompatible Setup</span>';
+
+          if (inspTipText) {
+            if (commZone.retail_tips && commZone.retail_tips[retailProfile]) {
+              inspTipText.textContent = commZone.retail_tips[retailProfile][currentLang] || commZone.retail_tips[retailProfile].en;
+            } else {
+              inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
+            }
+          }
+        }
+      } else {
+        if (commercialInspectorBox) commercialInspectorBox.classList.add('hidden');
         let favHtml = '';
-        commZone.commercial_suitability.forEach(item => {
-          favHtml += `<span class="room-tag">🏢 ${item}</span>`;
+        activeZone8.recommendedRooms.forEach(roomId => {
+          const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+          const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+          const icon = roomObj ? roomObj.icon : '✨';
+          favHtml += `<span class="room-tag">${icon} ${name}</span>`;
         });
-        favorableTags.innerHTML = favHtml || '<span class="room-tag">Commercial</span>';
+        if (favorableTags) favorableTags.innerHTML = favHtml || '<span class="room-tag">General</span>';
 
         let avoidHtml = '';
-        commZone.avoid.forEach(item => {
-          avoidHtml += `<span class="room-tag tag-avoid">❌ ${item}</span>`;
+        activeZone8.prohibitedRooms.forEach(roomId => {
+          const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
+          const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+          avoidHtml += `<span class="room-tag tag-avoid">❌ ${name}</span>`;
         });
-        avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Incompatible Setup</span>';
+        if (avoidTags) avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Heavy Clutter</span>';
 
-        if (commZone.retail_tips && commZone.retail_tips[retailProfile]) {
-          inspTipText.textContent = commZone.retail_tips[retailProfile][currentLang] || commZone.retail_tips[retailProfile].en;
-        } else {
-          inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
-        }
+        if (inspTipText) inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
       }
-    } else {
-      commercialInspectorBox.classList.add('hidden');
-      let favHtml = '';
-      activeZone8.recommendedRooms.forEach(roomId => {
-        const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
-        const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
-        const icon = roomObj ? roomObj.icon : '✨';
-        favHtml += `<span class="room-tag">${icon} ${name}</span>`;
-      });
-      favorableTags.innerHTML = favHtml || '<span class="room-tag">General</span>';
-
-      let avoidHtml = '';
-      activeZone8.prohibitedRooms.forEach(roomId => {
-        const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
-        const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
-        avoidHtml += `<span class="room-tag tag-avoid">❌ ${name}</span>`;
-      });
-      avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Heavy Clutter</span>';
-
-      inspTipText.textContent = activeZone8.tips[currentLang] || activeZone8.tips.en;
     }
 
     // 32-Pada Entrance Card
     if (zoneSystem === '32') {
-      padaEntranceCard.classList.remove('hidden');
+      if (padaEntranceCard) padaEntranceCard.classList.remove('hidden');
       const activePada = getActivePada32(heading);
-      padaIdBadge.textContent = activePada.id;
-      padaDevataName.textContent = activePada.devata;
+      if (activePada.id !== cachedInspectorPada || currentLang !== cachedInspectorLang) {
+        cachedInspectorPada = activePada.id;
+        if (padaIdBadge) padaIdBadge.textContent = activePada.id;
+        if (padaDevataName) padaDevataName.textContent = activePada.devata;
 
-      // Grade Pill
-      padaGradePill.className = 'pada-grade-pill';
-      if (activePada.grade === 'A') {
-        padaGradePill.classList.add('grade-a');
-        padaGradePill.textContent = dict.entranceGradeA || '🌟 Highly Auspicious';
-      } else if (activePada.grade === 'B') {
-        padaGradePill.classList.add('grade-b');
-        padaGradePill.textContent = dict.entranceGradeB || '⚠️ Neutral';
-      } else {
-        padaGradePill.classList.add('grade-c');
-        padaGradePill.textContent = dict.entranceGradeC || '❌ Inauspicious';
+        if (padaGradePill) {
+          padaGradePill.className = 'pada-grade-pill';
+          if (activePada.grade === 'A') {
+            padaGradePill.classList.add('grade-a');
+            padaGradePill.textContent = dict.entranceGradeA || '🌟 Highly Auspicious';
+          } else if (activePada.grade === 'B') {
+            padaGradePill.classList.add('grade-b');
+            padaGradePill.textContent = dict.entranceGradeB || '⚠️ Neutral';
+          } else {
+            padaGradePill.classList.add('grade-c');
+            padaGradePill.textContent = dict.entranceGradeC || '❌ Inauspicious';
+          }
+        }
+
+        const effectProp = 'effect' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
+        if (padaEffectText) padaEffectText.textContent = activePada[effectProp] || activePada.effectEn;
       }
 
-      // Effect text in selected language
-      const effectProp = 'effect' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
-      padaEffectText.textContent = activePada[effectProp] || activePada.effectEn;
-
-      // Auspicious entrance haptic tick
       if (hapticsEnabled && activePada.grade === 'A' && lastVibratedPada !== activePada.id) {
         lastVibratedPada = activePada.id;
         triggerHapticTick(25);
       }
     } else {
-      padaEntranceCard.classList.add('hidden');
+      if (padaEntranceCard) padaEntranceCard.classList.add('hidden');
     }
 
     // Check Room Finder Alignment
@@ -1366,39 +1391,73 @@ const stabilizer = new CompassStabilizer({
     setCalibrationOffset(calibrationOffset + delta);
   }
 
-  // --- GPS Location & Telemetry with Watchdog Lifecycle ---
+  // --- GPS Location & Telemetry with Fast Coarse Lock & Refresh Handler ---
   function initGPS() {
     startGPS();
   }
 
+  function applyLocationData(pos) {
+    if (!pos || !pos.coords) return;
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const alt = pos.coords.altitude;
+    const acc = pos.coords.accuracy;
+
+    if (gpsLat) gpsLat.textContent = formatDMS(lat, true);
+    if (gpsLatDec) gpsLatDec.textContent = `${lat.toFixed(6)}°`;
+    if (gpsLng) gpsLng.textContent = formatDMS(lng, false);
+    if (gpsLngDec) gpsLngDec.textContent = `${lng.toFixed(6)}°`;
+
+    if (gpsAlt) gpsAlt.textContent = alt !== null ? `${Math.round(alt)} m` : '-- m';
+    if (gpsAccuracy) gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
+
+    // Compute magnetic declination for True North
+    magneticDeclination = estimateMagneticDeclination(lat, lng);
+    if (gpsDeclination) gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
+    if (sensorStatus) sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'GPS Active';
+  }
+
   function startGPS() {
-    if (!('geolocation' in navigator) || gpsWatchId !== null) return;
+    if (!('geolocation' in navigator)) {
+      if (gpsLatDec) gpsLatDec.textContent = 'GPS not supported';
+      return;
+    }
+    if (gpsWatchId !== null) return;
 
+    if (gpsLatDec) gpsLatDec.textContent = 'Acquiring GPS fix...';
+    if (gpsLngDec) gpsLngDec.textContent = 'Tap to refresh';
+
+    // 1. Immediate Fast Coarse Position (Cell/Wi-Fi responds in <300ms)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => applyLocationData(pos),
+      (err) => { /* Fall through to high accuracy watch */ },
+      { enableHighAccuracy: false, maximumAge: 300000, timeout: 6000 }
+    );
+
+    // 2. High Accuracy Satellite Watcher with Indoor Fallback
     gpsWatchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const alt = pos.coords.altitude;
-        const acc = pos.coords.accuracy;
-
-        if (gpsLat) gpsLat.textContent = formatDMS(lat, true);
-        if (gpsLatDec) gpsLatDec.textContent = `${lat.toFixed(6)}°`;
-        if (gpsLng) gpsLng.textContent = formatDMS(lng, false);
-        if (gpsLngDec) gpsLngDec.textContent = `${lng.toFixed(6)}°`;
-
-        if (gpsAlt) gpsAlt.textContent = alt !== null ? `${Math.round(alt)} m` : '-- m';
-        if (gpsAccuracy) gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
-
-        // Compute magnetic declination for True North
-        magneticDeclination = estimateMagneticDeclination(lat, lng);
-        if (gpsDeclination) gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
-        if (sensorStatus) sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
-      },
+      (pos) => applyLocationData(pos),
       (err) => {
-        if (gpsLatDec) gpsLatDec.textContent = 'Location access denied';
-        if (sensorStatus) sensorStatus.textContent = 'Using standard calibration';
+        console.warn('GPS location code:', err.code, err.message);
+        if (err.code === 1) { // PERMISSION_DENIED
+          if (gpsLatDec) gpsLatDec.textContent = 'Permission Denied';
+          if (gpsLngDec) gpsLngDec.textContent = 'Enable in browser';
+          if (sensorStatus) sensorStatus.textContent = 'Standard Magnetic';
+        } else if (err.code === 3) { // TIMEOUT (common indoors)
+          // Fall back to low-accuracy network fix so user is NEVER left stranded
+          navigator.geolocation.getCurrentPosition(
+            (pos) => applyLocationData(pos),
+            () => {
+              if (gpsLatDec && gpsLatDec.textContent.includes('Acquiring')) {
+                gpsLatDec.textContent = 'Weak GPS Signal';
+                if (gpsLngDec) gpsLngDec.textContent = 'Tap to retry';
+              }
+            },
+            { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 }
+          );
+        }
       },
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
   }
 
@@ -1407,6 +1466,12 @@ const stabilizer = new CompassStabilizer({
       navigator.geolocation.clearWatch(gpsWatchId);
       gpsWatchId = null;
     }
+  }
+
+  function refreshGPS() {
+    showToast('Refreshing GPS location...');
+    stopGPS();
+    startGPS();
   }
 
   // ═══ §9 TOOLS ═════════════════════════════════════════════════
@@ -2108,13 +2173,23 @@ https://kuberansilks.com/`;
       });
     }
 
+    // Telemetry Grid Tap to Refresh GPS
+    const telemetryGrid = document.querySelector('.telemetry-grid');
+    if (telemetryGrid) {
+      telemetryGrid.addEventListener('click', (e) => {
+        if (e.target.closest('#telemetryCalibrationItem')) return; // Ignore calibration tap
+        refreshGPS();
+      });
+    }
+
     const toggleGridListener = document.getElementById('toggle-vastu-grid');
     if (toggleGridListener) {
       const gridSaved = localStorage.getItem('kuberan_vastu_grid') === 'true';
       toggleGridListener.checked = gridSaved;
       toggleGridListener.addEventListener('change', (e) => {
         localStorage.setItem('kuberan_vastu_grid', e.target.checked);
-        buildDialSvg();
+        // Defer SVG rebuild to RAF so CSS toggle animation slides smoothly with zero lag
+        requestAnimationFrame(() => buildDialSvg());
       });
     }
 
