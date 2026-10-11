@@ -78,6 +78,7 @@
   // Visual Themes List (Marine Brass is base palette)
   const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
   let currentDialThemeIndex = 0;
+  let gpsWatchId = null;
 
   // ═══ §2 DOM ════════════════════════════════════════════════════
   // All getElementById references. Future: extract to dom.js or component refs.
