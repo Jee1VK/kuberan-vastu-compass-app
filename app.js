@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.1.2
+ * KUBERAN VASTU COMPASS APP v5.2.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -1065,13 +1065,28 @@ const stabilizer = new CompassStabilizer({
     }
   }
 
-  // --- Bubble Level & Inclinometer ---
+  // --- Bubble Level & Inclinometer with RAF Decoupling ---
+  let inclinometerRafId = null;
+  let scheduledPitch = 0;
+  let scheduledRoll = 0;
+
+  function scheduleInclinometerUpdate(p, r) {
+    scheduledPitch = p;
+    scheduledRoll = r;
+    if (!inclinometerRafId) {
+      inclinometerRafId = requestAnimationFrame(() => {
+        inclinometerRafId = null;
+        updateInclinometer(scheduledPitch, scheduledRoll);
+      });
+    }
+  }
+
   function updateInclinometer(p, r) {
     pitch = p;
     roll = r;
 
-    pitchValue.textContent = `${Math.round(pitch)}°`;
-    rollValue.textContent = `${Math.round(roll)}°`;
+    if (pitchValue) pitchValue.textContent = `${Math.round(pitch)}°`;
+    if (rollValue) rollValue.textContent = `${Math.round(roll)}°`;
 
     // Gauge bars
     const maxTilt = 45;
@@ -1099,28 +1114,12 @@ const stabilizer = new CompassStabilizer({
     }
   }
 
-  // --- Update Compass Orientation with Smoothing & Calibration Offset ---
+  // --- Update Compass Orientation via RAF Stabilizer Engine ---
   function updateHeading(rawHeading) {
     if (typeof rawHeading === 'number' && !isNaN(rawHeading)) {
       rawMagneticHeading = ((rawHeading % 360) + 360) % 360;
+      stabilizer.updateRawHeading(rawMagneticHeading);
     }
-
-    // Adaptive low-pass filter: heavy smoothing when steady (kills magnetic jitter),
-    // light smoothing when the phone is genuinely turning (no lag).
-    const prevShown = smoothedHeading === null ? rawMagneticHeading : normalizeAngle(smoothedHeading);
-    const delta = Math.abs(((rawMagneticHeading - prevShown + 540) % 360) - 180);
-    const adaptiveFactor = Math.min(0.6, Math.max(0.1, delta / 25));
-    smoothedHeading = smoothAngle(smoothedHeading, rawMagneticHeading, adaptiveFactor);
-
-    // Apply manual calibration offset
-    let calibratedHeading = smoothedHeading + calibrationOffset;
-
-    let trueHeading = calibratedHeading;
-    if (isTrueNorth) {
-      trueHeading = calibratedHeading + magneticDeclination;
-    }
-
-    updateHeadingUI(trueHeading);
   }
 
   // ═══ §7 SENSORS ═══════════════════════════════════════════════
@@ -1135,7 +1134,11 @@ const stabilizer = new CompassStabilizer({
   let lastAbsoluteEventTs = 0;
   let relativeWarningShown = false;
 
+  let sensorsAttached = false;
+
   function attachSensorListeners() {
+    if (sensorsAttached) return; // Prevent duplicate event listeners
+    sensorsAttached = true;
     sensorAttachTs = performance.now();
 
     // 1. Android: Primary absolute orientation (Chrome, Samsung Internet & Android WebViews)
@@ -1146,6 +1149,13 @@ const stabilizer = new CompassStabilizer({
 
     // Fallback manual touch/mouse control if sensors aren't firing on desktop
     initDesktopDragSimulation();
+  }
+
+  function detachSensorListeners() {
+    if (!sensorsAttached) return;
+    sensorsAttached = false;
+    window.removeEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, true);
+    window.removeEventListener('deviceorientation', handleDeviceOrientation, true);
   }
 
   function handleDeviceOrientationAbsolute(event) {
@@ -1237,7 +1247,8 @@ const stabilizer = new CompassStabilizer({
       p = -p; r = -r;
     }
 
-    updateInclinometer(p, r);
+    // Process bubble level through identical rotation matrix (RAF-synced)
+    scheduleInclinometerUpdate(p, r);
     updateCalibrationUI();
   }
 
@@ -1354,39 +1365,47 @@ const stabilizer = new CompassStabilizer({
     setCalibrationOffset(calibrationOffset + delta);
   }
 
-  // --- GPS Location & Telemetry ---
+  // --- GPS Location & Telemetry with Watchdog Lifecycle ---
   function initGPS() {
-    if (!('geolocation' in navigator)) {
-      gpsLatDec.textContent = 'GPS not supported';
-      return;
-    }
+    startGPS();
+  }
 
-    navigator.geolocation.watchPosition(
+  function startGPS() {
+    if (!('geolocation' in navigator) || gpsWatchId !== null) return;
+
+    gpsWatchId = navigator.geolocation.watchPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const alt = pos.coords.altitude;
         const acc = pos.coords.accuracy;
 
-        gpsLat.textContent = formatDMS(lat, true);
-        gpsLatDec.textContent = `${lat.toFixed(6)}°`;
-        gpsLng.textContent = formatDMS(lng, false);
-        gpsLngDec.textContent = `${lng.toFixed(6)}°`;
+        if (gpsLat) gpsLat.textContent = formatDMS(lat, true);
+        if (gpsLatDec) gpsLatDec.textContent = `${lat.toFixed(6)}°`;
+        if (gpsLng) gpsLng.textContent = formatDMS(lng, false);
+        if (gpsLngDec) gpsLngDec.textContent = `${lng.toFixed(6)}°`;
 
-        gpsAlt.textContent = alt !== null ? `${Math.round(alt)} m` : '-- m';
-        gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
+        if (gpsAlt) gpsAlt.textContent = alt !== null ? `${Math.round(alt)} m` : '-- m';
+        if (gpsAccuracy) gpsAccuracy.textContent = `Accuracy: ±${Math.round(acc)} m`;
 
         // Compute magnetic declination for True North
         magneticDeclination = estimateMagneticDeclination(lat, lng);
-        gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
-        sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
+        if (gpsDeclination) gpsDeclination.textContent = `${magneticDeclination >= 0 ? '+' : ''}${magneticDeclination}°`;
+        if (sensorStatus) sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
       },
       (err) => {
-        gpsLatDec.textContent = 'Location access denied';
-        sensorStatus.textContent = 'Using standard calibration';
+        if (gpsLatDec) gpsLatDec.textContent = 'Location access denied';
+        if (sensorStatus) sensorStatus.textContent = 'Using standard calibration';
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
     );
+  }
+
+  function stopGPS() {
+    if (gpsWatchId !== null && 'geolocation' in navigator) {
+      navigator.geolocation.clearWatch(gpsWatchId);
+      gpsWatchId = null;
+    }
   }
 
   // ═══ §9 TOOLS ═════════════════════════════════════════════════
@@ -1402,14 +1421,18 @@ const stabilizer = new CompassStabilizer({
 
     plotDeviationVal.textContent = `${absDev}° Deviation from Cardinal Axis`;
 
+    const dict = (VASTU_DATA && VASTU_DATA.UI && VASTU_DATA.UI[currentLang]) || (VASTU_DATA && VASTU_DATA.UI && VASTU_DATA.UI.en) || {};
+    const alignedTitle = dict.vidishaAligned || 'SAMA-SUTRA (Aligned Plot)';
+    const tiltedTitleBase = dict.vidishaTilted || 'VIDISHA (Tilted Plot)';
+
     if (absDev <= 3.0) {
-      plotStatusBanner.className = 'plot-status-banner aligned';
-      plotStatusTitle.textContent = 'SAMA-SUTRA (Aligned Plot)';
-      plotStatusDesc.textContent = 'The property is naturally aligned with the cardinal magnetic axis (within ±3°). Highly auspicious and energetically balanced.';
+      if (plotStatusBanner) plotStatusBanner.className = 'plot-status-banner aligned';
+      if (plotStatusTitle) plotStatusTitle.textContent = alignedTitle;
+      if (plotStatusDesc) plotStatusDesc.textContent = dict.plotTiltHelp || 'The property is naturally aligned with the cardinal magnetic axis (within ±3°). Highly auspicious and energetically balanced.';
     } else {
-      plotStatusBanner.className = 'plot-status-banner tilted';
-      plotStatusTitle.textContent = `VIDISHA (Tilted Plot by ${absDev}°)`;
-      plotStatusDesc.textContent = 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, mandir, and bed axes towards Cardinal North.';
+      if (plotStatusBanner) plotStatusBanner.className = 'plot-status-banner tilted';
+      if (plotStatusTitle) plotStatusTitle.textContent = `${tiltedTitleBase} (${absDev}°)`;
+      if (plotStatusDesc) plotStatusDesc.textContent = dict.plotTiltHelp || 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, mandir, and bed axes towards Cardinal North.';
     }
 
     // Commercial Plot Shape geometry status
@@ -1440,11 +1463,18 @@ const stabilizer = new CompassStabilizer({
           video: { facingMode: { ideal: 'environment' } }
         });
         cameraStream = stream;
+        
+        // Listen for hardware interruptions (e.g. phone call, permission revoked)
+        stream.getVideoTracks().forEach(track => {
+          track.addEventListener('ended', () => {
+            if (cameraStream) toggleCameraAR();
+          });
+        });
+
         cameraFeed.srcObject = stream;
         cameraFeed.classList.remove('hidden');
         cameraScrim.classList.remove('hidden');
         compassViewport.classList.add('camera-active');
-        // btnToolCamera removed (now in Settings)
         showToast('Camera AR active: Align phone with room walls');
       } catch (err) {
         showToast('Camera access permission denied or unavailable');
@@ -2215,32 +2245,27 @@ https://kuberansilks.com/`;
     }
   }
 
-  // --- iOS Sensor Permissions ---
+  // --- iOS Sensor Permissions with Robust Error Handling ---
   function requestSensorPermission() {
-    try {
-      localStorage.setItem('kuberan_compass_sensor_enabled', 'true');
-    } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
-
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
         .then((response) => {
           if (response === 'granted') {
-            try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
+            try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* private browsing */ }
             attachSensorListeners();
-            iosPermissionBanner.classList.add('hidden');
+            if (iosPermissionBanner) iosPermissionBanner.classList.add('hidden');
             showToast('Compass sensors activated');
           } else {
-            showToast('Motion permission denied');
+            showToast('Motion permission denied. Enable in iOS Settings > Safari');
           }
         })
-        .catch(() => {
-          try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
-          attachSensorListeners();
-          iosPermissionBanner.classList.add('hidden');
+        .catch((err) => {
+          console.warn('iOS motion sensor permission error:', err);
+          showToast('Motion permission required. Tap Enable Compass Sensors.');
         });
     } else {
       attachSensorListeners();
-      iosPermissionBanner.classList.add('hidden');
+      if (iosPermissionBanner) iosPermissionBanner.classList.add('hidden');
     }
   }
 
@@ -2292,6 +2317,18 @@ https://kuberansilks.com/`;
       } catch (err) {
         console.log('Magnetometer API not available/permitted for interference detection');
       }
+    }
+  }
+
+  function startMagnetometer() {
+    if (magnetometer) {
+      try { magnetometer.start(); } catch(e) {}
+    }
+  }
+
+  function stopMagnetometer() {
+    if (magnetometer) {
+      try { magnetometer.stop(); } catch(e) {}
     }
   }
 
@@ -2391,6 +2428,25 @@ https://kuberansilks.com/`;
     updateCalibrationUI();
     updateHeading(0);
     updateInclinometer(0, 0);
+
+    // Lifecycle Management: Pause background sensors & camera when tab is hidden
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        detachSensorListeners();
+        stopMagnetometer();
+        stopGPS();
+        if (cameraStream) {
+          toggleCameraAR(); // Release camera hardware cleanly
+        }
+      } else {
+        if (hasSensorData || localStorage.getItem('kuberan_compass_sensor_enabled') === 'true') {
+          attachSensorListeners();
+          startMagnetometer();
+          startGPS();
+        }
+      }
+    });
+
     // A saved manual offset shifts EVERY reading. Never let it hide silently.
     if (Math.abs(calibrationOffset) >= 0.5) {
       setTimeout(() => showToast(`Manual offset ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}° is active - reset it in Calibrate if the compass reads wrong`), 1200);
