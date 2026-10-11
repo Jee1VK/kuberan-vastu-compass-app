@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>404 - Direction Not Found | KUBERAN Vastu Compass</title>
+
+  <!-- PWA & Meta -->
+  <meta name="theme-color" content="#08111e">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.1.2">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.1.2">
+  <link rel="stylesheet" href="style.css?v=5.1.2">
+
+  <style>
+    body {
+      background-color: var(--bg-primary, #07090e);
+      color: var(--text-main, #f1f5f9);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .error-card {
+      max-width: 440px;
+      margin: 20px;
+      padding: 36px 24px;
+      background: var(--bg-glass, rgba(18, 24, 37, 0.75));
+      border: 1px solid var(--border-color, rgba(56, 189, 248, 0.18));
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .brand-logo {
+      height: 52px;
+      width: auto;
+      margin-bottom: 16px;
+      border-radius: 8px;
+    }
+    .compass-icon {
+      font-size: 3.5rem;
+      margin: 10px 0;
+      display: block;
+      animation: spin 12s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    h1 {
+      color: var(--kuberan-gold, #d4a359);
+      font-size: 1.6rem;
+      margin: 8px 0;
+      letter-spacing: 0.03em;
+    }
+    p {
+      color: var(--text-muted, #8492a6);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0 0 24px 0;
+    }
+    .btn-home {
+      display: inline-block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #d4a359 0%, #b8860b 100%);
+      color: #07090e;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn-home:hover {
+      opacity: 0.9;
+    }
+    .sub-link {
+      display: block;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted, #8492a6);
+      text-decoration: none;
+    }
+    .sub-link:hover {
+      color: var(--kuberan-gold, #d4a359);
+    }
+  </style>
+</head>
+<body>
+  <div class="error-card">
+    <a href="https://kuberansilks.com/" target="_blank" rel="noopener noreferrer" title="Visit Kuberan Silks Official Website">
+      <img src="assets/images/kuberan_logo_white_bg.png" alt="Kuberan Silks" class="brand-logo">
+    </a>
+    <span class="compass-icon">🧭</span>
+    <h1>Direction Lost (404)</h1>
+    <p>
+      The path you are looking for has deviated from the cardinal axis. Realign with the cosmic grid at the main compass.
+    </p>
+    <a href="./index.html" class="btn-home">Return to Compass</a>
+    <a href="https://kuberansilks.com/" target="_blank" rel="noopener noreferrer" class="sub-link">
+      Visit Kuberan Silks Showroom →
+    </a>
+  </div>
+</body>
+</html>
