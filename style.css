@@ -2663,3 +2663,580 @@ input:checked + .slider:before {
 }
 
 .modal-body { font-size: 0.95rem; }
+
+/* ==========================================================================
+   v5.3.0 FLAGSHIP LUXURY UI & UX UPGRADE STYLES
+   ========================================================================== */
+
+/* 1. Header Clean Action Pill Buttons */
+.header-pill-btn {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 0 8px;
+  width: auto;
+  min-width: 38px;
+}
+
+/* 2. Quick Controls Floating Strip (8Z/16Z/32P + Grid + AR + North) */
+.quick-controls-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-top: -4px;
+  margin-bottom: 2px;
+}
+
+.quick-segmented-zones {
+  display: flex;
+  background: rgba(14, 28, 49, 0.75);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.quick-zone-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 5px 10px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quick-zone-btn.active {
+  background: linear-gradient(135deg, rgba(212, 163, 89, 0.45) 0%, rgba(104, 74, 30, 0.45) 100%);
+  color: #fff;
+  border: 1px solid #d4a359;
+  box-shadow: 0 0 10px rgba(212, 163, 89, 0.35);
+}
+
+.quick-feature-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(14, 28, 49, 0.75);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: 16px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+
+.quick-feature-pill .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: all 0.2s ease;
+}
+
+.quick-feature-pill:hover {
+  color: var(--text-main);
+  border-color: rgba(212, 163, 89, 0.45);
+}
+
+.quick-feature-pill.active {
+  background: rgba(212, 163, 89, 0.2);
+  border-color: #d4a359;
+  color: #f7eedd;
+  box-shadow: 0 0 8px rgba(212, 163, 89, 0.3);
+}
+
+.quick-feature-pill.active .pill-dot {
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+/* 3. Level HUD Pill inside Bearing Container */
+.bearing-container {
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.bearing-container:active {
+  transform: scale(0.98);
+}
+
+.level-hud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 3px 8px;
+  margin-top: 2px;
+  transition: all 0.2s ease;
+}
+
+.level-hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.level-hud-badge.level-locked {
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.level-hud-badge.level-locked .level-hud-dot {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.telemetry-target-lock {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.telemetry-target-lock:active {
+  transform: scale(0.96);
+  background: rgba(212, 163, 89, 0.2);
+}
+
+/* 4. Ambient Magnetic Interference Warning Pill */
+.magnetic-alert-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 12px;
+  margin-top: 6px;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  border-radius: 12px;
+  color: #fde047;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.magnetic-alert-pill:active {
+  transform: scale(0.98);
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(234, 179, 8, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(234, 179, 8, 0.45);
+  }
+}
+
+/* 5. Sector Preview Reset Banner */
+.sector-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  background: rgba(212, 163, 89, 0.18);
+  border: 1px solid #d4a359;
+  border-radius: 12px;
+  color: var(--text-main);
+  font-size: 0.74rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.sector-preview-bar strong {
+  color: #ffd700;
+}
+
+.btn-return-live {
+  background: #d4a359;
+  color: #08111e;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.btn-return-live:active {
+  transform: scale(0.94);
+}
+
+/* Interactive SVG Dial Sectors */
+.vastu-sector-clickable {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.vastu-sector-clickable:hover {
+  opacity: 0.8 !important;
+}
+
+/* 6. Clickable Room Chips in Inspector */
+.room-tag {
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.room-tag:hover {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.25);
+  transform: translateY(-1px);
+}
+
+.room-tag:active {
+  transform: scale(0.94);
+}
+
+.room-tag.tag-avoid:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* 7. Collapsible Inspector Details Drawer */
+.inspector-expand-btn {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: 8px;
+  color: var(--accent-cyan);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inspector-expand-btn:hover {
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.45);
+}
+
+.expand-caret {
+  font-size: 0.85rem;
+  transition: transform 0.25s ease;
+}
+
+.inspector-expand-btn.open .expand-caret {
+  transform: rotate(180deg);
+}
+
+.inspector-expand-drawer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* 8. Floating Glassmorphic Bottom Navigation Dock */
+.floating-dock {
+  position: fixed;
+  bottom: calc(var(--safe-bottom) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 440px;
+  height: 60px;
+  background: rgba(8, 17, 30, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 6px;
+  z-index: 400;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 163, 89, 0.15);
+}
+
+.dock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 12px;
+  min-width: 58px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dock-btn:hover, .dock-btn:active {
+  color: var(--text-main);
+}
+
+.dock-btn:active {
+  transform: scale(0.92);
+}
+
+.dock-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: #d4a359;
+  transition: transform 0.2s ease;
+}
+
+.dock-btn:hover .dock-icon-wrap {
+  transform: translateY(-2px);
+}
+
+.dock-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* Center Highlighted Ayadi Dock Button */
+.dock-btn-center {
+  position: relative;
+  margin-top: -16px;
+}
+
+.dock-btn-center .center-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e1b46f 0%, #a07431 100%);
+  color: #08111e;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 15px rgba(212, 163, 89, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.dock-center-pulse {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(212, 163, 89, 0.4);
+  animation: centerPulse 2.5s infinite ease-out;
+  z-index: 1;
+}
+
+@keyframes centerPulse {
+  0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+  100% { transform: translateX(-50%) scale(1.4); opacity: 0; }
+}
+
+/* 9. Ayadi Luxury Stepper & Scorecard Styles */
+.ayadi-stepper-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.ayadi-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stepper-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.btn-stepper {
+  background: rgba(212, 163, 89, 0.15);
+  border: none;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 38px;
+  height: 42px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-stepper:hover {
+  background: rgba(212, 163, 89, 0.3);
+}
+
+.btn-stepper:active {
+  background: #d4a359;
+  color: #08111e;
+}
+
+.stepper-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  width: 100%;
+}
+
+.ayadi-scorecard-card {
+  margin-top: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.scorecard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.scorecard-header h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #d4a359;
+}
+
+.scorecard-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+  letter-spacing: 0.04em;
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.scorecard-badge.badge-defect {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.scorecard-body {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* 10. Printable Vastu Certificate Styling */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #auditModal, #auditModal * {
+    visibility: visible;
+  }
+  #auditModal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0;
+    margin: 0;
+  }
+  .modal-window {
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid #8b0000 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+  }
+  .btn-modal-close, .audit-btn-row {
+    display: none !important;
+  }
+  .audit-report-card {
+    border: 2px double #b8860b !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .report-label, .report-val {
+    color: #000 !important;
+  }
+}
+
+/* Ensure padding at bottom of container for floating dock */
+.app-container {
+  padding-bottom: calc(var(--safe-bottom) + 85px) !important;
+}

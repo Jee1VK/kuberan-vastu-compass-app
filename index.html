@@ -6,7 +6,7 @@
   <title>KUBERAN Vastu Compass - Vedic Architecture & Precision Compass</title>
 
   <!-- PWA Settings -->
-  <link rel="manifest" href="manifest.webmanifest?v=5.2.2">
+  <link rel="manifest" href="manifest.webmanifest?v=5.3.0">
   <meta name="theme-color" content="#08111e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,19 +16,19 @@
   <!-- Social & Preview Cards -->
   <meta property="og:title" content="KUBERAN Vastu Compass">
   <meta property="og:description" content="Vedic Vastu Shastra & Precision Mobile Compass by Kuberan Silks">
-  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.2.2">
+  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.3.0">
   <meta property="og:url" content="https://jee1vk.github.io/kuberan-vastu-compass-app/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.2.2">
+  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.3.0">
 
   <!-- Icons & Favicon -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.2.2">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.2.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5.2.2">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=5.2.2">
-  <link rel="shortcut icon" href="icon-192.png?v=5.2.2">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.3.0">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.3.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5.3.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=5.3.0">
+  <link rel="shortcut icon" href="icon-192.png?v=5.3.0">
 
-  <link rel="stylesheet" href="style.css?v=5.2.2">
+  <link rel="stylesheet" href="style.css?v=5.3.0">
 </head>
 <body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
@@ -45,15 +45,31 @@
         </div>
       </div>
       <div class="header-actions">
-        <button id="btnToolAyadi" class="icon-btn" title="Ayadi Calculator" aria-label="Ayadi Calculator">🧮</button>
-        <button id="btnToolRoomFinder" class="icon-btn" title="Room Finder" aria-label="Room Finder">🏠</button>
-        <button id="btnToolPlotTilt" class="icon-btn" title="Plot Tilt" aria-label="Plot Tilt">📐</button>
-        <button id="btnToolAudit" class="icon-btn" title="Vastu Report" aria-label="Vastu Report">📋</button>
-        <button id="btnSettings" class="icon-btn" title="Settings" aria-label="Settings">
-          ⚙️
+        <!-- Quick Dial Theme Toggle Button in Header -->
+        <button id="btnHeaderDialTheme" class="icon-btn header-pill-btn" title="Switch Dial Style (Elemental / Chakra / Gold)" aria-label="Switch Dial Style">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor" opacity="0.6"/>
+          </svg>
         </button>
+        <!-- Language Switcher Button -->
+        <button id="btnHeaderLang" class="icon-btn header-pill-btn" title="Select Language" aria-label="Select Language">
+          <span class="mode-pill" id="langPill">EN</span>
+        </button>
+        <!-- Settings Modal Trigger -->
+        <button id="btnSettings" class="icon-btn" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+        <!-- Info Modal Trigger -->
         <button id="btnInfo" class="icon-btn" title="App Info & Download" aria-label="App Info and Download">
-          ℹ️
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
         </button>
       </div>
     </header>
@@ -91,8 +107,31 @@
     </div>
 
     <!-- Main Display: Heading & Bearing -->
+    
+    <!-- Quick Controls Floating Strip (Zones 8/16/32 + Grid + AR) -->
+    <section class="quick-controls-strip">
+      <div class="quick-segmented-zones" id="quickZoneSwitcher">
+        <button class="quick-zone-btn active" data-zones="8" id="btnQuickZone8">8Z</button>
+        <button class="quick-zone-btn" data-zones="16" id="btnQuickZone16">16Z</button>
+        <button class="quick-zone-btn" data-zones="32" id="btnQuickZone32">32P</button>
+      </div>
+      <div class="quick-feature-pills">
+        <button class="quick-feature-pill" id="btnQuickGrid" title="Toggle 81-Pada Vastu Mandala Grid">
+          <span class="pill-dot"></span>
+          <span>81-Grid</span>
+        </button>
+        <button class="quick-feature-pill" id="btnQuickAR" title="Toggle Camera AR Room Overlay">
+          <span class="pill-dot"></span>
+          <span>AR Cam</span>
+        </button>
+        <button class="quick-feature-pill" id="btnQuickNorth" title="Toggle True/Magnetic North">
+          <span class="pill-label" id="quickNorthLabel">TRUE</span>
+        </button>
+      </div>
+    </section>
+
     <section class="readout-section">
-      <div class="bearing-container">
+      <div class="bearing-container" id="bearingContainerTap" title="Tap to lock/unlock target bearing">
         <div class="primary-heading">
           <span id="headingDegrees" class="heading-num">0</span>
           <span class="degree-symbol">°</span>
@@ -101,6 +140,10 @@
           <div class="cardinal-direction" id="headingCardinal">N</div>
           <div class="vastu-sanskrit-tag" id="headingSanskrit">Uttara (उत्तर)</div>
         </div>
+        <div class="level-hud-badge" id="levelHudBadge" title="Surface Level Tilt Status">
+          <span class="level-hud-dot"></span>
+          <span id="levelHudText">0.0° LEVEL</span>
+        </div>
       </div>
 
       <div class="secondary-telemetry">
@@ -108,7 +151,7 @@
           <span class="label">MILS</span>
           <span class="val" id="milsValue">0</span>
         </div>
-        <div class="telemetry-pill" id="targetLockPill">
+        <div class="telemetry-pill telemetry-target-lock" id="targetLockPill" title="Tap to lock target bearing">
           <span class="label">TARGET</span>
           <span class="val" id="targetValue">--</span>
         </div>
@@ -123,9 +166,21 @@
         <span class="dev-text" id="devText">0° OFF TARGET</span>
         <button id="btnClearTarget" class="btn-clear-target" title="Clear Target" aria-label="Clear Target">✕</button>
       </div>
+
+      <!-- Magnetic Interference Warning Pill (Ambient Sensor Alert) -->
+      <div id="magneticInterferencePill" class="magnetic-alert-pill hidden" title="High magnetic interference detected. Tap to open calibration guide.">
+        <span class="alert-icon">⚠️</span>
+        <span class="alert-text">Magnetic Bias Detected — Tap to Calibrate (Fig-8)</span>
+      </div>
     </section>
 
     <!-- Compass Dial Assembly -->
+    
+    <!-- Interactive Sector Preview Return Bar -->
+    <div id="sectorPreviewBar" class="sector-preview-bar hidden">
+      <span>Inspecting <strong id="previewZoneTitle">South-East</strong></span>
+      <button id="btnReturnToLiveHeading" class="btn-return-live">Resume Live Compass ↺</button>
+    </div>
     <section class="dial-section">
       <!-- Fixed Lubber Line (Top pointer) -->
       <div class="lubber-assembly">
@@ -248,6 +303,14 @@
           <span class="tip-icon">💡</span>
           <span class="tip-text" id="inspTipText">Keep this zone open, light, and spotless. Ideal for Mandir and pure water.</span>
         </div>
+        <!-- Collapsible Details Toggle Button -->
+        <button id="btnToggleInspectorDetails" class="inspector-expand-btn">
+          <span id="lblInspectorExpandText">View Remedies & Commercial Impact</span>
+          <span class="expand-caret">▾</span>
+        </button>
+        <div id="inspectorExpandContent" class="inspector-expand-drawer hidden">
+          <div id="inspectorDrawerInner"></div>
+        </div>
       </div>
     </section>
 
@@ -343,6 +406,72 @@
   
   <!-- Compact Action Bar (Single-Line Tools) -->
   
+
+  
+    <!-- Floating Glassmorphic Bottom Navigation Dock -->
+    <nav class="floating-dock" aria-label="Vastu Tools Dock">
+      <button class="dock-btn" id="btnDockRoomFinder" title="Room to Direction Finder">
+        <span class="dock-icon-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </span>
+        <span class="dock-label">Room Finder</span>
+      </button>
+
+      <button class="dock-btn" id="btnDockPlotTilt" title="Plot Tilt / Vidisha Detector">
+        <span class="dock-icon-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 22h20M2 22L18 6M18 6l4 4M18 6V2"/>
+          </svg>
+        </span>
+        <span class="dock-label">Plot Tilt</span>
+      </button>
+
+      <button class="dock-btn dock-btn-center" id="btnDockAyadi" title="Ayadi Shadvarga Calculator">
+        <span class="dock-center-pulse"></span>
+        <span class="dock-icon-wrap center-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="2" width="16" height="20" rx="2"/>
+            <line x1="8" y1="6" x2="16" y2="6"/>
+            <line x1="16" y1="14" x2="16" y2="18"/>
+            <line x1="8" y1="10" x2="8.01" y2="10"/>
+            <line x1="12" y1="10" x2="12.01" y2="10"/>
+            <line x1="16" y1="10" x2="16.01" y2="10"/>
+            <line x1="8" y1="14" x2="8.01" y2="14"/>
+            <line x1="12" y1="14" x2="12.01" y2="14"/>
+            <line x1="8" y1="18" x2="8.01" y2="18"/>
+            <line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+        </span>
+        <span class="dock-label">Ayadi Calc</span>
+      </button>
+
+      <button class="dock-btn" id="btnDockAudit" title="Vastu Inspection Audit Report">
+        <span class="dock-icon-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </span>
+        <span class="dock-label">Audit Report</span>
+      </button>
+
+      <button class="dock-btn" id="btnDockCalibrate" title="Compass Calibration & Magnetometer">
+        <span class="dock-icon-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="dock-label">Calibrate</span>
+      </button>
+    </nav>
 
   </main>
 
@@ -546,6 +675,14 @@
         </div>
 
         <div class="audit-btn-row">
+          <button id="btnPrintCertificate" class="btn-action btn-highlight" title="Print or Save Official Certificate PDF">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            <span>Print Certificate</span>
+          </button>
           <button id="btnCopyAuditReport" class="btn-action btn-highlight">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
@@ -853,7 +990,7 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v5.2.2 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v5.3.0 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
@@ -861,43 +998,61 @@
   </div>
 
   
-  <!-- Ayadi Calculator Modal -->
-  <div id="ayadiModal" class="modal-backdrop hidden" style="z-index:9999;">
-    <div class="modal-content" style="max-width:90%; padding:20px;">
+  <!-- Ayadi Shadvarga Calculator Modal -->
+  <div id="ayadiModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ayadiModalTitle">
+    <div class="modal-window">
       <div class="modal-header">
-        <h2 style="font-size:1.2rem; color:var(--kuberan-gold);">📐 Ayadi Shadvarga Calculator</h2>
-        <button id="btnCloseAyadiModal" class="close-btn" style="font-size:2rem;">&times;</button>
+        <div class="modal-brand-wrap">
+          <span class="modal-icon">📐</span>
+          <div>
+            <h3 id="ayadiModalTitle">Ayadi Shadvarga Calculator</h3>
+            <span class="modal-brand-sub">Manasara Shilpa Shastra Cosmic Dimensions</span>
+          </div>
+        </div>
+        <button id="btnCloseAyadiModal" class="btn-modal-close" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <p style="font-size:0.9rem; opacity:0.8; margin-bottom:15px;">Calculate the architectural dimensions (Aaya, Vyaya, Yoni) of your plot or building to ensure it resonates with cosmic energy.</p>
-        
-        <div class="setting-group" style="margin-bottom: 20px;">
-          <div class="setting-item" style="border:none; padding:0; display:flex;">
-            <div style="flex:1;">
-              <label>Length (Feet)</label>
-              <input type="number" id="ayadiLength" placeholder="e.g. 40" style="width:100%; padding:8px; margin-top:5px; background:var(--bg-glass); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; box-sizing:border-box;">
-            </div>
-            <div style="flex:1; margin-left:10px;">
-              <label>Width (Feet)</label>
-              <input type="number" id="ayadiWidth" placeholder="e.g. 30" style="width:100%; padding:8px; margin-top:5px; background:var(--bg-glass); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; box-sizing:border-box;">
+        <p class="modal-intro-text">Calculate the architectural dimensions (Aaya, Vyaya, Yoni) of your plot or building to ensure resonance with cosmic energy.</p>
+
+        <div class="ayadi-stepper-grid">
+          <div class="ayadi-input-group">
+            <label for="ayadiLength" class="input-label">Length (Feet)</label>
+            <div class="stepper-wrap">
+              <button class="btn-stepper" id="btnStepLengthMinus">-</button>
+              <input type="number" id="ayadiLength" placeholder="40" value="40" step="0.5" class="stepper-input">
+              <button class="btn-stepper" id="btnStepLengthPlus">+</button>
             </div>
           </div>
-          <button id="btnCalculateAyadi" class="primary-btn" style="width:100%; margin-top:15px; padding:10px;">Calculate Ayadi</button>
+          <div class="ayadi-input-group">
+            <label for="ayadiWidth" class="input-label">Width (Feet)</label>
+            <div class="stepper-wrap">
+              <button class="btn-stepper" id="btnStepWidthMinus">-</button>
+              <input type="number" id="ayadiWidth" placeholder="30" value="30" step="0.5" class="stepper-input">
+              <button class="btn-stepper" id="btnStepWidthPlus">+</button>
+            </div>
+          </div>
         </div>
 
-        <div id="ayadiResults" class="vastu-defect hidden" style="text-align:left; padding:15px; border-color:var(--kuberan-gold);">
-          <h3 style="font-size:1.1rem; color:var(--kuberan-gold); margin-bottom:10px;">Cosmic Dimensions Report</h3>
-          <div id="ayadiReportContent" style="font-size:0.95rem; line-height:1.5;"></div>
+        <button id="btnCalculateAyadi" class="btn-primary-large" style="margin-top:14px;">Calculate Cosmic Shadvarga</button>
+
+        <div id="ayadiResults" class="ayadi-scorecard-card hidden">
+          <div class="scorecard-header">
+            <h4>Cosmic Dimensions Scorecard</h4>
+            <span class="scorecard-badge" id="ayadiOverallBadge">🕉️ HIGHLY AUSPICIOUS</span>
+          </div>
+          <div id="ayadiReportContent" class="scorecard-body"></div>
         </div>
       </div>
+    </div>
+  </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js"></script>
-  <script src="vastu-data.js?v=5.2.2"></script>
-  <script src="qrcode.min.js?v=5.2.2"></script>
-  <script src="app.js?v=5.2.2"></script>
+  <script src="vastu-data.js?v=5.3.0"></script>
+  <script src="qrcode.min.js?v=5.3.0"></script>
+  <script src="app.js?v=5.3.0"></script>
 </body>
 </html>
 

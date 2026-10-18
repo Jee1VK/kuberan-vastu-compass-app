@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.2.2
+ * KUBERAN VASTU COMPASS APP v5.3.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -78,6 +78,7 @@
   // Visual Themes List (Marine Brass is base palette)
   const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
   let currentDialThemeIndex = 0;
+  let previewZoneSector = null; // Interactive Tap-to-Inspect sector preview
   let gpsWatchId = null;
 
   // Performance Cache: Prevent full DOM destruction when heading rotates within the same zone
@@ -654,7 +655,7 @@ const stabilizer = new CompassStabilizer({
           const arcY1 = cy + (rOuterVastu - 4) * Math.sin(startRad);
           const arcX2 = cx + (rOuterVastu - 4) * Math.cos(endRad);
           const arcY2 = cy + (rOuterVastu - 4) * Math.sin(endRad);
-          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 4} ${rOuterVastu - 4} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${elem.color}" stroke-width="5" stroke-opacity="0.8" class="vastu-sector-ring"/>`;
+          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 4} ${rOuterVastu - 4} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${elem.color}" stroke-width="6" stroke-opacity="0.85" class="vastu-sector-ring vastu-sector-clickable" data-zone-code="${zone.code}"/>`;
 
           // Sector fill for Chakra Theme
           if (dialTheme === 'chakra') {
@@ -700,7 +701,7 @@ const stabilizer = new CompassStabilizer({
           const arcY1 = cy + (rOuterVastu - 3) * Math.sin(startRad);
           const arcX2 = cx + (rOuterVastu - 3) * Math.cos(endRad);
           const arcY2 = cy + (rOuterVastu - 3) * Math.sin(endRad);
-          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 3} ${rOuterVastu - 3} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${elem.color}" stroke-width="4.5" stroke-opacity="0.8" class="vastu-sector-ring"/>`;
+          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 3} ${rOuterVastu - 3} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${elem.color}" stroke-width="5" stroke-opacity="0.85" class="vastu-sector-ring vastu-sector-clickable" data-zone-code="${zone.id}"/>`;
 
           if (dialTheme === 'chakra') {
             const ix1 = cx + rInnerVastu * Math.cos(startRad);
@@ -743,7 +744,7 @@ const stabilizer = new CompassStabilizer({
           const arcY1 = cy + (rOuterVastu - 2) * Math.sin(startRad);
           const arcX2 = cx + (rOuterVastu - 2) * Math.cos(endRad);
           const arcY2 = cy + (rOuterVastu - 2) * Math.sin(endRad);
-          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 2} ${rOuterVastu - 2} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${gradeColor}" stroke-width="4" stroke-opacity="0.85" class="vastu-sector-ring"/>`;
+          svgContent += `<path d="M ${arcX1.toFixed(1)} ${arcY1.toFixed(1)} A ${rOuterVastu - 2} ${rOuterVastu - 2} 0 0 1 ${arcX2.toFixed(1)} ${arcY2.toFixed(1)}" fill="none" stroke="${gradeColor}" stroke-width="5" stroke-opacity="0.9" class="vastu-sector-ring vastu-sector-clickable" data-pada-id="${pada.id}"/>`;
 
           if (dialTheme === 'chakra') {
             const ix1 = cx + rInnerVastu * Math.cos(startRad);
@@ -1129,6 +1130,20 @@ const stabilizer = new CompassStabilizer({
 
     // Level status check (<= 1.5° = perfectly level)
     const isLevel = Math.abs(pitch) <= 1.5 && Math.abs(roll) <= 1.5;
+    
+    const levelHudBadge = document.getElementById('levelHudBadge');
+    const levelHudText = document.getElementById('levelHudText');
+    const tiltDeg = Math.max(Math.abs(pitch), Math.abs(roll));
+    if (levelHudBadge && levelHudText) {
+      if (isLevel) {
+        levelHudBadge.classList.add('level-locked');
+        levelHudText.textContent = '0.0° LEVEL';
+      } else {
+        levelHudBadge.classList.remove('level-locked');
+        levelHudText.textContent = `${tiltDeg.toFixed(1)}° TILT`;
+      }
+    }
+
     if (isLevel) {
       levelHousing.classList.add('level-locked');
       levelStatusCard.classList.add('level-locked');
@@ -1951,6 +1966,293 @@ https://kuberansilks.com/`;
   // All event listener bindings.
   // Future: extract to events.js or framework component lifecycle.
   function setupEventListeners() {
+    // ─── v5.3.0 Quick Strip Controls (Zones 8Z/16Z/32P + Grid + AR + North) ───
+    const btnQuickZone8 = document.getElementById('btnQuickZone8');
+    const btnQuickZone16 = document.getElementById('btnQuickZone16');
+    const btnQuickZone32 = document.getElementById('btnQuickZone32');
+    const btnQuickGrid = document.getElementById('btnQuickGrid');
+    const btnQuickAR = document.getElementById('btnQuickAR');
+    const btnQuickNorth = document.getElementById('btnQuickNorth');
+    const quickNorthLabel = document.getElementById('quickNorthLabel');
+
+    function syncZoneUI(z) {
+      zoneSystem = z;
+      [btnQuickZone8, btnQuickZone16, btnQuickZone32].forEach(btn => {
+        if (btn) btn.classList.toggle('active', btn.dataset.zones === z);
+      });
+      [btnZone8, btnZone16, btnZone32].forEach(btn => {
+        if (btn) btn.classList.toggle('active', btn.dataset.zones === z);
+      });
+      const radios = document.getElementsByName('zones');
+      radios.forEach(r => { if (r.value === z) r.checked = true; });
+      if (z === '32') {
+        if (padaEntranceCard) padaEntranceCard.classList.remove('hidden');
+      } else {
+        if (padaEntranceCard) padaEntranceCard.classList.add('hidden');
+      }
+      buildDialSvg();
+      updateVastuInspector(currentHeading);
+      showToast(`Switched to ${z === '32' ? '32 Padas' : z + ' Zones'}`);
+    }
+
+    if (btnQuickZone8) btnQuickZone8.addEventListener('click', () => syncZoneUI('8'));
+    if (btnQuickZone16) btnQuickZone16.addEventListener('click', () => syncZoneUI('16'));
+    if (btnQuickZone32) btnQuickZone32.addEventListener('click', () => syncZoneUI('32'));
+
+    // Quick 81-Pada Grid Toggle
+    if (btnQuickGrid) {
+      const toggleGridListener = document.getElementById('toggle-vastu-grid');
+      btnQuickGrid.addEventListener('click', () => {
+        const isNowOn = !btnQuickGrid.classList.contains('active');
+        btnQuickGrid.classList.toggle('active', isNowOn);
+        if (toggleGridListener) toggleGridListener.checked = isNowOn;
+        localStorage.setItem('kuberan_vastu_grid', isNowOn);
+        requestAnimationFrame(() => buildDialSvg());
+        showToast(isNowOn ? 'Vastu Purusha Mandala Grid Active' : 'Grid Overlay Hidden');
+      });
+    }
+
+    // Quick AR Camera Toggle
+    if (btnQuickAR) {
+      btnQuickAR.addEventListener('click', () => {
+        const toggleCamera = document.getElementById('toggle-camera-ar');
+        toggleCameraAR();
+        const isActive = Boolean(cameraStream);
+        btnQuickAR.classList.toggle('active', isActive);
+        if (toggleCamera) toggleCamera.checked = isActive;
+      });
+    }
+
+    // Quick True/Magnetic North Toggle
+    if (btnQuickNorth) {
+      btnQuickNorth.addEventListener('click', () => {
+        isTrueNorth = !isTrueNorth;
+        if (quickNorthLabel) quickNorthLabel.textContent = isTrueNorth ? 'TRUE' : 'MAG';
+        btnQuickNorth.classList.toggle('active', isTrueNorth);
+        if (btnToggleNorth) btnToggleNorth.classList.toggle('active', isTrueNorth);
+        if (northPill) northPill.textContent = isTrueNorth ? 'TRU' : 'MAG';
+        const radiosRef = document.getElementsByName('compass-ref');
+        radiosRef.forEach(r => { if (r.value === (isTrueNorth ? 'true' : 'magnetic')) r.checked = true; });
+        showToast(isTrueNorth ? 'True North mode active' : 'Magnetic North mode active');
+        updateHeading(rawMagneticHeading);
+      });
+    }
+
+    // Header Dial Theme & Language Buttons
+    const btnHeaderDialTheme = document.getElementById('btnHeaderDialTheme');
+    if (btnHeaderDialTheme) {
+      btnHeaderDialTheme.addEventListener('click', () => {
+        currentDialThemeIndex = (currentDialThemeIndex + 1) % DIAL_THEMES.length;
+        dialTheme = DIAL_THEMES[currentDialThemeIndex];
+        document.body.classList.remove('theme-elemental', 'theme-chakra', 'theme-gold');
+        document.body.classList.add(`theme-${dialTheme}`);
+        buildDialSvg();
+        const themeNames = { elemental: 'Pancha Bhoota Elemental', chakra: 'Vastu Chakra Wheel', gold: 'Royal Gold' };
+        showToast(`Dial Style: ${themeNames[dialTheme]}`);
+      });
+    }
+
+    const btnHeaderLang = document.getElementById('btnHeaderLang');
+    if (btnHeaderLang) {
+      btnHeaderLang.addEventListener('click', () => {
+        renderLangModal();
+        langModal.classList.remove('hidden');
+      });
+    }
+
+    // Direct Tap on Heading / Bearing Container to Lock Target Bearing
+    const bearingContainerTap = document.getElementById('bearingContainerTap');
+    const targetLockPill = document.getElementById('targetLockPill');
+
+    function toggleTargetLock() {
+      if (targetHeading === null) {
+        targetHeading = Math.round(currentHeading);
+        targetValue.textContent = `${targetHeading}°`;
+        if (btnBearingLock) btnBearingLock.classList.add('active');
+        if (targetMarkerRing) {
+          targetMarkerRing.style.transform = `rotate(${targetHeading}deg)`;
+          targetMarkerRing.classList.remove('hidden');
+        }
+        triggerHapticTick(40);
+        showToast(`🎯 Target Bearing Locked: ${targetHeading}°`);
+      } else {
+        targetHeading = null;
+        targetValue.textContent = '--';
+        if (btnBearingLock) btnBearingLock.classList.remove('active');
+        if (targetMarkerRing) targetMarkerRing.classList.add('hidden');
+        if (targetDeviationBar) targetDeviationBar.classList.add('hidden');
+        triggerHapticTick(20);
+        showToast('Target bearing cleared');
+      }
+      updateHeadingUI(currentHeading);
+    }
+
+    if (bearingContainerTap) bearingContainerTap.addEventListener('click', toggleTargetLock);
+    if (targetLockPill) targetLockPill.addEventListener('click', (e) => { e.stopPropagation(); toggleTargetLock(); });
+
+    // Magnetic Interference Alert Pill Tap -> Opens Calibration Studio
+    const magPillAlert = document.getElementById('magneticInterferencePill');
+    if (magPillAlert) {
+      magPillAlert.addEventListener('click', () => {
+        if (calibrationModal) {
+          calibrationModal.classList.remove('hidden');
+          updateCalibrationUI();
+        }
+      });
+    }
+
+    // ─── Floating Dock Navigation Bindings ───
+    const btnDockRoomFinder = document.getElementById('btnDockRoomFinder');
+    const btnDockPlotTilt = document.getElementById('btnDockPlotTilt');
+    const btnDockAyadi = document.getElementById('btnDockAyadi');
+    const btnDockAudit = document.getElementById('btnDockAudit');
+    const btnDockCalibrate = document.getElementById('btnDockCalibrate');
+
+    if (btnDockRoomFinder) btnDockRoomFinder.addEventListener('click', () => {
+      renderRoomsGrid();
+      if (roomFinderModal) roomFinderModal.classList.remove('hidden');
+    });
+
+    if (btnDockPlotTilt) btnDockPlotTilt.addEventListener('click', () => {
+      updatePlotTiltUI(currentHeading);
+      if (plotTiltModal) plotTiltModal.classList.remove('hidden');
+    });
+
+    if (btnDockAyadi) btnDockAyadi.addEventListener('click', () => {
+      if (ayadiModal) ayadiModal.classList.remove('hidden');
+    });
+
+    if (btnDockAudit) btnDockAudit.addEventListener('click', openAuditModal);
+
+    if (btnDockCalibrate) btnDockCalibrate.addEventListener('click', () => {
+      if (calibrationModal) {
+        calibrationModal.classList.remove('hidden');
+        updateCalibrationUI();
+      }
+    });
+
+    // Sector Preview Reset Button
+    const btnReturnToLiveHeading = document.getElementById('btnReturnToLiveHeading');
+    if (btnReturnToLiveHeading) {
+      btnReturnToLiveHeading.addEventListener('click', () => {
+        previewZoneSector = null;
+        const sectorPreviewBar = document.getElementById('sectorPreviewBar');
+        if (sectorPreviewBar) sectorPreviewBar.classList.add('hidden');
+        updateVastuInspector(currentHeading);
+        showToast('Resumed Live Compass Tracking');
+      });
+    }
+
+    // Interactive Tap on Dial SVG to Inspect Sector
+    if (dialSvg) {
+      dialSvg.addEventListener('click', (e) => {
+        const sectorEl = e.target.closest('.vastu-sector-clickable');
+        if (sectorEl) {
+          const zCode = sectorEl.dataset.zoneCode;
+          const pId = sectorEl.dataset.padaId;
+          const targetZone = VASTU_DATA.ZONES_8.find(z => z.code === zCode) ||
+                             VASTU_DATA.ZONES_16.find(z => z.id === zCode);
+          if (targetZone) {
+            previewZoneSector = targetZone;
+            const sectorPreviewBar = document.getElementById('sectorPreviewBar');
+            const previewZoneTitle = document.getElementById('previewZoneTitle');
+            if (sectorPreviewBar && previewZoneTitle) {
+              previewZoneTitle.textContent = targetZone.names ? (targetZone.names[currentLang] || targetZone.names.en) : targetZone.code;
+              sectorPreviewBar.classList.remove('hidden');
+            }
+            updateVastuInspector(targetZone.centerDeg);
+            triggerHapticTick(25);
+            showToast(`Previewing ${previewZoneTitle ? previewZoneTitle.textContent : zCode}`);
+          }
+        }
+      });
+    }
+
+    // Clickable Room Chips in Inspector: Selecting room activates Room Finder
+    if (favorableTags) {
+      favorableTags.addEventListener('click', (e) => {
+        const tag = e.target.closest('.room-tag');
+        if (tag) {
+          const text = tag.textContent.trim().replace(/^[^a-zA-Z0-9]+/, '').trim();
+          const found = VASTU_DATA.ROOMS.find(r => (r.names.en && text.toLowerCase().includes(r.names.en.toLowerCase())) ||
+                                                   (r.names[currentLang] && text.toLowerCase().includes(r.names[currentLang].toLowerCase())));
+          if (found) {
+            selectActiveRoom(found);
+            showToast(`Room Target Set: ${found.names[currentLang] || found.names.en}`);
+          }
+        }
+      });
+    }
+
+    // Collapsible Inspector Details Drawer Toggle
+    const btnToggleInspectorDetails = document.getElementById('btnToggleInspectorDetails');
+    const inspectorExpandContent = document.getElementById('inspectorExpandContent');
+    const inspectorDrawerInner = document.getElementById('inspectorDrawerInner');
+
+    if (btnToggleInspectorDetails && inspectorExpandContent) {
+      btnToggleInspectorDetails.addEventListener('click', () => {
+        const isExpanded = !inspectorExpandContent.classList.contains('hidden');
+        if (isExpanded) {
+          inspectorExpandContent.classList.add('hidden');
+          btnToggleInspectorDetails.classList.remove('open');
+        } else {
+          // Populate Drawer with remedies & commercial details
+          const activeZ = getActiveZone8(currentHeading);
+          const elem = VASTU_DATA.ELEMENTS[activeZ.element];
+          let drawerHtml = `
+            <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
+              <strong style="color:${elem.color}; font-size:0.8rem; display:block; margin-bottom:4px;">🕉️ Elemental Resonance (${elem.names[currentLang] || elem.names.en})</strong>
+              Keep this sector balanced with ${elem.names.en} attributes. Avoid clutter and incompatible elemental conflicts.
+            </div>
+          `;
+          if (inspectorDrawerInner) inspectorDrawerInner.innerHTML = drawerHtml;
+          inspectorExpandContent.classList.remove('hidden');
+          btnToggleInspectorDetails.classList.add('open');
+        }
+      });
+    }
+
+    // Ayadi Stepper Controls (+ / - 0.5 ft)
+    const btnStepLengthMinus = document.getElementById('btnStepLengthMinus');
+    const btnStepLengthPlus = document.getElementById('btnStepLengthPlus');
+    const btnStepWidthMinus = document.getElementById('btnStepWidthMinus');
+    const btnStepWidthPlus = document.getElementById('btnStepWidthPlus');
+    const ayadiLengthInput = document.getElementById('ayadiLength');
+    const ayadiWidthInput = document.getElementById('ayadiWidth');
+
+    if (btnStepLengthMinus && ayadiLengthInput) {
+      btnStepLengthMinus.addEventListener('click', () => {
+        let val = parseFloat(ayadiLengthInput.value) || 0;
+        if (val > 1) { ayadiLengthInput.value = (val - 0.5).toFixed(1); }
+      });
+    }
+    if (btnStepLengthPlus && ayadiLengthInput) {
+      btnStepLengthPlus.addEventListener('click', () => {
+        let val = parseFloat(ayadiLengthInput.value) || 0;
+        ayadiLengthInput.value = (val + 0.5).toFixed(1);
+      });
+    }
+    if (btnStepWidthMinus && ayadiWidthInput) {
+      btnStepWidthMinus.addEventListener('click', () => {
+        let val = parseFloat(ayadiWidthInput.value) || 0;
+        if (val > 1) { ayadiWidthInput.value = (val - 0.5).toFixed(1); }
+      });
+    }
+    if (btnStepWidthPlus && ayadiWidthInput) {
+      btnStepWidthPlus.addEventListener('click', () => {
+        let val = parseFloat(ayadiWidthInput.value) || 0;
+        ayadiWidthInput.value = (val + 0.5).toFixed(1);
+      });
+    }
+
+    // Print Certificate Button in Audit Modal
+    const btnPrintCertificate = document.getElementById('btnPrintCertificate');
+    if (btnPrintCertificate) {
+      btnPrintCertificate.addEventListener('click', () => {
+        window.print();
+      });
+    }
+
     // Mode Switcher removed (app locked to Vastu mode)
 
     // Zone Switcher (8 / 16 / 32)
@@ -2365,7 +2667,9 @@ https://kuberansilks.com/`;
 
           // Earth's magnetic field is typically between 25 and 65 µT.
           // Thresholds set at > 85 µT to prevent false positives from slight anomalies
+          const magPill = document.getElementById('magneticInterferencePill');
           if (fieldStrength > 85 || fieldStrength < 15) {
+            if (magPill) magPill.classList.remove('hidden');
             if (!interferenceWarningActive) {
               interferenceWarningActive = true;
               showToast('⚠️ HIGH MAGNETIC INTERFERENCE: Step away from metal/electronics for accurate Vastu reading');
