@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.3.0
+ * KUBERAN VASTU COMPASS APP v5.3.1
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -1527,6 +1527,9 @@ const stabilizer = new CompassStabilizer({
 
   // --- Camera AR Mode ---
   async function toggleCameraAR() {
+    const btnQuickAR = document.getElementById('btnQuickAR');
+    const toggleCamera = document.getElementById('toggle-camera-ar');
+
     if (cameraStream) {
       // Turn OFF
       cameraStream.getTracks().forEach(t => t.stop());
@@ -1535,7 +1538,8 @@ const stabilizer = new CompassStabilizer({
       cameraFeed.classList.add('hidden');
       cameraScrim.classList.add('hidden');
       compassViewport.classList.remove('camera-active');
-      // btnToolCamera removed (now in Settings)
+      if (btnQuickAR) btnQuickAR.classList.remove('active');
+      if (toggleCamera) toggleCamera.checked = false;
       showToast('Camera AR disabled');
     } else {
       // Turn ON
@@ -1556,8 +1560,12 @@ const stabilizer = new CompassStabilizer({
         cameraFeed.classList.remove('hidden');
         cameraScrim.classList.remove('hidden');
         compassViewport.classList.add('camera-active');
+        if (btnQuickAR) btnQuickAR.classList.add('active');
+        if (toggleCamera) toggleCamera.checked = true;
         showToast('Camera AR active: Align phone with room walls');
       } catch (err) {
+        if (btnQuickAR) btnQuickAR.classList.remove('active');
+        if (toggleCamera) toggleCamera.checked = false;
         showToast('Camera access permission denied or unavailable');
       }
     }
@@ -2014,12 +2022,8 @@ https://kuberansilks.com/`;
 
     // Quick AR Camera Toggle
     if (btnQuickAR) {
-      btnQuickAR.addEventListener('click', () => {
-        const toggleCamera = document.getElementById('toggle-camera-ar');
-        toggleCameraAR();
-        const isActive = Boolean(cameraStream);
-        btnQuickAR.classList.toggle('active', isActive);
-        if (toggleCamera) toggleCamera.checked = isActive;
+      btnQuickAR.addEventListener('click', async () => {
+        await toggleCameraAR();
       });
     }
 
@@ -2497,9 +2501,9 @@ https://kuberansilks.com/`;
 
     const toggleCamera = document.getElementById('toggle-camera-ar');
     if (toggleCamera) {
-      toggleCamera.addEventListener('change', (e) => {
-         if (e.target.checked && !cameraStream) toggleCameraAR();
-         else if (!e.target.checked && cameraStream) toggleCameraAR();
+      toggleCamera.addEventListener('change', async (e) => {
+         if (e.target.checked && !cameraStream) await toggleCameraAR();
+         else if (!e.target.checked && cameraStream) await toggleCameraAR();
       });
     }
 
