@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.3.1
+ * KUBERAN VASTU COMPASS APP v5.4.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -73,7 +73,18 @@
   let propertyType = 'residential'; // 'residential' or 'commercial'
   let retailProfile = 'apparel_silk_sarees'; // 'apparel_silk_sarees', 'jewelry_luxury', 'general_commercial'
   let roomCategoryTab = 'residential'; // 'residential' or 'commercial'
-  let selectedPlotShape = 'Shermukhi'; // 'Shermukhi', 'Gaumukhi', 'Square_Rectangular'
+  let selectedPlotShape = 'Shermukhi';
+  // v5.4.0 Field Powerhouse States
+  let isHeadingFrozen = false;
+  let frozenHeadingVal = null;
+  let isArTorchOn = false;
+  let isArExpanded = false;
+  let siteWalkthroughLogs = [];
+  try {
+    const savedLogs = localStorage.getItem('kuberan_site_walkthrough_logs');
+    if (savedLogs) siteWalkthroughLogs = JSON.parse(savedLogs);
+  } catch(e) {}
+ // 'Shermukhi', 'Gaumukhi', 'Square_Rectangular'
 
   // Visual Themes List (Marine Brass is base palette)
   const DIAL_THEMES = ['elemental', 'chakra', 'gold'];
@@ -414,6 +425,10 @@ const stabilizer = new CompassStabilizer({
     lockThreshold: 1.2,
     onHeadingChange: (smoothedH) => {
         smoothedHeading = smoothedH;
+        if (isHeadingFrozen && frozenHeadingVal !== null) {
+          updateHeadingUI(frozenHeadingVal);
+          return;
+        }
         let calibratedHeading = smoothedHeading + calibrationOffset;
         let trueHeading = calibratedHeading;
         if (isTrueNorth) {
@@ -478,6 +493,79 @@ const stabilizer = new CompassStabilizer({
   }
 
   // --- Helper: Format Milliseconds / Date ---
+  
+  // --- Solar Azimuth & Elevation (NOAA Solar Model) ---
+  function calculateSunPosition(latitude, longitude, date = new Date()) {
+    const lat = isNaN(latitude) ? 12.9716 : latitude;
+    const lng = isNaN(longitude) ? 77.5946 : longitude;
+    const rad = Math.PI / 180;
+    const deg = 180 / Math.PI;
+
+    const time = date.getTime();
+    const jd = (time / 86400000) + 2440587.5;
+    const n = jd - 2451545.0;
+
+    const L = (280.460 + 0.9856474 * n) % 360;
+    const g = ((357.528 + 0.9856003 * n) % 360) * rad;
+    const lambda = (L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * rad;
+    const epsilon = (23.439 - 0.0000004 * n) * rad;
+
+    const sinAlpha = Math.cos(epsilon) * Math.sin(lambda);
+    const cosAlpha = Math.cos(lambda);
+    const alpha = Math.atan2(sinAlpha, cosAlpha);
+    const delta = Math.asin(Math.sin(epsilon) * Math.sin(lambda));
+
+    const gmst = (18.697374558 + 24.06570982441908 * n) % 24;
+    const lmst = ((gmst * 15 + lng) % 360) * rad;
+
+    const H = lmst - alpha;
+    const phi = lat * rad;
+
+    const sinAlt = Math.sin(phi) * Math.sin(delta) + Math.cos(phi) * Math.cos(delta) * Math.cos(H);
+    const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt)));
+
+    const sinAz = -Math.cos(delta) * Math.sin(H) / Math.cos(alt);
+    const cosAz = (Math.sin(delta) - Math.sin(phi) * Math.sin(alt)) / (Math.cos(phi) * Math.cos(alt));
+    let az = Math.atan2(sinAz, cosAz) * deg;
+    if (az < 0) az += 360;
+
+    return {
+      azimuth: Math.round(az * 10) / 10,
+      altitude: Math.round(alt * deg * 10) / 10,
+      isDay: alt > 0
+    };
+  }
+
+  // --- Vedic Rahu Kalam & Muhurta Calculator ---
+  function getVedicMuhurta(date = new Date()) {
+    const dayOfWeek = date.getDay(); // 0 = Sun, 1 = Mon ...
+    const hour = date.getHours() + date.getMinutes() / 60;
+    const rahuOctants = [8, 2, 7, 5, 6, 4, 3];
+    const octant = rahuOctants[dayOfWeek];
+    const rahuStart = 6.0 + (octant - 1) * 1.5;
+    const rahuEnd = rahuStart + 1.5;
+
+    const isRahuKalam = hour >= rahuStart && hour < rahuEnd;
+    const isAbhijit = hour >= 11.6 && hour <= 12.4; // Midday Solar Peak
+
+    function fmt(h) {
+      const hrs = Math.floor(h);
+      const mins = Math.round((h - hrs) * 60);
+      const period = hrs >= 12 ? 'PM' : 'AM';
+      const dispHrs = hrs % 12 || 12;
+      return dispHrs + ':' + (mins < 10 ? '0' : '') + mins + ' ' + period;
+    }
+
+    return {
+      isRahuKalam,
+      isAbhijit,
+      rahuPeriodText: fmt(rahuStart) + ' – ' + fmt(rahuEnd),
+      statusLabel: isRahuKalam
+        ? '⚠️ Rahu Kalam (' + fmt(rahuStart) + '-' + fmt(rahuEnd) + ')'
+        : (isAbhijit ? '🌟 Abhijit Muhurta (Solar Peak)' : '✨ Auspicious Solar Alignment')
+    };
+  }
+
   function formatCurrentTimestamp() {
     const now = new Date();
     return now.toLocaleString('en-IN', {
@@ -849,6 +937,26 @@ const stabilizer = new CompassStabilizer({
       // Outer rim box
       svgContent += `<rect x="${startX}" y="${startY}" width="${gridSize}" height="${gridSize}" fill="none" stroke="var(--kuberan-gold)" stroke-width="2" stroke-opacity="0.6"/>`;
     }
+
+    // ─── Golden Solar Azimuth Marker on Dial Outer Ring ───
+    try {
+      const currentLat = (window.lastKnownLat !== undefined) ? window.lastKnownLat : 12.9716;
+      const currentLng = (window.lastKnownLng !== undefined) ? window.lastKnownLng : 77.5946;
+      const sunPos = calculateSunPosition(currentLat, currentLng);
+      const sunRad = (sunPos.azimuth - 90) * (Math.PI / 180);
+      const sunR = 216; // Placed on outer ring
+      const sunX = cx + sunR * Math.cos(sunRad);
+      const sunY = cy + sunR * Math.sin(sunRad);
+      const sunOpacity = sunPos.isDay ? 1.0 : 0.35;
+      const sunIconText = sunPos.isDay ? '☀️' : '🌙';
+
+      svgContent += `
+        <g class="sun-dial-marker" opacity="${sunOpacity}" transform="rotate(${sunPos.azimuth}, ${sunX.toFixed(1)}, ${sunY.toFixed(1)})" title="Sun Azimuth: ${sunPos.azimuth}° (Alt: ${sunPos.altitude}°)">
+          <circle cx="${sunX.toFixed(1)}" cy="${sunY.toFixed(1)}" r="10" fill="#f59e0b" fill-opacity="0.25" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="${sunX.toFixed(1)}" y="${sunY.toFixed(1)}" font-size="11" text-anchor="middle" dominant-baseline="central">${sunIconText}</text>
+        </g>
+      `;
+    } catch(e) {}
 
     dialSvg.innerHTML = svgContent;
   }
@@ -1412,6 +1520,10 @@ const stabilizer = new CompassStabilizer({
   }
 
   function applyLocationData(pos) {
+    if (pos && pos.coords) {
+      window.lastKnownLat = pos.coords.latitude;
+      window.lastKnownLng = pos.coords.longitude;
+    }
     if (!pos || !pos.coords) return;
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
@@ -1525,19 +1637,24 @@ const stabilizer = new CompassStabilizer({
     }
   }
 
-  // --- Camera AR Mode ---
+  // --- Camera AR Mode (v5.4.0 with Snapshot, Torch, and Laser) ---
   async function toggleCameraAR() {
     const btnQuickAR = document.getElementById('btnQuickAR');
     const toggleCamera = document.getElementById('toggle-camera-ar');
+    const arFloatingControls = document.getElementById('arFloatingControls');
+    const arWallLaser = document.getElementById('arWallLaser');
 
     if (cameraStream) {
       // Turn OFF
+      if (isArTorchOn) toggleArTorch(false);
       cameraStream.getTracks().forEach(t => t.stop());
       cameraStream = null;
       if (cameraFeed) cameraFeed.srcObject = null; // Free video buffer memory
       cameraFeed.classList.add('hidden');
       cameraScrim.classList.add('hidden');
-      compassViewport.classList.remove('camera-active');
+      compassViewport.classList.remove('camera-active', 'ar-expanded');
+      if (arFloatingControls) arFloatingControls.classList.add('hidden');
+      if (arWallLaser) arWallLaser.classList.add('hidden');
       if (btnQuickAR) btnQuickAR.classList.remove('active');
       if (toggleCamera) toggleCamera.checked = false;
       showToast('Camera AR disabled');
@@ -1545,7 +1662,11 @@ const stabilizer = new CompassStabilizer({
       // Turn ON
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } }
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
         });
         cameraStream = stream;
         
@@ -1560,16 +1681,282 @@ const stabilizer = new CompassStabilizer({
         cameraFeed.classList.remove('hidden');
         cameraScrim.classList.remove('hidden');
         compassViewport.classList.add('camera-active');
+        if (arFloatingControls) arFloatingControls.classList.remove('hidden');
+        if (arWallLaser) arWallLaser.classList.remove('hidden');
         if (btnQuickAR) btnQuickAR.classList.add('active');
         if (toggleCamera) toggleCamera.checked = true;
         showToast('Camera AR active: Align phone with room walls');
       } catch (err) {
         if (btnQuickAR) btnQuickAR.classList.remove('active');
         if (toggleCamera) toggleCamera.checked = false;
+        if (arFloatingControls) arFloatingControls.classList.add('hidden');
+        if (arWallLaser) arWallLaser.classList.add('hidden');
         showToast('Camera access permission denied or unavailable');
       }
     }
   }
+
+  // --- AR Torch Flashlight Handler ---
+  async function toggleArTorch(forceState) {
+    if (!cameraStream) return;
+    const track = cameraStream.getVideoTracks()[0];
+    if (!track) return;
+    const btnArTorch = document.getElementById('btnArTorch');
+    const arTorchLabel = document.getElementById('arTorchLabel');
+
+    const nextState = forceState !== undefined ? forceState : !isArTorchOn;
+    try {
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      if ('torch' in capabilities || true) {
+        await track.applyConstraints({
+          advanced: [{ torch: nextState }]
+        });
+        isArTorchOn = nextState;
+        if (btnArTorch) btnArTorch.classList.toggle('active', isArTorchOn);
+        if (arTorchLabel) arTorchLabel.textContent = isArTorchOn ? 'Torch ON' : 'Torch';
+        showToast(isArTorchOn ? '🔦 Torch Enabled' : 'Torch Disabled');
+      }
+    } catch(err) {
+      showToast('Torch not supported on this camera lens');
+    }
+  }
+
+  // --- AR Vastu Snapshot Generator & Canvas Watermarker ---
+  async function captureArVastuSnapshot() {
+    if (!cameraStream || !cameraFeed) {
+      showToast('Please enable AR Cam first to take a snapshot');
+      return;
+    }
+    const snapModal = document.getElementById('arSnapshotModal');
+    const snapImg = document.getElementById('snapPreviewImg');
+    const snapSpinner = document.getElementById('snapSpinner');
+
+    if (snapModal) snapModal.classList.remove('hidden');
+    if (snapSpinner) snapSpinner.classList.remove('hidden');
+
+    try {
+      const vWidth = cameraFeed.videoWidth || 1280;
+      const vHeight = cameraFeed.videoHeight || 720;
+      const canvas = document.createElement('canvas');
+      canvas.width = vWidth;
+      canvas.height = vHeight;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Draw live video feed frame
+      ctx.drawImage(cameraFeed, 0, 0, vWidth, vHeight);
+
+      // 2. Dark glass overlay vignette
+      const gradient = ctx.createRadialGradient(vWidth/2, vHeight/2, vHeight*0.2, vWidth/2, vHeight/2, vHeight*0.8);
+      gradient.addColorStop(0, 'rgba(0,0,0,0.1)');
+      gradient.addColorStop(1, 'rgba(8,17,30,0.65)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, vWidth, vHeight);
+
+      // 3. Draw Laser Alignment Guideline across wall
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#22c55e';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, vHeight / 2);
+      ctx.lineTo(vWidth, vHeight / 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 4. Render Compass Dial Overlay in Center
+      const dialSize = Math.min(vWidth, vHeight) * 0.72;
+      const dialX = (vWidth - dialSize) / 2;
+      const dialY = (vHeight - dialSize) / 2;
+
+      // Serialize live SVG dial
+      if (dialSvg) {
+        const svgData = new XMLSerializer().serializeToString(dialSvg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const dialImg = new Image();
+        await new Promise((resolve) => {
+          dialImg.onload = () => {
+            ctx.save();
+            ctx.translate(vWidth / 2, vHeight / 2);
+            ctx.rotate((-currentHeading * Math.PI) / 180);
+            ctx.drawImage(dialImg, -dialSize / 2, -dialSize / 2, dialSize, dialSize);
+            ctx.restore();
+            URL.revokeObjectURL(svgUrl);
+            resolve();
+          };
+          dialImg.onerror = resolve;
+          dialImg.src = svgUrl;
+        });
+      }
+
+      // 5. Official Kuberan Silks Branding & Inspection Telemetry Watermark
+      const activeZone = getActiveZone8(currentHeading);
+      const pada = getActivePada32(currentHeading);
+      const nowStr = formatCurrentTimestamp();
+      const gpsStr = (gpsLatDec && gpsLngDec && !gpsLatDec.textContent.includes('Acquiring'))
+        ? gpsLatDec.textContent + ', ' + gpsLngDec.textContent
+        : 'Bengaluru, India';
+
+      // Header Banner Box
+      ctx.fillStyle = 'rgba(8, 17, 30, 0.88)';
+      ctx.fillRect(0, 0, vWidth, 90);
+      ctx.fillStyle = '#d4a359';
+      ctx.fillRect(0, 88, vWidth, 2);
+
+      ctx.font = 'bold 26px "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#d4a359';
+      ctx.fillText('KUBERAN SILKS • VASTU AR INSPECTION', 24, 38);
+
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = '#f7eedd';
+      ctx.fillText('Official Architectural Evidence • https://kuberansilks.com/ • ' + nowStr, 24, 66);
+
+      // Bottom Telemetry Overlay Bar
+      ctx.fillStyle = 'rgba(8, 17, 30, 0.88)';
+      ctx.fillRect(0, vHeight - 100, vWidth, 100);
+      ctx.fillStyle = '#d4a359';
+      ctx.fillRect(0, vHeight - 100, vWidth, 2);
+
+      // Heading & Zone pill
+      ctx.font = 'bold 28px Inter, sans-serif';
+      ctx.fillStyle = '#22c55e';
+      ctx.fillText(Math.round(currentHeading) + '° ' + activeZone.code + ' (' + activeZone.names.en + ')', 24, vHeight - 56);
+
+      ctx.font = '15px Inter, sans-serif';
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText('Deity: ' + activeZone.deity + ' | Element: ' + activeZone.element + ' | Pada: ' + pada.id + ' (' + pada.devata + ')', 24, vHeight - 24);
+
+      // GPS on right side
+      ctx.font = '13px monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'right';
+      ctx.fillText('GPS: ' + gpsStr, vWidth - 24, vHeight - 56);
+      ctx.fillText('Ref: ' + (isTrueNorth ? 'True North' : 'Magnetic North') + ' | Kuberan Silks Chickpet', vWidth - 24, vHeight - 24);
+      ctx.textAlign = 'left';
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      if (snapImg) snapImg.src = dataUrl;
+      window.lastArSnapshotBlobUrl = dataUrl;
+
+      if (snapSpinner) snapSpinner.classList.add('hidden');
+      triggerHapticTick(50);
+      showToast('📸 AR Vastu Snapshot captured successfully!');
+    } catch(err) {
+      console.error('AR Snapshot error:', err);
+      if (snapSpinner) snapSpinner.classList.add('hidden');
+      showToast('Could not generate snapshot frame');
+    }
+  }
+
+  // --- Multi-Room Site Walkthrough Manager ---
+  function logCurrentRoomToWalkthrough(customRoomName) {
+    const activeZone = getActiveZone8(currentHeading);
+    const roomName = customRoomName || (activeRoom ? (activeRoom.names[currentLang] || activeRoom.names.en) : (activeZone.names[currentLang] || activeZone.names.en) + ' Sector');
+    
+    // Evaluate Auspiciousness
+    let grade = 'neutral';
+    let gradeLabel = 'Neutral';
+    if (activeRoom) {
+      if (activeRoom.idealZones.includes(activeZone.code)) {
+        grade = 'auspicious';
+        gradeLabel = 'Auspicious ✅';
+      } else if (activeRoom.avoidZones.includes(activeZone.code)) {
+        grade = 'defect';
+        gradeLabel = 'Dosha Defect ❌';
+      }
+    } else {
+      // General zone favorability
+      if (['NE', 'N', 'E'].includes(activeZone.code)) {
+        grade = 'auspicious';
+        gradeLabel = 'Auspicious ✅';
+      } else if (['SW'].includes(activeZone.code)) {
+        grade = 'neutral';
+        gradeLabel = 'Heavy Master Zone ⚖️';
+      }
+    }
+
+    const logEntry = {
+      id: Date.now(),
+      roomName,
+      heading: Math.round(currentHeading),
+      zoneCode: activeZone.code,
+      zoneName: activeZone.names.en,
+      deity: activeZone.deity,
+      element: activeZone.element,
+      grade,
+      gradeLabel,
+      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    siteWalkthroughLogs.push(logEntry);
+    try {
+      localStorage.setItem('kuberan_site_walkthrough_logs', JSON.stringify(siteWalkthroughLogs));
+    } catch(e) {}
+
+    renderSiteWalkthroughUI();
+    triggerHapticTick(30);
+    showToast('Logged ' + roomName + ' to Site Audit (' + activeZone.code + ')');
+  }
+
+  function renderSiteWalkthroughUI() {
+    const listEl = document.getElementById('siteWalkthroughList');
+    const scoreBadge = document.getElementById('siteVastuScoreBadge');
+    if (!listEl) return;
+
+    if (siteWalkthroughLogs.length === 0) {
+      listEl.innerHTML = '<div class="walkthrough-empty-prompt">Tap <strong>"+ Log Room"</strong> on any live direction to build a full multi-point property audit.</div>';
+      if (scoreBadge) {
+        scoreBadge.textContent = '100% Auspicious';
+        scoreBadge.className = 'score-val';
+      }
+      return;
+    }
+
+    let html = '';
+    let auspiciousCount = 0;
+    siteWalkthroughLogs.forEach((item, index) => {
+      if (item.grade === 'auspicious') auspiciousCount += 1;
+      else if (item.grade === 'neutral') auspiciousCount += 0.5;
+
+      const badgeCls = item.grade === 'auspicious' ? 'status-auspicious' : (item.grade === 'defect' ? 'status-defect' : 'status-neutral');
+      html += `
+        <div class="walkthrough-item">
+          <div class="walkthrough-item-left">
+            <span class="walkthrough-idx">#${index + 1}</span>
+            <div>
+              <strong>${item.roomName}</strong>
+              <div style="font-size:0.7rem; color:var(--text-muted);">${item.heading}° • ${item.zoneCode} (${item.zoneName}) • ${item.time}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="walkthrough-status-pill ${badgeCls}">${item.gradeLabel}</span>
+            <button class="btn-remove-log" data-index="${index}" title="Remove entry">✕</button>
+          </div>
+        </div>
+      `;
+    });
+
+    listEl.innerHTML = html;
+
+    // Attach remove listeners
+    listEl.querySelectorAll('.btn-remove-log').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.index, 10);
+        siteWalkthroughLogs.splice(idx, 1);
+        try { localStorage.setItem('kuberan_site_walkthrough_logs', JSON.stringify(siteWalkthroughLogs)); } catch(err) {}
+        renderSiteWalkthroughUI();
+      });
+    });
+
+    // Calculate score
+    const scorePct = Math.round((auspiciousCount / siteWalkthroughLogs.length) * 100);
+    if (scoreBadge) {
+      scoreBadge.textContent = scorePct + '% Auspicious (' + siteWalkthroughLogs.length + ' Rooms)';
+      scoreBadge.style.borderColor = scorePct >= 75 ? '#22c55e' : (scorePct >= 50 ? '#eab308' : '#ef4444');
+      scoreBadge.style.color = scorePct >= 75 ? '#4ade80' : (scorePct >= 50 ? '#fde047' : '#fca5a5');
+    }
+  }
+
 
   // ═══ §10 LANGUAGE ═════════════════════════════════════════════
   // Multi-language switching (EN/HI/KN/TA/TE).
@@ -1740,6 +2127,7 @@ const stabilizer = new CompassStabilizer({
 
   // --- Vastu Inspection Audit Report Generator ---
   function openAuditModal() {
+    renderSiteWalkthroughUI();
     const activeZone8 = getActiveZone8(currentHeading);
     const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
     const rounded = Math.round(currentHeading);
@@ -2136,6 +2524,154 @@ https://kuberansilks.com/`;
     });
 
     // Sector Preview Reset Button
+    
+    // ─── v5.4.0 Powerhouse Event Listeners ───
+    // 1. Freeze Compass Reading Button
+    const btnFreezeHeading = document.getElementById('btnFreezeHeading');
+    const freezePillText = document.getElementById('freezePillText');
+    if (btnFreezeHeading) {
+      btnFreezeHeading.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isHeadingFrozen = !isHeadingFrozen;
+        if (isHeadingFrozen) {
+          frozenHeadingVal = currentHeading;
+          btnFreezeHeading.classList.add('active');
+          if (freezePillText) freezePillText.textContent = 'FROZEN';
+          triggerHapticTick(50);
+          showToast('❄️ Reading Frozen at ' + Math.round(frozenHeadingVal) + '°. Step freely to inspect without drift!');
+        } else {
+          frozenHeadingVal = null;
+          btnFreezeHeading.classList.remove('active');
+          if (freezePillText) freezePillText.textContent = 'FREEZE';
+          triggerHapticTick(25);
+          showToast('Live tracking resumed');
+          updateHeading(rawMagneticHeading);
+        }
+      });
+    }
+
+    // 2. Solar Muhurta Periodic Refresh & Tap Info
+    const solarMuhurtaBadge = document.getElementById('solarMuhurtaBadge');
+    const solarMuhurtaText = document.getElementById('solarMuhurtaText');
+    function refreshSolarMuhurta() {
+      const lat = window.lastKnownLat || 12.9716;
+      const lng = window.lastKnownLng || 77.5946;
+      const sun = calculateSunPosition(lat, lng);
+      const muhurta = getVedicMuhurta();
+      if (solarMuhurtaText) {
+        solarMuhurtaText.textContent = 'Sun: ' + sun.azimuth + '° • ' + (muhurta.isRahuKalam ? 'Rahu' : 'Shubh');
+      }
+      if (solarMuhurtaBadge) {
+        solarMuhurtaBadge.className = 'solar-muhurta-badge ' + (muhurta.isRahuKalam ? 'rahu-kalam' : 'auspicious');
+      }
+    }
+    refreshSolarMuhurta();
+    setInterval(refreshSolarMuhurta, 60000);
+
+    if (solarMuhurtaBadge) {
+      solarMuhurtaBadge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const muhurta = getVedicMuhurta();
+        const lat = window.lastKnownLat || 12.9716;
+        const lng = window.lastKnownLng || 77.5946;
+        const sun = calculateSunPosition(lat, lng);
+        showToast(muhurta.statusLabel + ' | Sun Azimuth: ' + sun.azimuth + '° (' + (sun.isDay ? 'Daytime' : 'Night') + ')');
+      });
+    }
+
+    // 3. AR Torch Button
+    const btnArTorch = document.getElementById('btnArTorch');
+    if (btnArTorch) {
+      btnArTorch.addEventListener('click', () => toggleArTorch());
+    }
+
+    // 4. AR Snapshot Shutter Button
+    const btnArSnapshot = document.getElementById('btnArSnapshot');
+    if (btnArSnapshot) {
+      btnArSnapshot.addEventListener('click', () => captureArVastuSnapshot());
+    }
+
+    // 5. AR Viewport Expand Toggle
+    const btnArExpand = document.getElementById('btnArExpand');
+    const arExpandIcon = document.getElementById('arExpandIcon');
+    const arExpandText = document.getElementById('arExpandText');
+    if (btnArExpand) {
+      btnArExpand.addEventListener('click', () => {
+        isArExpanded = !isArExpanded;
+        compassViewport.classList.toggle('ar-expanded', isArExpanded);
+        if (btnArExpand) btnArExpand.classList.toggle('active', isArExpanded);
+        if (arExpandIcon) arExpandIcon.textContent = isArExpanded ? '↙' : '⛶';
+        if (arExpandText) arExpandText.textContent = isArExpanded ? 'Compact' : 'Expand';
+        showToast(isArExpanded ? 'Expanded AR Viewport' : 'Standard Dial Viewport');
+      });
+    }
+
+    // 6. Log Room to Site Audit Buttons
+    const btnLogRoomToAudit = document.getElementById('btnLogRoomToAudit');
+    if (btnLogRoomToAudit) {
+      btnLogRoomToAudit.addEventListener('click', () => logCurrentRoomToWalkthrough());
+    }
+
+    const btnQuickLogCurrent = document.getElementById('btnQuickLogCurrent');
+    if (btnQuickLogCurrent) {
+      btnQuickLogCurrent.addEventListener('click', () => logCurrentRoomToWalkthrough());
+    }
+
+    const btnClearSiteWalkthrough = document.getElementById('btnClearSiteWalkthrough');
+    if (btnClearSiteWalkthrough) {
+      btnClearSiteWalkthrough.addEventListener('click', () => {
+        siteWalkthroughLogs = [];
+        try { localStorage.removeItem('kuberan_site_walkthrough_logs'); } catch(e) {}
+        renderSiteWalkthroughUI();
+        showToast('Site Walkthrough cleared');
+      });
+    }
+
+    // 7. AR Snapshot Modal Actions
+    const btnCloseSnapModal = document.getElementById('btnCloseSnapModal');
+    const arSnapshotModal = document.getElementById('arSnapshotModal');
+    if (btnCloseSnapModal && arSnapshotModal) {
+      btnCloseSnapModal.addEventListener('click', () => arSnapshotModal.classList.add('hidden'));
+    }
+
+    const btnDownloadSnapshot = document.getElementById('btnDownloadSnapshot');
+    if (btnDownloadSnapshot) {
+      btnDownloadSnapshot.addEventListener('click', () => {
+        if (!window.lastArSnapshotBlobUrl) return;
+        const a = document.createElement('a');
+        a.href = window.lastArSnapshotBlobUrl;
+        a.download = 'Kuberan-Vastu-AR-Snapshot-' + Date.now() + '.jpg';
+        a.click();
+        showToast('Saved snapshot to device gallery!');
+      });
+    }
+
+    const btnShareSnapshot = document.getElementById('btnShareSnapshot');
+    if (btnShareSnapshot) {
+      btnShareSnapshot.addEventListener('click', async () => {
+        if (!window.lastArSnapshotBlobUrl) return;
+        try {
+          // Convert DataURL to Blob for Web Share API
+          const res = await fetch(window.lastArSnapshotBlobUrl);
+          const blob = await res.blob();
+          const file = new File([blob], 'kuberan-vastu-inspection.jpg', { type: 'image/jpeg' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: 'KUBERAN Silks Vastu AR Inspection',
+              text: 'Vastu Shastra Site Inspection Snapshot by KUBERAN Silks - https://kuberansilks.com/',
+              files: [file]
+            });
+            showToast('Snapshot shared successfully!');
+          } else {
+            // Fallback: download
+            btnDownloadSnapshot.click();
+          }
+        } catch(err) {
+          showToast('Sharing not supported on this device');
+        }
+      });
+    }
+
     const btnReturnToLiveHeading = document.getElementById('btnReturnToLiveHeading');
     if (btnReturnToLiveHeading) {
       btnReturnToLiveHeading.addEventListener('click', () => {

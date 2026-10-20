@@ -3263,3 +3263,371 @@ input:checked + .slider:before {
 .app-container {
   padding-bottom: calc(var(--safe-bottom) + 85px) !important;
 }
+
+/* ========================================================
+   v5.4.0 POWERHOUSE ADDITIONS (AR SNAP, FREEZE, SOLAR, MULTI-ROOM)
+   ======================================================== */
+
+/* AR Floating Controls inside Viewport */
+.ar-floating-controls {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 15;
+  background: rgba(8, 17, 30, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 24px;
+  padding: 4px 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.ar-hud-pill-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  border-radius: 18px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ar-hud-pill-btn:hover {
+  background: rgba(212, 163, 89, 0.2);
+  border-color: var(--kuberan-gold);
+}
+
+.ar-hud-pill-btn.active {
+  background: rgba(34, 197, 94, 0.28) !important;
+  border-color: #22c55e !important;
+  color: #4ade80 !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.45) !important;
+}
+
+.btn-ar-shutter {
+  background: rgba(212, 163, 89, 0.25);
+  border-color: var(--kuberan-gold);
+  color: #f7eedd;
+}
+
+.btn-ar-shutter:active {
+  transform: scale(0.92);
+}
+
+/* Wall Laser Alignment Line across viewport in AR mode */
+.ar-wall-laser {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(34,197,94,0) 0%, rgba(34,197,94,0.9) 30%, rgba(34,197,94,1) 50%, rgba(34,197,94,0.9) 70%, rgba(34,197,94,0) 100%);
+  box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Fullscreen / Expanded AR Mode */
+.compass-viewport.ar-expanded {
+  border-radius: 20px !important;
+  box-shadow: 0 0 35px rgba(34, 197, 94, 0.35) !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.compass-viewport.ar-expanded .camera-feed,
+.compass-viewport.ar-expanded .camera-scrim {
+  border-radius: 20px !important;
+}
+
+/* Freeze Compass Pill & Solar Muhurta Badge */
+.bearing-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.btn-freeze-pill {
+  background: rgba(14, 28, 49, 0.85);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  color: var(--text-muted);
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-freeze-pill:hover {
+  border-color: var(--accent-cyan);
+  color: var(--text-main);
+}
+
+.btn-freeze-pill.active {
+  background: rgba(56, 189, 248, 0.22) !important;
+  border-color: #38bdf8 !important;
+  color: #7dd3fc !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45) !important;
+}
+
+.solar-muhurta-badge {
+  background: rgba(14, 28, 49, 0.85);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  color: var(--kuberan-gold);
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.solar-muhurta-badge.auspicious {
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.solar-muhurta-badge.rahu-kalam {
+  border-color: #ef4444;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* Log Room Button in Inspector */
+.btn-log-room-pill {
+  background: rgba(212, 163, 89, 0.2);
+  border: 1px solid var(--kuberan-gold);
+  color: #f7eedd;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.btn-log-room-pill:hover {
+  background: rgba(212, 163, 89, 0.35);
+  box-shadow: 0 0 10px rgba(212, 163, 89, 0.4);
+}
+
+.btn-log-room-pill:active {
+  transform: scale(0.95);
+}
+
+/* Multi-Room Walkthrough Scorecard */
+.site-walkthrough-box {
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.walkthrough-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.84rem;
+}
+
+.walkthrough-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--kuberan-gold);
+}
+
+.walkthrough-score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.score-val {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid #22c55e;
+  color: #4ade80;
+  font-size: 0.74rem;
+  font-weight: 800;
+  border-radius: 12px;
+  padding: 2px 8px;
+}
+
+.walkthrough-room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.walkthrough-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.walkthrough-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.walkthrough-status-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 2px 7px;
+}
+
+.status-auspicious {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.status-neutral {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.5);
+}
+
+.status-defect {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.btn-remove-log {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 4px;
+}
+
+.btn-remove-log:hover {
+  color: #ef4444;
+}
+
+.walkthrough-empty-prompt {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.walkthrough-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-walkthrough-clear {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-walkthrough-clear:hover {
+  color: #fca5a5;
+}
+
+.btn-walkthrough-add {
+  background: rgba(212, 163, 89, 0.2);
+  border: 1px solid var(--kuberan-gold);
+  color: #f7eedd;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* AR Snapshot Preview Modal */
+.modal-snap .modal-window {
+  max-width: 480px;
+}
+
+.snap-preview-wrap {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  position: relative;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.snap-preview-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.snap-spinner {
+  position: absolute;
+  color: var(--kuberan-gold);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.snap-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Sun Dial Marker on SVG Compass Card */
+.sun-dial-marker {
+  filter: drop-shadow(0 0 6px #f59e0b);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
