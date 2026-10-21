@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.5.0
+ * KUBERAN VASTU COMPASS APP v5.5.2
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -1198,6 +1198,9 @@ const stabilizer = new CompassStabilizer({
     if (!plotTiltModal.classList.contains('hidden')) {
       updatePlotTiltUI(displayHeading);
     }
+
+    // Live update AR Fullscreen HUD if active
+    updateArFullscreenHUD(displayHeading);
   }
 
   // --- Bubble Level & Inclinometer with RAF Decoupling ---
@@ -1260,6 +1263,12 @@ const stabilizer = new CompassStabilizer({
       levelHousing.classList.remove('level-locked');
       levelStatusCard.classList.remove('level-locked');
       levelStatusText.textContent = `${Math.max(Math.abs(pitch), Math.abs(roll)).toFixed(1)}° TILT`;
+    }
+
+    // Update AR Artificial Horizon Line if AR overlay is open
+    const arHorizonLine = document.getElementById('arHorizonLine');
+    if (arHorizonLine) {
+      arHorizonLine.style.transform = `translateY(-50%) rotate(${-roll}deg)`;
     }
   }
 
@@ -1637,63 +1646,123 @@ const stabilizer = new CompassStabilizer({
     }
   }
 
-  // --- Camera AR Mode (v5.5.0 Fullscreen Viewfinder & Spatial HUD) ---
+  // --- Camera AR Mode (v5.5.2 Fullscreen Viewfinder & Spatial HUD) ---
   async function toggleCameraAR() {
     const btnQuickAR = document.getElementById('btnQuickAR');
     const toggleCamera = document.getElementById('toggle-camera-ar');
     const arOverlay = document.getElementById('arFullscreenOverlay');
     const arVideoFull = document.getElementById('arVideoFull');
+    const btnArTapeToggle = document.getElementById('btnArTapeToggle');
 
     if (cameraStream) {
       // Turn OFF
       if (isArTorchOn) toggleArTorch(false);
-      cameraStream.getTracks().forEach(t => t.stop());
+      try {
+        cameraStream.getTracks().forEach(t => t.stop());
+      } catch (e) {
+        console.warn('Error stopping camera tracks:', e);
+      }
       cameraStream = null;
-      if (arVideoFull) arVideoFull.srcObject = null;
-      if (cameraFeed) cameraFeed.srcObject = null;
+      if (arVideoFull) {
+        try { arVideoFull.pause(); } catch (e) {}
+        arVideoFull.srcObject = null;
+      }
+      if (cameraFeed) {
+        try { cameraFeed.pause(); } catch (e) {}
+        cameraFeed.srcObject = null;
+      }
       if (arOverlay) arOverlay.classList.add('hidden');
       if (btnQuickAR) btnQuickAR.classList.remove('active');
       if (toggleCamera) toggleCamera.checked = false;
       showToast('AR Viewfinder closed');
     } else {
-      // Turn ON Fullscreen Viewfinder
+      // Turn ON Fullscreen Viewfinder with multi-tier hardware fallback
+      let stream = null;
+
+      // Tier 1: Ideal 1080p environment camera
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
           video: {
             facingMode: { ideal: 'environment' },
             width: { ideal: 1920 },
             height: { ideal: 1080 }
           }
         });
-        cameraStream = stream;
-
-        // Hardware drop/interrupt listener
-        stream.getVideoTracks().forEach(track => {
-          track.addEventListener('ended', () => {
-            if (cameraStream) toggleCameraAR();
+      } catch (err1) {
+        console.warn('AR Tier 1 camera failed, trying basic environment:', err1);
+        // Tier 2: Basic environment camera without strict resolution constraints
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { ideal: 'environment' }
+            }
           });
-        });
-
-        if (arVideoFull) {
-          arVideoFull.srcObject = stream;
+        } catch (err2) {
+          console.warn('AR Tier 2 camera failed, trying fallback video device:', err2);
+          // Tier 3: Any video device
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              audio: false,
+              video: true
+            });
+          } catch (err3) {
+            console.error('All camera initialization tiers failed:', err3);
+          }
         }
-        if (cameraFeed) {
-          cameraFeed.srcObject = stream;
-        }
+      }
 
-        if (arOverlay) arOverlay.classList.remove('hidden');
-        if (btnQuickAR) btnQuickAR.classList.add('active');
-        if (toggleCamera) toggleCamera.checked = true;
-
-        updateArFullscreenHUD(currentHeading);
-        renderArTapeTicks();
-        showToast('📸 AR Viewfinder active: Align crosshairs with room wall');
-      } catch (err) {
+      if (!stream) {
         if (btnQuickAR) btnQuickAR.classList.remove('active');
         if (toggleCamera) toggleCamera.checked = false;
         if (arOverlay) arOverlay.classList.add('hidden');
-        showToast('Camera permission denied or device camera unavailable');
+        showToast('Camera permission denied or camera device unavailable');
+        return;
       }
+
+      cameraStream = stream;
+
+      // Hardware drop/interrupt listener
+      stream.getVideoTracks().forEach(track => {
+        track.addEventListener('ended', () => {
+          if (cameraStream) toggleCameraAR();
+        });
+      });
+
+      if (arVideoFull) {
+        arVideoFull.setAttribute('playsinline', '');
+        arVideoFull.setAttribute('webkit-playsinline', '');
+        arVideoFull.muted = true;
+        arVideoFull.volume = 0;
+        arVideoFull.srcObject = stream;
+        try {
+          await arVideoFull.play();
+        } catch (playErr) {
+          console.warn('arVideoFull play error:', playErr);
+        }
+      }
+      if (cameraFeed) {
+        cameraFeed.setAttribute('playsinline', '');
+        cameraFeed.setAttribute('webkit-playsinline', '');
+        cameraFeed.muted = true;
+        cameraFeed.volume = 0;
+        cameraFeed.srcObject = stream;
+        try {
+          await cameraFeed.play();
+        } catch (playErr) {
+          console.warn('cameraFeed play error:', playErr);
+        }
+      }
+
+      if (arOverlay) arOverlay.classList.remove('hidden');
+      if (btnQuickAR) btnQuickAR.classList.add('active');
+      if (toggleCamera) toggleCamera.checked = true;
+      if (btnArTapeToggle) btnArTapeToggle.classList.add('active');
+
+      renderArTapeTicks();
+      updateArFullscreenHUD(currentHeading);
+      showToast('📸 AR Viewfinder active: Align crosshairs with room wall');
     }
   }
 
@@ -1753,29 +1822,41 @@ const stabilizer = new CompassStabilizer({
       adviceEl.textContent = activeZone.summary[currentLang] || activeZone.summary.en;
     }
 
+    // Dynamic rotation for reticle outer ring (compass gimbal)
+    const reticleOuter = document.querySelector('.ar-reticle-circle-outer');
+    if (reticleOuter) {
+      reticleOuter.style.transform = `rotate(${-heading}deg)`;
+    }
+
     // Scroll Horizontal Ribbon Tape
     updateArTapePosition(heading);
   }
 
-  // --- Horizontal Compass Ribbon Tape Generator ---
+  // --- Horizontal Compass Ribbon Tape Generator (Triple-Wrap for Continuous 360° Panning) ---
   function renderArTapeTicks() {
     const track = document.getElementById('arTapeTrack');
     if (!track || track.dataset.built) return;
 
-    let svgHtml = '<svg viewBox="0 0 3600 48" width="3600" height="48" style="position:absolute; top:0; left:0;">';
-    for (let deg = 0; deg < 360; deg += 5) {
-      const x = deg * 10;
-      const isMajor = deg % 45 === 0;
-      const isMedium = deg % 15 === 0;
-      const h = isMajor ? 28 : (isMedium ? 18 : 10);
-      const stroke = isMajor ? '#22c55e' : (isMedium ? '#d4a359' : 'rgba(255,255,255,0.4)');
-      const w = isMajor ? 2.5 : 1;
-      svgHtml += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + h + '" stroke="' + stroke + '" stroke-width="' + w + '"/>';
-      if (isMajor) {
-        const cardinals = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
-        svgHtml += '<text x="' + x + '" y="42" fill="' + (deg === 0 ? '#ef4444' : '#22c55e') + '" font-size="14" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">' + cardinals[deg] + '</text>';
-      } else if (isMedium) {
-        svgHtml += '<text x="' + x + '" y="36" fill="#cbd5e1" font-size="10" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">' + deg + '</text>';
+    // 3 complete cycles: cycle 0 (-360° to 0°), cycle 1 (0° to 360°), cycle 2 (360° to 720°)
+    // Total width: 10800px (10px per degree, 3600px per cycle)
+    let svgHtml = '<svg viewBox="0 0 10800 48" width="10800" height="48" style="position:absolute; top:0; left:0;">';
+    const cardinals = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
+
+    for (let cycle = 0; cycle < 3; cycle++) {
+      const baseX = cycle * 3600;
+      for (let deg = 0; deg < 360; deg += 5) {
+        const x = baseX + (deg * 10);
+        const isMajor = deg % 45 === 0;
+        const isMedium = deg % 15 === 0;
+        const h = isMajor ? 28 : (isMedium ? 18 : 10);
+        const stroke = isMajor ? '#22c55e' : (isMedium ? '#d4a359' : 'rgba(255,255,255,0.4)');
+        const w = isMajor ? 2.5 : 1;
+        svgHtml += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + h + '" stroke="' + stroke + '" stroke-width="' + w + '"/>';
+        if (isMajor) {
+          svgHtml += '<text x="' + x + '" y="42" fill="' + (deg === 0 ? '#ef4444' : '#22c55e') + '" font-size="14" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">' + cardinals[deg] + '</text>';
+        } else if (isMedium) {
+          svgHtml += '<text x="' + x + '" y="36" fill="#cbd5e1" font-size="10" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">' + deg + '</text>';
+        }
       }
     }
     svgHtml += '</svg>';
@@ -1788,8 +1869,10 @@ const stabilizer = new CompassStabilizer({
     const wrap = document.querySelector('.ar-compass-tape-wrap');
     if (!track || !wrap) return;
     const centerOffset = wrap.clientWidth / 2;
-    // Tape width is 3600px for 360 degrees (10px per degree)
-    const targetX = centerOffset - (heading * 10);
+    // Normalized heading clamped between 0 and 360
+    const normalized = ((heading % 360) + 360) % 360;
+    // Primary cycle is Cycle 1 (starts at x = 3600px)
+    const targetX = centerOffset - (3600 + (normalized * 10));
     track.style.transform = 'translateX(' + targetX + 'px)';
   }
 
@@ -1824,7 +1907,7 @@ const stabilizer = new CompassStabilizer({
 
     // --- AR Vastu Snapshot Generator & Canvas Watermarker ---
   async function captureArVastuSnapshot() {
-    if (!cameraStream || !cameraFeed) {
+    if (!cameraStream) {
       showToast('Please enable AR Cam first to take a snapshot');
       return;
     }
@@ -2770,6 +2853,7 @@ https://kuberansilks.com/`;
       btnArTapeToggle.addEventListener('click', () => {
         tapeWrap.classList.toggle('hidden');
         const isHidden = tapeWrap.classList.contains('hidden');
+        btnArTapeToggle.classList.toggle('active', !isHidden);
         showToast(isHidden ? 'Compass Ribbon Hidden' : 'Compass Ribbon Visible');
       });
     }
