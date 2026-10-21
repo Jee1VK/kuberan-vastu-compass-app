@@ -3631,3 +3631,413 @@ input:checked + .slider:before {
   cursor: pointer;
   transition: transform 0.2s ease;
 }
+
+/* ========================================================
+   v5.5.0 FULLSCREEN AR VIEWFINDER (Apple Measure / Glass HUD)
+   ======================================================== */
+
+.ar-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 9999;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ar-fullscreen-overlay.hidden {
+  display: none !important;
+}
+
+.ar-video-full {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.ar-cinematic-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.05) 30%, rgba(8, 17, 30, 0.55) 100%);
+  pointer-events: none;
+}
+
+/* Wall Alignment Laser Horizon */
+.ar-horizon-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0) 0%, rgba(34, 197, 94, 0.75) 25%, rgba(34, 197, 94, 1) 50%, rgba(34, 197, 94, 0.75) 75%, rgba(34, 197, 94, 0) 100%);
+  box-shadow: 0 0 12px #22c55e, 0 0 24px rgba(34, 197, 94, 0.5);
+  z-index: 4;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.ar-horizon-center-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #22c55e;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #22c55e;
+}
+
+/* TOP HUD */
+.ar-top-hud {
+  position: relative;
+  z-index: 10;
+  padding: env(safe-area-inset-top, 16px) 16px 12px 16px;
+  padding-top: max(env(safe-area-inset-top, 16px), 16px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(8, 17, 30, 0.85) 0%, rgba(8, 17, 30, 0) 100%);
+}
+
+.ar-top-left-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ar-brand-logo {
+  height: 38px;
+  width: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 163, 89, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.ar-brand-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.ar-brand-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--kuberan-gold);
+  letter-spacing: 0.08em;
+}
+
+.ar-brand-sub {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.ar-top-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ar-icon-pill {
+  background: rgba(8, 17, 30, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f7eedd;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ar-icon-pill.active {
+  background: rgba(34, 197, 94, 0.3) !important;
+  border-color: #22c55e !important;
+  color: #4ade80 !important;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5) !important;
+}
+
+.ar-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(8, 17, 30, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ar-close-btn:hover {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: #ef4444;
+}
+
+/* SPATIAL RETICLE */
+.ar-spatial-reticle {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ar-reticle-crosshair-h {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background: rgba(212, 163, 89, 0.45);
+}
+
+.ar-reticle-crosshair-v {
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background: rgba(212, 163, 89, 0.45);
+}
+
+.ar-reticle-circle-outer {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 1.5px dashed rgba(212, 163, 89, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(212, 163, 89, 0.25);
+}
+
+.ar-reticle-circle-inner {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border: 1px solid rgba(34, 197, 94, 0.6);
+  border-radius: 50%;
+}
+
+.ar-bearing-badge {
+  position: relative;
+  background: rgba(8, 17, 30, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--kuberan-gold);
+  border-radius: 14px;
+  padding: 8px 14px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.ar-bearing-degrees {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ar-deg-sym {
+  color: var(--kuberan-gold);
+  font-size: 1.2rem;
+  margin-left: 1px;
+}
+
+.ar-bearing-cardinal {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #22c55e;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.ar-bearing-element {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* HORIZONTAL COMPASS TAPE RIBBON */
+.ar-compass-tape-wrap {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 86vw;
+  max-width: 420px;
+  height: 48px;
+  z-index: 6;
+  background: rgba(8, 17, 30, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.ar-compass-tape-lubber {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  z-index: 3;
+}
+
+.ar-compass-tape-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* BOTTOM HUD */
+.ar-bottom-hud {
+  position: relative;
+  z-index: 10;
+  padding: 12px 16px max(env(safe-area-inset-bottom, 20px), 20px) 16px;
+  background: linear-gradient(0deg, rgba(8, 17, 30, 0.92) 0%, rgba(8, 17, 30, 0.6) 70%, rgba(8, 17, 30, 0) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ar-room-guidance-card {
+  background: rgba(14, 28, 49, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.ar-guidance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ar-status-badge {
+  background: rgba(34, 197, 94, 0.22);
+  border: 1px solid #22c55e;
+  color: #4ade80;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.ar-deity-text {
+  font-size: 0.74rem;
+  color: var(--kuberan-gold);
+  font-weight: 700;
+}
+
+.ar-guidance-advice {
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  line-height: 1.35;
+}
+
+.ar-shutter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-top: 4px;
+}
+
+.ar-dock-tool-btn {
+  background: rgba(8, 17, 30, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f7eedd;
+  border-radius: 18px;
+  padding: 8px 14px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ar-dock-tool-btn:hover {
+  background: rgba(212, 163, 89, 0.25);
+  border-color: var(--kuberan-gold);
+}
+
+.ar-dock-tool-btn:active {
+  transform: scale(0.95);
+}
+
+/* Grand Shutter Button */
+.ar-grand-shutter {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid #fff;
+  padding: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.5), 0 4px 16px rgba(0, 0, 0, 0.6);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ar-grand-shutter:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.8);
+}
+
+.ar-grand-shutter:active {
+  transform: scale(0.92);
+}
+
+.shutter-inner-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.shutter-camera-icon {
+  font-size: 1.6rem;
+}

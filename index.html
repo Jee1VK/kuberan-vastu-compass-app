@@ -6,7 +6,7 @@
   <title>KUBERAN Vastu Compass - Vedic Architecture & Precision Compass</title>
 
   <!-- PWA Settings -->
-  <link rel="manifest" href="manifest.webmanifest?v=5.4.0">
+  <link rel="manifest" href="manifest.webmanifest?v=5.5.0">
   <meta name="theme-color" content="#08111e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,23 +16,113 @@
   <!-- Social & Preview Cards -->
   <meta property="og:title" content="KUBERAN Vastu Compass">
   <meta property="og:description" content="Vedic Vastu Shastra & Precision Mobile Compass by Kuberan Silks">
-  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.4.0">
+  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.5.0">
   <meta property="og:url" content="https://jee1vk.github.io/kuberan-vastu-compass-app/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.4.0">
+  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.5.0">
 
   <!-- Icons & Favicon -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.4.0">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.4.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5.4.0">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=5.4.0">
-  <link rel="shortcut icon" href="icon-192.png?v=5.4.0">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.5.0">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.5.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5.5.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=5.5.0">
+  <link rel="shortcut icon" href="icon-192.png?v=5.5.0">
 
-  <link rel="stylesheet" href="style.css?v=5.4.0">
+  <link rel="stylesheet" href="style.css?v=5.5.0">
 </head>
 <body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
   <main class="app-container">
+    <!-- ================= FULLSCREEN AR VIEWFINDER OVERLAY (Apple Measure / Glass HUD) ================= -->
+    <div id="arFullscreenOverlay" class="ar-fullscreen-overlay hidden">
+      <!-- Fullscreen Raw Video Stream -->
+      <video id="arVideoFull" class="ar-video-full" playsinline autoplay muted></video>
+      <div class="ar-cinematic-scrim"></div>
+
+      <!-- Laser Wall Horizon Alignment Line -->
+      <div class="ar-horizon-line" id="arHorizonLine">
+        <span class="ar-horizon-center-marker"></span>
+      </div>
+
+      <!-- TOP HUD: Branding + Direction Pill + Torch + Close -->
+      <div class="ar-top-hud">
+        <div class="ar-top-left-brand">
+          <a href="https://kuberansilks.com/" target="_blank" rel="noopener noreferrer" class="kuberan-logo-link" title="Visit Kuberan Silks">
+            <img src="assets/images/kuberan_logo_white_bg.png" alt="Kuberan Silks" class="ar-brand-logo">
+          </a>
+          <div class="ar-brand-meta">
+            <span class="ar-brand-title">KUBERAN AR</span>
+            <span class="ar-brand-sub" id="arZonePillSub">North-East • Īśānya</span>
+          </div>
+        </div>
+
+        <div class="ar-top-right-actions">
+          <button id="btnArTorchFs" class="ar-icon-pill" title="Toggle Flashlight Torch" aria-label="Toggle Torch">
+            <span class="ar-icon">🔦</span>
+            <span id="arTorchFsText" class="ar-pill-label">Torch</span>
+          </button>
+          <button id="btnCloseArFs" class="ar-close-btn" title="Exit AR Viewfinder" aria-label="Exit AR Viewfinder">✕</button>
+        </div>
+      </div>
+
+      <!-- CENTER HUD: Floating Spatial Direction Reticle -->
+      <div class="ar-spatial-reticle" id="arSpatialReticle">
+        <div class="ar-reticle-crosshair-h"></div>
+        <div class="ar-reticle-crosshair-v"></div>
+        <div class="ar-reticle-circle-outer"></div>
+        <div class="ar-reticle-circle-inner"></div>
+
+        <!-- Dynamic Bearing Badge in Crosshair Center -->
+        <div class="ar-bearing-badge">
+          <div class="ar-bearing-degrees">
+            <span id="arFsDegreeNum">0</span><span class="ar-deg-sym">°</span>
+          </div>
+          <div class="ar-bearing-cardinal" id="arFsCardinal">N</div>
+          <div class="ar-bearing-element" id="arFsElement">WATER (जल)</div>
+        </div>
+      </div>
+
+      <!-- HORIZONTAL COMPASS TAPE RIBBON (Aerospace HUD / Apple Style) -->
+      <div class="ar-compass-tape-wrap">
+        <div class="ar-compass-tape-curtain"></div>
+        <div class="ar-compass-tape-lubber"></div>
+        <div class="ar-compass-tape-track" id="arTapeTrack">
+          <!-- Dynamically populated or rendered SVG ticks -->
+        </div>
+      </div>
+
+      <!-- BOTTOM HUD: Live Room Advice & Shutter Controls -->
+      <div class="ar-bottom-hud">
+        <!-- Vastu Room Recommendation Card -->
+        <div class="ar-room-guidance-card" id="arRoomGuidanceCard">
+          <div class="ar-guidance-row">
+            <span class="ar-status-badge" id="arFsAuspiciousBadge">AUSPICIOUS ✅</span>
+            <span class="ar-deity-text" id="arFsDeityText">Lord Shiva / Ishana</span>
+          </div>
+          <div class="ar-guidance-advice" id="arFsAdviceText">Ideal for Mandir, meditation, and pure water source. Keep open and clutter-free.</div>
+        </div>
+
+        <!-- Shutter & Snapshot Controls Bar -->
+        <div class="ar-shutter-bar">
+          <button id="btnArTapeToggle" class="ar-dock-tool-btn" title="Toggle Compass Ribbon Tape" aria-label="Toggle Ribbon">
+            <span class="dock-btn-icon">🧭</span>
+            <span>Tape</span>
+          </button>
+
+          <!-- Grand Capture Shutter Button -->
+          <button id="btnArFsSnapshot" class="ar-grand-shutter" title="Capture AR Vastu Snapshot" aria-label="Capture AR Vastu Photo">
+            <div class="shutter-inner-ring">
+              <span class="shutter-camera-icon">📸</span>
+            </div>
+          </button>
+
+          <button id="btnArLogRoomFs" class="ar-dock-tool-btn" title="Log Room to Site Audit" aria-label="Log Room to Audit">
+            <span class="dock-btn-icon">🏛️</span>
+            <span>+ Log</span>
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- Top Header -->
     <header class="app-header">
       <div class="brand">
@@ -1077,7 +1167,7 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v5.4.0 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v5.5.0 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
@@ -1137,9 +1227,9 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js"></script>
-  <script src="vastu-data.js?v=5.4.0"></script>
-  <script src="qrcode.min.js?v=5.4.0"></script>
-  <script src="app.js?v=5.4.0"></script>
+  <script src="vastu-data.js?v=5.5.0"></script>
+  <script src="qrcode.min.js?v=5.5.0"></script>
+  <script src="app.js?v=5.5.0"></script>
 </body>
 </html>
 

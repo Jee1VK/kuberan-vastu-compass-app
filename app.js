@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.4.0
+ * KUBERAN VASTU COMPASS APP v5.5.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -74,7 +74,7 @@
   let retailProfile = 'apparel_silk_sarees'; // 'apparel_silk_sarees', 'jewelry_luxury', 'general_commercial'
   let roomCategoryTab = 'residential'; // 'residential' or 'commercial'
   let selectedPlotShape = 'Shermukhi';
-  // v5.4.0 Field Powerhouse States
+  // v5.5.0 Field Powerhouse States
   let isHeadingFrozen = false;
   let frozenHeadingVal = null;
   let isArTorchOn = false;
@@ -1637,29 +1637,26 @@ const stabilizer = new CompassStabilizer({
     }
   }
 
-  // --- Camera AR Mode (v5.4.0 with Snapshot, Torch, and Laser) ---
+  // --- Camera AR Mode (v5.5.0 Fullscreen Viewfinder & Spatial HUD) ---
   async function toggleCameraAR() {
     const btnQuickAR = document.getElementById('btnQuickAR');
     const toggleCamera = document.getElementById('toggle-camera-ar');
-    const arFloatingControls = document.getElementById('arFloatingControls');
-    const arWallLaser = document.getElementById('arWallLaser');
+    const arOverlay = document.getElementById('arFullscreenOverlay');
+    const arVideoFull = document.getElementById('arVideoFull');
 
     if (cameraStream) {
       // Turn OFF
       if (isArTorchOn) toggleArTorch(false);
       cameraStream.getTracks().forEach(t => t.stop());
       cameraStream = null;
-      if (cameraFeed) cameraFeed.srcObject = null; // Free video buffer memory
-      cameraFeed.classList.add('hidden');
-      cameraScrim.classList.add('hidden');
-      compassViewport.classList.remove('camera-active', 'ar-expanded');
-      if (arFloatingControls) arFloatingControls.classList.add('hidden');
-      if (arWallLaser) arWallLaser.classList.add('hidden');
+      if (arVideoFull) arVideoFull.srcObject = null;
+      if (cameraFeed) cameraFeed.srcObject = null;
+      if (arOverlay) arOverlay.classList.add('hidden');
       if (btnQuickAR) btnQuickAR.classList.remove('active');
       if (toggleCamera) toggleCamera.checked = false;
-      showToast('Camera AR disabled');
+      showToast('AR Viewfinder closed');
     } else {
-      // Turn ON
+      // Turn ON Fullscreen Viewfinder
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -1669,31 +1666,131 @@ const stabilizer = new CompassStabilizer({
           }
         });
         cameraStream = stream;
-        
-        // Listen for hardware interruptions (e.g. phone call, permission revoked)
+
+        // Hardware drop/interrupt listener
         stream.getVideoTracks().forEach(track => {
           track.addEventListener('ended', () => {
             if (cameraStream) toggleCameraAR();
           });
         });
 
-        cameraFeed.srcObject = stream;
-        cameraFeed.classList.remove('hidden');
-        cameraScrim.classList.remove('hidden');
-        compassViewport.classList.add('camera-active');
-        if (arFloatingControls) arFloatingControls.classList.remove('hidden');
-        if (arWallLaser) arWallLaser.classList.remove('hidden');
+        if (arVideoFull) {
+          arVideoFull.srcObject = stream;
+        }
+        if (cameraFeed) {
+          cameraFeed.srcObject = stream;
+        }
+
+        if (arOverlay) arOverlay.classList.remove('hidden');
         if (btnQuickAR) btnQuickAR.classList.add('active');
         if (toggleCamera) toggleCamera.checked = true;
-        showToast('Camera AR active: Align phone with room walls');
+
+        updateArFullscreenHUD(currentHeading);
+        renderArTapeTicks();
+        showToast('📸 AR Viewfinder active: Align crosshairs with room wall');
       } catch (err) {
         if (btnQuickAR) btnQuickAR.classList.remove('active');
         if (toggleCamera) toggleCamera.checked = false;
-        if (arFloatingControls) arFloatingControls.classList.add('hidden');
-        if (arWallLaser) arWallLaser.classList.add('hidden');
-        showToast('Camera access permission denied or unavailable');
+        if (arOverlay) arOverlay.classList.add('hidden');
+        showToast('Camera permission denied or device camera unavailable');
       }
     }
+  }
+
+  // --- Real-Time Update for Fullscreen AR HUD ---
+  function updateArFullscreenHUD(heading) {
+    const arOverlay = document.getElementById('arFullscreenOverlay');
+    if (!arOverlay || arOverlay.classList.contains('hidden')) return;
+
+    const activeZone = getActiveZone8(heading);
+    const elem = VASTU_DATA.ELEMENTS[activeZone.element];
+
+    const degNum = document.getElementById('arFsDegreeNum');
+    const cardEl = document.getElementById('arFsCardinal');
+    const elemEl = document.getElementById('arFsElement');
+    const brandSub = document.getElementById('arZonePillSub');
+    const badgeEl = document.getElementById('arFsAuspiciousBadge');
+    const deityEl = document.getElementById('arFsDeityText');
+    const adviceEl = document.getElementById('arFsAdviceText');
+
+    if (degNum) degNum.textContent = Math.round(heading);
+    if (cardEl) cardEl.textContent = activeZone.code;
+    if (elemEl) elemEl.textContent = (elem ? (elem.names.en + ' (' + elem.sanskrit + ')') : activeZone.element).toUpperCase();
+    if (brandSub) brandSub.textContent = activeZone.names.en + ' • ' + activeZone.sanskrit;
+    if (deityEl) deityEl.textContent = activeZone.deityNames[currentLang] || activeZone.deityNames.en;
+
+    // Check favorability
+    if (activeRoom) {
+      if (activeRoom.idealZones.includes(activeZone.code)) {
+        if (badgeEl) {
+          badgeEl.textContent = 'AUSPICIOUS ✅ (' + (activeRoom.names[currentLang] || activeRoom.names.en) + ')';
+          badgeEl.style.borderColor = '#22c55e';
+          badgeEl.style.color = '#4ade80';
+        }
+      } else if (activeRoom.avoidZones.includes(activeZone.code)) {
+        if (badgeEl) {
+          badgeEl.textContent = 'DOSHA DEFECT ❌ (' + (activeRoom.names[currentLang] || activeRoom.names.en) + ')';
+          badgeEl.style.borderColor = '#ef4444';
+          badgeEl.style.color = '#fca5a5';
+        }
+      } else {
+        if (badgeEl) {
+          badgeEl.textContent = 'NEUTRAL ⚖️';
+          badgeEl.style.borderColor = '#eab308';
+          badgeEl.style.color = '#fde047';
+        }
+      }
+    } else {
+      const isFav = ['NE', 'N', 'E'].includes(activeZone.code);
+      if (badgeEl) {
+        badgeEl.textContent = isFav ? 'AUSPICIOUS ✅' : (activeZone.code === 'SW' ? 'HEAVY MASTER ⚖️' : 'FAVORABLE ✨');
+        badgeEl.style.borderColor = isFav ? '#22c55e' : '#eab308';
+        badgeEl.style.color = isFav ? '#4ade80' : '#fde047';
+      }
+    }
+
+    if (adviceEl) {
+      adviceEl.textContent = activeZone.summary[currentLang] || activeZone.summary.en;
+    }
+
+    // Scroll Horizontal Ribbon Tape
+    updateArTapePosition(heading);
+  }
+
+  // --- Horizontal Compass Ribbon Tape Generator ---
+  function renderArTapeTicks() {
+    const track = document.getElementById('arTapeTrack');
+    if (!track || track.dataset.built) return;
+
+    let svgHtml = '<svg viewBox="0 0 3600 48" width="3600" height="48" style="position:absolute; top:0; left:0;">';
+    for (let deg = 0; deg < 360; deg += 5) {
+      const x = deg * 10;
+      const isMajor = deg % 45 === 0;
+      const isMedium = deg % 15 === 0;
+      const h = isMajor ? 28 : (isMedium ? 18 : 10);
+      const stroke = isMajor ? '#22c55e' : (isMedium ? '#d4a359' : 'rgba(255,255,255,0.4)');
+      const w = isMajor ? 2.5 : 1;
+      svgHtml += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + h + '" stroke="' + stroke + '" stroke-width="' + w + '"/>';
+      if (isMajor) {
+        const cardinals = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
+        svgHtml += '<text x="' + x + '" y="42" fill="' + (deg === 0 ? '#ef4444' : '#22c55e') + '" font-size="14" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">' + cardinals[deg] + '</text>';
+      } else if (isMedium) {
+        svgHtml += '<text x="' + x + '" y="36" fill="#cbd5e1" font-size="10" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">' + deg + '</text>';
+      }
+    }
+    svgHtml += '</svg>';
+    track.innerHTML = svgHtml;
+    track.dataset.built = 'true';
+  }
+
+  function updateArTapePosition(heading) {
+    const track = document.getElementById('arTapeTrack');
+    const wrap = document.querySelector('.ar-compass-tape-wrap');
+    if (!track || !wrap) return;
+    const centerOffset = wrap.clientWidth / 2;
+    // Tape width is 3600px for 360 degrees (10px per degree)
+    const targetX = centerOffset - (heading * 10);
+    track.style.transform = 'translateX(' + targetX + 'px)';
   }
 
   // --- AR Torch Flashlight Handler ---
@@ -1702,7 +1799,9 @@ const stabilizer = new CompassStabilizer({
     const track = cameraStream.getVideoTracks()[0];
     if (!track) return;
     const btnArTorch = document.getElementById('btnArTorch');
+    const btnArTorchFs = document.getElementById('btnArTorchFs');
     const arTorchLabel = document.getElementById('arTorchLabel');
+    const arTorchFsText = document.getElementById('arTorchFsText');
 
     const nextState = forceState !== undefined ? forceState : !isArTorchOn;
     try {
@@ -1713,15 +1812,17 @@ const stabilizer = new CompassStabilizer({
         });
         isArTorchOn = nextState;
         if (btnArTorch) btnArTorch.classList.toggle('active', isArTorchOn);
+        if (btnArTorchFs) btnArTorchFs.classList.toggle('active', isArTorchOn);
         if (arTorchLabel) arTorchLabel.textContent = isArTorchOn ? 'Torch ON' : 'Torch';
+        if (arTorchFsText) arTorchFsText.textContent = isArTorchOn ? 'Torch ON' : 'Torch';
         showToast(isArTorchOn ? '🔦 Torch Enabled' : 'Torch Disabled');
       }
     } catch(err) {
-      showToast('Torch not supported on this camera lens');
+      showToast('Torch not supported on this device lens');
     }
   }
 
-  // --- AR Vastu Snapshot Generator & Canvas Watermarker ---
+    // --- AR Vastu Snapshot Generator & Canvas Watermarker ---
   async function captureArVastuSnapshot() {
     if (!cameraStream || !cameraFeed) {
       showToast('Please enable AR Cam first to take a snapshot');
@@ -1735,15 +1836,18 @@ const stabilizer = new CompassStabilizer({
     if (snapSpinner) snapSpinner.classList.remove('hidden');
 
     try {
-      const vWidth = cameraFeed.videoWidth || 1280;
-      const vHeight = cameraFeed.videoHeight || 720;
+      const activeVideo = (document.getElementById('arVideoFull') && !document.getElementById('arFullscreenOverlay').classList.contains('hidden'))
+        ? document.getElementById('arVideoFull')
+        : cameraFeed;
+      const vWidth = activeVideo.videoWidth || 1920;
+      const vHeight = activeVideo.videoHeight || 1080;
       const canvas = document.createElement('canvas');
       canvas.width = vWidth;
       canvas.height = vHeight;
       const ctx = canvas.getContext('2d');
 
       // 1. Draw live video feed frame
-      ctx.drawImage(cameraFeed, 0, 0, vWidth, vHeight);
+      ctx.drawImage(activeVideo, 0, 0, vWidth, vHeight);
 
       // 2. Dark glass overlay vignette
       const gradient = ctx.createRadialGradient(vWidth/2, vHeight/2, vHeight*0.2, vWidth/2, vHeight/2, vHeight*0.8);
@@ -2525,7 +2629,7 @@ https://kuberansilks.com/`;
 
     // Sector Preview Reset Button
     
-    // ─── v5.4.0 Powerhouse Event Listeners ───
+    // ─── v5.5.0 Powerhouse Event Listeners ───
     // 1. Freeze Compass Reading Button
     const btnFreezeHeading = document.getElementById('btnFreezeHeading');
     const freezePillText = document.getElementById('freezePillText');
@@ -2628,6 +2732,46 @@ https://kuberansilks.com/`;
     }
 
     // 7. AR Snapshot Modal Actions
+    
+    // ─── v5.5.0 Fullscreen AR Viewfinder HUD Listeners ───
+    const btnCloseArFs = document.getElementById('btnCloseArFs');
+    if (btnCloseArFs) {
+      btnCloseArFs.addEventListener('click', () => {
+        toggleCameraAR();
+      });
+    }
+
+    const btnArTorchFs = document.getElementById('btnArTorchFs');
+    if (btnArTorchFs) {
+      btnArTorchFs.addEventListener('click', () => {
+        toggleArTorch();
+      });
+    }
+
+    const btnArFsSnapshot = document.getElementById('btnArFsSnapshot');
+    if (btnArFsSnapshot) {
+      btnArFsSnapshot.addEventListener('click', () => {
+        captureArVastuSnapshot();
+      });
+    }
+
+    const btnArLogRoomFs = document.getElementById('btnArLogRoomFs');
+    if (btnArLogRoomFs) {
+      btnArLogRoomFs.addEventListener('click', () => {
+        logCurrentRoomToWalkthrough();
+      });
+    }
+
+    const btnArTapeToggle = document.getElementById('btnArTapeToggle');
+    const tapeWrap = document.querySelector('.ar-compass-tape-wrap');
+    if (btnArTapeToggle && tapeWrap) {
+      btnArTapeToggle.addEventListener('click', () => {
+        tapeWrap.classList.toggle('hidden');
+        const isHidden = tapeWrap.classList.contains('hidden');
+        showToast(isHidden ? 'Compass Ribbon Hidden' : 'Compass Ribbon Visible');
+      });
+    }
+
     const btnCloseSnapModal = document.getElementById('btnCloseSnapModal');
     const arSnapshotModal = document.getElementById('arSnapshotModal');
     if (btnCloseSnapModal && arSnapshotModal) {
