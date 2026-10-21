@@ -4041,3 +4041,132 @@ input:checked + .slider:before {
 .shutter-camera-icon {
   font-size: 1.6rem;
 }
+
+/* ========================================================
+   v5.5.1 RE-ARCHITECTED READOUT SECTION & AUX INSTRUMENT BAR
+   ======================================================== */
+
+.readout-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  width: 100%;
+}
+
+.readout-aux-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 8px;
+  margin-bottom: 2px;
+}
+
+.readout-aux-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 14px;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: rgba(14, 28, 49, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 163, 89, 0.28);
+  color: var(--text-muted);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.readout-aux-pill:hover {
+  border-color: rgba(212, 163, 89, 0.55);
+  color: var(--text-main);
+}
+
+.readout-aux-pill:active {
+  transform: scale(0.96);
+}
+
+/* 1. Freeze Pill */
+.btn-freeze-pill {
+  cursor: pointer;
+}
+
+.btn-freeze-pill.active {
+  background: rgba(56, 189, 248, 0.22) !important;
+  border-color: #38bdf8 !important;
+  color: #7dd3fc !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45) !important;
+}
+
+/* 2. Level / Tilt Pill */
+.level-hud-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.level-hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.level-hud-badge.level-locked {
+  color: #4ade80 !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  background: rgba(34, 197, 94, 0.16) !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.35) !important;
+}
+
+.level-hud-badge.level-locked .level-hud-dot {
+  background: #22c55e !important;
+  box-shadow: 0 0 8px #22c55e !important;
+}
+
+/* 3. Solar Muhurta Pill */
+.solar-muhurta-badge {
+  cursor: pointer;
+  color: var(--kuberan-gold);
+}
+
+.solar-muhurta-badge.auspicious {
+  border-color: rgba(212, 163, 89, 0.45);
+  color: var(--kuberan-gold);
+}
+
+.solar-muhurta-badge.rahu-kalam {
+  border-color: rgba(239, 68, 68, 0.55) !important;
+  color: #fca5a5 !important;
+  background: rgba(239, 68, 68, 0.18) !important;
+}
+
+/* Clean Hero Bearing Centerpiece */
+.bearing-container {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease;
+  padding: 0 8px 4px 8px;
+}
+
+.bearing-container:active {
+  transform: scale(0.98);
+}

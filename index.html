@@ -221,17 +221,26 @@
     </section>
 
     <section class="readout-section">
-      <div class="bearing-container" id="bearingContainerTap" title="Tap to lock/unlock target bearing">
-        <div class="bearing-action-row">
-          <button id="btnFreezeHeading" class="btn-freeze-pill" title="Freeze current heading to inspect without drift" aria-label="Freeze Compass Reading">
-            <span class="freeze-icon">❄️</span>
-            <span id="freezePillText" class="freeze-text">FREEZE</span>
-          </button>
-          <div id="solarMuhurtaBadge" class="solar-muhurta-badge" title="Sun position & Auspicious Muhurta status">
-            <span class="solar-icon">☀️</span>
-            <span id="solarMuhurtaText" class="solar-text">Sun: --°</span>
-          </div>
+      <!-- 1. Dedicated Top Instrument & Status Cluster (Freeze | Level Tilt | Solar Muhurta) -->
+      <div class="readout-aux-bar">
+        <button id="btnFreezeHeading" class="readout-aux-pill btn-freeze-pill" title="Freeze current heading to inspect without drift" aria-label="Freeze Compass Reading">
+          <span class="freeze-icon">❄️</span>
+          <span id="freezePillText" class="freeze-text">FREEZE</span>
+        </button>
+
+        <div class="readout-aux-pill level-hud-badge" id="levelHudBadge" title="Surface Level Tilt Status">
+          <span class="level-hud-dot"></span>
+          <span id="levelHudText">0.0° LEVEL</span>
         </div>
+
+        <div id="solarMuhurtaBadge" class="readout-aux-pill solar-muhurta-badge" title="Sun position & Auspicious Muhurta status">
+          <span class="solar-icon">☀️</span>
+          <span id="solarMuhurtaText" class="solar-text">Sun: --°</span>
+        </div>
+      </div>
+
+      <!-- 2. Clean, Majestic Hero Bearing Readout (Tap to lock target bearing) -->
+      <div class="bearing-container" id="bearingContainerTap" title="Tap to lock/unlock target bearing">
         <div class="primary-heading">
           <span id="headingDegrees" class="heading-num">0</span>
           <span class="degree-symbol">°</span>
@@ -239,10 +248,6 @@
         <div class="cardinal-direction-group">
           <div class="cardinal-direction" id="headingCardinal">N</div>
           <div class="vastu-sanskrit-tag" id="headingSanskrit">Uttara (उत्तर)</div>
-        </div>
-        <div class="level-hud-badge" id="levelHudBadge" title="Surface Level Tilt Status">
-          <span class="level-hud-dot"></span>
-          <span id="levelHudText">0.0° LEVEL</span>
         </div>
       </div>
 

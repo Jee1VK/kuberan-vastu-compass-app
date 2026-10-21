@@ -2662,6 +2662,8 @@ https://kuberansilks.com/`;
       const lng = window.lastKnownLng || 77.5946;
       const sun = calculateSunPosition(lat, lng);
       const muhurta = getVedicMuhurta();
+      const solarIcon = document.querySelector('#solarMuhurtaBadge .solar-icon');
+      if (solarIcon) solarIcon.textContent = sun.isDay ? '☀️' : '🌙';
       if (solarMuhurtaText) {
         solarMuhurtaText.textContent = 'Sun: ' + sun.azimuth + '° • ' + (muhurta.isRahuKalam ? 'Rahu' : 'Shubh');
       }
