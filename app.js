@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.6.1
+ * KUBERAN VASTU COMPASS APP v5.6.2
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════

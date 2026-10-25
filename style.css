@@ -165,7 +165,7 @@ body {
   height: auto;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--safe-top) + 6px) 12px calc(var(--safe-bottom) + 130px) 12px;
+  padding: calc(var(--safe-top) + 6px) 12px calc(var(--safe-bottom) + 52px) 12px;
   gap: 14px;
 }
 
@@ -3270,11 +3270,11 @@ input:checked + .slider:before {
 /* Ensure padding at bottom of container for floating dock */
 /* Ensure full scroll clearance above floating bottom dock on all mobile viewports */
 .app-container {
-  padding-bottom: calc(var(--safe-bottom, 0px) + 135px) !important;
+  padding-bottom: calc(var(--safe-bottom, 0px) + 52px) !important;
 }
 
 .telemetry-panel {
-  margin-bottom: 24px !important;
+  margin-bottom: 8px !important;
 }
 
 /* ========================================================
@@ -4359,12 +4359,12 @@ input:checked + .slider:before {
 }
 
 /* ========================================================
-   v5.6.1 BOTTOM SCROLL CLEARANCE & PANEL ACTIONS VISIBILITY
+   v5.6.2 BOTTOM SCROLL CLEARANCE & PANEL ACTIONS VISIBILITY
    ======================================================== */
 .bottom-dock-spacer {
   width: 100%;
-  height: calc(var(--safe-bottom, 0px) + 100px);
-  min-height: 100px;
+  height: calc(var(--safe-bottom, 0px) + 40px);
+  min-height: 40px;
   flex-shrink: 0;
   pointer-events: none;
 }
