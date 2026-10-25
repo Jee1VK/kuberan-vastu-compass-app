@@ -918,6 +918,42 @@ const VASTU_DATA = {
       remedyKn: 'ಮೆಟ್ಟಿಲುಗಳನ್ನು ದಕ್ಷಿಣ ಅಥವಾ ಪಶ್ಚಿಮದಲ್ಲಿ ನಿರ್ಮಿಸಿ. ಏರುವಾಗ ಪ್ರದಕ್ಷಿಣಾಕಾರವಾಗಿರಲಿ.',
       remedyTa: 'படிக்கட்டுகளை தெற்கு அல்லது மேற்கில் அமைக்கவும். ஏறும் போது வலஞ்சுழியாக ஏற வேண்டும்.',
       remedyTe: 'మెట్లను దక్షిణం లేదా పడమరలో నిర్మించాలి. ఎక్కేటప్పుడు ప్రదక్షిణ దిశలో ఉండాలి.'
+    },
+    {
+      id: 'entrance',
+      icon: '🚪',
+      names: { en: 'Main Entrance / Door', hi: 'मुख्य प्रवेश द्वार', kn: 'ಮುಖ್ಯ ಪ್ರವೇಶ ದ್ವಾರ', ta: 'முக்கிய நுழைவாயில்', te: 'ప్రధాన ముఖద్వారం' },
+      idealZones: ['NE', 'N', 'E'],
+      avoidZones: ['S', 'SW', 'SE'],
+      remedyEn: 'Locate main entrance in auspicious 32-Pada zones (N3, N4, N5, E3, E4). Avoid South-West entrance.',
+      remedyHi: 'मुख्य द्वार शुभ 32-पद (N3, N4, E3, E4) में बनाएं। नैऋत्य द्वार से बचें।',
+      remedyKn: 'ಮುಖ್ಯ ದ್ವಾರವನ್ನು ಶುಭ ಪದಗಳಲ್ಲಿ (N3, N4, E3, E4) ನಿರ್ಮಿಸಿ. ನೈಋತ್ಯ ದ್ವಾರ ಬೇಡ.',
+      remedyTa: 'முக்கிய வாசலை மங்களகரமான பதங்களில் (N3, N4, E3, E4) அமைக்கவும்.',
+      remedyTe: 'ప్రధాన ద్వారాన్ని శుభ పదాలలో (N3, N4, E3, E4) ఏర్పాటు చేయండి.'
+    },
+    {
+      id: 'heavy_storage',
+      icon: '📦',
+      names: { en: 'Heavy Storage / Almirah', hi: 'भारी सामान / अलमारी', kn: 'ಭಾರವಾದ ವಸ್ತುಗಳ ಸಂಗ್ರಹ', ta: 'கனரக பொருட்கள் / பீரோ', te: 'భారీ వస్తువుల నిల్వ' },
+      idealZones: ['SW', 'S', 'W'],
+      avoidZones: ['NE', 'N', 'E'],
+      remedyEn: 'Keep heavy storage and wardrobes in South-West, South, or West. Keep North-East light and open.',
+      remedyHi: 'भारी अलमारी व सामान नैऋत्य, दक्षिण या पश्चिम में रखें। ईशान्य को हल्का रखें।',
+      remedyKn: 'ಭಾರವಾದ ಕಪಾಟುಗಳನ್ನು ನೈಋತ್ಯ, ದಕ್ಷಿಣ ಅಥವಾ ಪಶ್ಚಿಮದಲ್ಲಿಡಿ.',
+      remedyTa: 'கனமான பீரோ மற்றும் பொருட்களை தென்மேற்கு, தெற்கு அல்லது மேற்கில் வைக்கவும்.',
+      remedyTe: 'బరువైన బీరువాలు, వస్తువులను నైరుతి, దక్షిణం లేదా పడమరలో ఉంచండి.'
+    },
+    {
+      id: 'septic_tank',
+      icon: '🕳️',
+      names: { en: 'Septic Tank / Sewage Pit', hi: 'सेप्टिक टैंक / मल कुंड', kn: 'ಸೆಪ್ಟಿಕ್ ಟ್ಯಾಂಕ್', ta: 'செப்டிக் டேங்க் / கழிவுத் தொட்டி', te: 'సెప్టిక్ ట్యాంక్' },
+      idealZones: ['NW'],
+      avoidZones: ['NE', 'SW', 'SE', 'N', 'E'],
+      remedyEn: 'Locate septic tank only in North-West (Vayavya). Strictly prohibit in North-East, South-West, or Brahmasthana.',
+      remedyHi: 'सेप्टिक टैंक केवल वायव्य (उत्तर-पश्चिम) में बनाएं। ईशान्य या नैऋत्य में कदापि न बनाएं।',
+      remedyKn: 'ಸೆಪ್ಟಿಕ್ ಟ್ಯಾಂಕ್ ಅನ್ನು ವಾಯುವ್ಯದಲ್ಲಿ ಮಾತ್ರ ನಿರ್ಮಿಸಿ. ಈಶಾನ್ಯ ಅಥವಾ ನೈಋತ್ಯದಲ್ಲಿ ಬೇಡ.',
+      remedyTa: 'செப்டிக் டேங்கை வடமேற்கில் (வாயுவ்யம்) மட்டுமே அமைக்கவும்.',
+      remedyTe: 'సెప్టిక్ ట్యాంక్‌ను వాయువ్యంలో మాత్రమే నిర్మించాలి. ఈశాన్యం, నైరుతిలో ఉండకూడదు.'
     }
   ],
 

@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.6.0
+ * KUBERAN VASTU COMPASS APP v5.6.1
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -1006,6 +1006,23 @@ const stabilizer = new CompassStabilizer({
   // ═══ §6 UI_UPDATES ════════════════════════════════════════════
   // Heading display, inclinometer, inspector panel updates.
   // Future: extract to UI update layer or React/Vue computed props.
+  const EXTRA_TAG_LABELS = {
+    meditation: { icon: '🧘', en: 'Meditation / Yoga', hi: 'ध्यान एवं योग', kn: 'ಧ್ಯಾನ ಕೇಂದ್ರ', ta: 'தியானம் / யோகா', te: 'ధ్యాన మందిరం' },
+    open_space: { icon: '🌿', en: 'Open Space / Lawn', hi: 'खुला स्थान / उद्यान', kn: 'ಮುಕ್ತ ಸ್ಥಳ / ಉದ್ಯಾನ', ta: 'திறந்தவெளி / தோட்டம்', te: 'ఖాళీ స్థలం / తోట' },
+    balcony: { icon: '🌤️', en: 'Balcony / Verandah', hi: 'बालकनी / बरामदा', kn: 'ಬಾಲ್ಕನಿ / ಜಗುಲಿ', ta: 'பால்கனி / தாழ்வாரம்', te: 'బాల్కనీ / వరండా' },
+    electrical_meter: { icon: '⚡', en: 'Electrical Panel', hi: 'विद्युत मीटर / पैनल', kn: 'ವಿದ್ಯುತ್ ಮೀಟರ್', ta: 'மின்சார மீட்டர்', te: 'విద్యుత్ మీటర్' },
+    inverter: { icon: '🔋', en: 'Inverter / UPS', hi: 'इन्वर्टर / यूपीएस', kn: 'ಇನ್ವರ್ಟರ್ / ಯುಪಿಎಸ್', ta: 'இன்வெர்ட்டர் / யுபிஎஸ்', te: 'ఇన్వర్టర్ / యుపిఎస్' },
+    boiler: { icon: '🔥', en: 'Boiler / Heater', hi: 'बॉयलर / गीजर', kn: 'ಬಾಯ್ಲರ್ / ಹೀಟರ್', ta: 'பாய்லர் / ஹீட்டர்', te: 'బాయిలర్ / హీటర్' },
+    generator: { icon: '⚙️', en: 'Generator', hi: 'जनरेटर', kn: 'ಜನರೇಟರ್', ta: 'ஜெனரேட்டர்', te: 'జనరేటర్' },
+    bedroom: { icon: '🛏️', en: 'Bedroom', hi: 'शयनकक्ष', kn: 'ಮಲಗುವ ಕೋಣೆ', ta: 'படுக்கையறை', te: 'పడకగది' },
+    main_entrance: { icon: '🚪', en: 'Main Entrance', hi: 'मुख्य द्वार', kn: 'ಮುಖ್ಯ ದ್ವಾರ', ta: 'முக்கிய வாசல்', te: 'సింహద్వారం' },
+    children_bed: { icon: '🧒', en: 'Children Bedroom', hi: 'बच्चों का कमरा', kn: 'ಮಕ್ಕಳ ಕೋಣೆ', ta: 'குழந்தைகள் அறை', te: 'పిల్లల గది' },
+    guest_bed: { icon: '🛎️', en: 'Guest Room', hi: 'अतिथि कक्ष', kn: 'ಅತಿಥಿ ಕೋಣೆ', ta: 'விருந்தினர் அறை', te: 'అతిథి గది' },
+    garage: { icon: '🚗', en: 'Garage / Parking', hi: 'गैरेज / वाहन पार्किंग', kn: 'ವಾಹನ ನಿಲುಗಡೆ', ta: 'வாகன நிறுத்துமிடம்', te: 'వాహన పార్కింగ్' },
+    finished_goods: { icon: '🚚', en: 'Finished Goods', hi: 'तैयार माल', kn: 'ಸಿದ್ಧಪಡಿಸಿದ ಸರಕು', ta: 'விற்பனைப் பொருட்கள்', te: 'సిద్ధమైన సరుకు' },
+    grains_storage: { icon: '🌾', en: 'Grains / Granary', hi: 'अन्न भंडार', kn: 'ಧಾನ್ಯ ಸಂಗ್ರಹ', ta: 'தானிய கிடங்கு', te: 'ధాన్యాగారం' }
+  };
+
   function updateVastuInspector(heading) {
     if (compassMode !== 'vastu') return;
 
@@ -1105,8 +1122,9 @@ const stabilizer = new CompassStabilizer({
         let favHtml = '';
         activeZone8.recommendedRooms.forEach(roomId => {
           const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
-          const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
-          const icon = roomObj ? roomObj.icon : '✨';
+          const extraObj = EXTRA_TAG_LABELS[roomId];
+          const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : (extraObj ? (extraObj[currentLang] || extraObj.en) : roomId.replace(/_/g, ' '));
+          const icon = roomObj ? roomObj.icon : (extraObj ? extraObj.icon : '✨');
           favHtml += `<span class="room-tag">${icon} ${name}</span>`;
         });
         if (favorableTags) favorableTags.innerHTML = favHtml || '<span class="room-tag">General</span>';
@@ -1114,7 +1132,8 @@ const stabilizer = new CompassStabilizer({
         let avoidHtml = '';
         activeZone8.prohibitedRooms.forEach(roomId => {
           const roomObj = VASTU_DATA.ROOMS.find(r => r.id === roomId);
-          const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : roomId;
+          const extraObj = EXTRA_TAG_LABELS[roomId];
+          const name = roomObj ? (roomObj.names[currentLang] || roomObj.names.en) : (extraObj ? (extraObj[currentLang] || extraObj.en) : roomId.replace(/_/g, ' '));
           avoidHtml += `<span class="room-tag tag-avoid">❌ ${name}</span>`;
         });
         if (avoidTags) avoidTags.innerHTML = avoidHtml || '<span class="room-tag tag-avoid">Heavy Clutter</span>';
