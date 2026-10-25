@@ -479,6 +479,312 @@ const VASTU_DATA = {
     { id: 'N8', pada: 'N8', devata: 'Diti (दिति)', startDeg: 33.75, endDeg: 45, grade: 'B', effectEn: 'Lack of vision, narrow thinking', effectHi: 'दृष्टिकोण में संकीर्णता एवं असंतोष', effectKn: 'ಸಂಕುಚಿತ ಮನೋಭಾವ ಹಾಗೂ ಅಸಂತೃಪ್ತಿ', effectTa: 'குறுகிய பார்வை, மனநிறைவின்மை', effectTe: 'సంకుచిత ఆలోచన, అసంతృప్తి' }
   ],
 
+
+  // 12 Antar-Devatas (Inner Deities of the 45-Devata Paramashayika Mandala per Vishwakarma Prakash & Brihat Samhita Ch. 53)
+  // Together with 32 Bahya-Devatas (PADAS_32) + 1 Brahma (Brahmasthana) = Full 45-Devata Vastu Chakra (81 Padas)
+  ANTAR_DEVATAS_12: [
+    {
+      id: 'PRITHVIDHARA',
+      name: 'Pṛthvīdhara (पृथ्वीधर)',
+      shortName: 'Pṛthvīdhara',
+      startDeg: 337.5,
+      endDeg: 22.5,
+      padas: 3,
+      ring: 'Paridhi (Inner North)',
+      effect: {
+        en: 'Sustainer of Earth & Treasury: Bestows asset retention, stable foundation, and wealth preservation.',
+        hi: 'पृथ्वी एवं कोष धारक: संपत्ति की स्थिरता, मजबूत आधार और संचित धन की रक्षा।',
+        kn: 'ಪೃಥ್ವಿ ಮತ್ತು ಖಜಾನೆ ರಕ್ಷಕ: ಆಸ್ತಿ ಸ್ಥಿರತೆ ಮತ್ತು ಸಂಪತ್ತಿನ ಸಂರಕ್ಷಣೆ.',
+        ta: 'பூமி மற்றும் கருவூல காப்பாளர்: சொத்து நிலைத்தன்மை மற்றும் செல்வப் பாதுகாப்பு.',
+        te: 'భూమి మరియు ఖజానా రక్షకుడు: ఆస్తి స్థిరత్వం మరియు సంపద రక్షణ.'
+      }
+    },
+    {
+      id: 'APA',
+      name: 'Āpa / Āpaḥ (आप)',
+      shortName: 'Āpa',
+      startDeg: 22.5,
+      endDeg: 45,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner NNE)',
+      effect: {
+        en: 'Celestial Healing Waters: Bestows strong immunity, cellular recovery, and spiritual purity.',
+        hi: 'दिव्य औषधीय जल: उत्तम रोग प्रतिरोधक क्षमता, आरोग्य एवं आत्मिक पवित्रता।',
+        kn: 'ದೈವಿಕ ಜಲ ಶಕ್ತಿ: ಉತ್ತಮ ಆರೋಗ್ಯ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಮತ್ತು ಪವಿತ್ರತೆ.',
+        ta: 'தெய்வீக மூலிகை நீர்: நோய் எதிர்ப்பு சக்தி, ஆரோக்கியம் மற்றும் தூய்மை.',
+        te: 'దివ్య ఔషధ జలం: రోగనిరోధక శక్తి, సంపూర్ణ ఆరోగ్యం మరియు పవిత్రత.'
+      }
+    },
+    {
+      id: 'APAVATSA',
+      name: 'Āpavatsa (आपवत्स)',
+      shortName: 'Āpavatsa',
+      startDeg: 45,
+      endDeg: 67.5,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner ENE)',
+      effect: {
+        en: 'Nourishing Life Essence: Brings joyous family harmony, mental clarity, and auspicious beginnings.',
+        hi: 'पोषण एवं प्राण रस: पारिवारिक आनंद, मानसिक प्रसन्नता और शुभ आरंभ।',
+        kn: 'ಜೀವ ಪೋಷಕ ಶಕ್ತಿ: ಕುಟುಂಬದಲ್ಲಿ ಸಂತೋಷ, ಮನಸ್ಸಿನ ಸ್ಪಷ್ಟತೆ ಮತ್ತು ಶುಭಾರಂಭ.',
+        ta: 'உயிர் ஊட்டச்சத்து: குடும்ப மகிழ்ச்சி, மனத்தெளிவு மற்றும் மங்கள தொடக்கம்.',
+        te: 'జీవ పోషణ శక్తి: కుటుంబ ఆనందం, మానసిక ప్రశాంతత మరియు శుభారంభం.'
+      }
+    },
+    {
+      id: 'ARYAMA',
+      name: 'Aryamā (अर्यमा)',
+      shortName: 'Aryamā',
+      startDeg: 67.5,
+      endDeg: 112.5,
+      padas: 3,
+      ring: 'Paridhi (Inner East)',
+      effect: {
+        en: 'Lord of Nobility & Alliances: Bestows elite social patronage, fruitful partnerships, and lineage honor.',
+        hi: 'श्रेष्ठता एवं मैत्री के देवता: उच्च सामाजिक संबंध, सफल साझेदारी एवं कुल गौरव।',
+        kn: 'ಶ್ರೇಷ್ಠತೆ ಮತ್ತು ಮೈತ್ರಿ ದೇವತೆ: ಉನ್ನತ ಸಾಮಾಜಿಕ ಸಂಪರ್ಕ ಹಾಗೂ ಯಶಸ್ವಿ ಪಾಲುದಾರಿಕೆ.',
+        ta: 'மேன்மை மற்றும் கூட்டணி அதிபதி: உயர்ந்த சமூக தொடர்பு மற்றும் நல்லுறவு.',
+        te: 'శ్రేష్ఠత మరియు మైత్రి అధిపతి: ఉన్నత సామాజిక సంబంధాలు మరియు భాగస్వామ్య విజయం.'
+      }
+    },
+    {
+      id: 'SAVITA',
+      name: 'Savitā (सविता)',
+      shortName: 'Savitā',
+      startDeg: 112.5,
+      endDeg: 135,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner ESE)',
+      effect: {
+        en: 'Creative Solar Spark: Ignites entrepreneurship, inventive problem-solving, and decisive action.',
+        hi: 'सृजनात्मक सौर ऊर्जा: उद्यमशीलता, नवाचार और निर्णायक क्षमता का संचार।',
+        kn: 'ಸೃಜನಶೀಲ ಸೌರ ಶಕ್ತಿ: ಉದ್ಯಮಶೀಲತೆ, ಹೊಸ ಆಲೋಚನೆ ಮತ್ತು ದೃಢ ನಿರ್ಧಾರ.',
+        ta: 'படைப்பாற்றல் சூரிய ஒளி: தொழில் முனைவு, புதுமை மற்றும் துணிச்சலான செயல்.',
+        te: 'సృజనాత్మక సౌర శక్తి: వ్యాపార చొరవ, నూతన ఆలోచనలు మరియు కార్యదీక్ష.'
+      }
+    },
+    {
+      id: 'SAVITRA',
+      name: 'Sāvitra (सावित्र)',
+      shortName: 'Sāvitra',
+      startDeg: 135,
+      endDeg: 157.5,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner SSE)',
+      effect: {
+        en: 'Catalyst of Agni & Vitality: Sustains financial liquidity, metabolic vigor, and fearless execution.',
+        hi: 'अग्नि एवं ओज उत्प्रेरक: नकदी प्रवाह, शारीरिक ओज और निर्भीक कार्य सिद्धि।',
+        kn: 'ಅಗ್ನಿ ಮತ್ತು ಚೈತನ್ಯ ಶಕ್ತಿ: ಆರ್ಥಿಕ ಹರಿವು, ದೈಹಿಕ ಬಲ ಮತ್ತು ಕಾರ್ಯಸಿದ್ಧಿ.',
+        ta: 'அக்னி மற்றும் உயிர் ஊக்கி: பணப்புழக்கம், உடல் வலிமை மற்றும் செயல் வெற்றி.',
+        te: 'అగ్ని మరియు తేజస్సు: నిరంతర నగదు ప్రవాహం, శారీరక బలం మరియు కార్యసిద్ధి.'
+      }
+    },
+    {
+      id: 'VIVASVAN',
+      name: 'Vivasvān (विवस्वान्)',
+      shortName: 'Vivasvān',
+      startDeg: 157.5,
+      endDeg: 202.5,
+      padas: 3,
+      ring: 'Paridhi (Inner South)',
+      effect: {
+        en: 'Radiant Sovereign of Dharma: Grants commanding authority, lasting fame, and administrative triumph.',
+        hi: 'तेजस्वी धर्म सूर्य: प्रभावशाली नेतृत्व, स्थायी यश और प्रशासनिक सफलता।',
+        kn: 'ತೇಜಸ್ವಿ ಧರ್ಮ ಸೂರ್ಯ: ಪ್ರಭಾವಶಾಲಿ ನಾಯಕತ್ವ, ಶಾಶ್ವತ ಕೀರ್ತಿ ಮತ್ತು ಯಶಸ್ಸು.',
+        ta: 'தர்ம சூரியன்: தலைமை அதிகாரம், நிலைத்த புகழ் மற்றும் நிர்வாக வெற்றி.',
+        te: 'తేజోమయ ధర్మ సూర్యుడు: ఉన్నత నాయకత్వం, శాశ్వత కీర్తి మరియు పరిపాలనా విజయం.'
+      }
+    },
+    {
+      id: 'INDRA_SW',
+      name: 'Indra (इन्द्र - नैऋत्य)',
+      shortName: 'Indra',
+      startDeg: 202.5,
+      endDeg: 225,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner SSW)',
+      effect: {
+        en: 'Fortress of Protection: Shields family and enterprise from external threats and instability.',
+        hi: 'रक्षा एवं स्थायित्व कवच: परिवार व व्यापार की बाहरी संकटों से सुरक्षा।',
+        kn: 'ರಕ್ಷಣಾ ಕವಚ: ಕುಟುಂಬ ಮತ್ತು ವ್ಯವಹಾರಕ್ಕೆ ಬಾಹ್ಯ ಅಡೆತಡೆಗಳಿಂದ ಭದ್ರತೆ.',
+        ta: 'பாதுகாப்பு கவசம்: குடும்பம் மற்றும் தொழிலை வெளிப்புற தடைகளிலிருந்து காக்கிறது.',
+        te: 'రక్షణ కవచం: కుటుంబం మరియు వ్యాపారానికి బాహ్య ఆటంకాల నుండి భద్రత.'
+      }
+    },
+    {
+      id: 'INDRAJAYA',
+      name: 'Indrajaya / Jayā (इन्द्रजय)',
+      shortName: 'Indrajaya',
+      startDeg: 225,
+      endDeg: 247.5,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner WSW)',
+      effect: {
+        en: 'Mastery & Strategic Victory: Anchors deep skill, scholarly wisdom, and long-term compounding wealth.',
+        hi: 'कौशल एवं विजय सिद्धि: कार्य निपुणता, गूढ़ ज्ञान और दीर्घकालिक धन संचय।',
+        kn: 'ಕೌಶಲ್ಯ ಮತ್ತು ವಿಜಯ ಸಿದ್ಧಿ: ಕಾರ್ಯ ನೈಪುಣ್ಯತೆ, ಜ್ಞಾನ ಹಾಗೂ ದೀರ್ಘಕಾಲೀನ ಸಂಪತ್ತು.',
+        ta: 'திறமை மற்றும் வெற்றி: தொழில் நுட்பம், ஆழ்ந்த அறிவு மற்றும் நீண்டகால செல்வம்.',
+        te: 'నైపుణ్యం మరియు విజయం: వృత్తి నైపుణ్యం, జ್ఞానం మరియు దీర్ఘకాలిక సంపద.'
+      }
+    },
+    {
+      id: 'MITRA',
+      name: 'Mitra (मित्र)',
+      shortName: 'Mitra',
+      startDeg: 247.5,
+      endDeg: 292.5,
+      padas: 3,
+      ring: 'Paridhi (Inner West)',
+      effect: {
+        en: 'Guardian of Sacred Contracts: Ensures commercial trust, loyal clientele, and profitable gains.',
+        hi: 'पवित्र अनुबंध एवं विश्वास: व्यापारिक निष्ठा, स्थायी ग्राहक और प्रचुर लाभ।',
+        kn: 'ವಿಶ್ವಾಸ ಮತ್ತು ಒಪ್ಪಂದ ರಕ್ಷಕ: ವ್ಯಾಪಾರ ನಂಬಿಕೆ, ನಿಷ್ಠಾವಂತ ಗ್ರಾಹಕರು ಮತ್ತು ಲಾಭ.',
+        ta: 'நம்பிக்கை மற்றும் ஒப்பந்த அதிபதி: வணிக நாணயம், வாடிக்கையாளர் ஆதரவு மற்றும் லாபம்.',
+        te: 'విశ్వాసం మరియు ఒప్పందాల అధిపతి: వ్యాపార నమ్మకం, స్థిరమైన వినియోగదారులు మరియు లాభాలు.'
+      }
+    },
+    {
+      id: 'RUDRA',
+      name: 'Rudra (रुद्र)',
+      shortName: 'Rudra',
+      startDeg: 292.5,
+      endDeg: 315,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner WNW)',
+      effect: {
+        en: 'Purifier of Stagnation: Clears emotional blocks, operational bottlenecks, and old liabilities.',
+        hi: 'अवरोध निवारक रुद्र: मानसिक तनाव, रुके हुए कार्य और पुराने दोषों का निवारण।',
+        kn: 'ಅಡೆತಡೆ ನಿವಾರಕ ರುದ್ರ: ಮಾನಸಿಕ ಒತ್ತಡ ಮತ್ತು ನಿಂತುಹೋದ ಕೆಲಸಗಳ ವಿಮೋಚನೆ.',
+        ta: 'தடைகளை நீக்கும் ருத்ரன்: மன அழுத்தம் மற்றும் தேங்கிய பணிகளை விடுவிக்கிறது.',
+        te: 'ఆటంకాలను తొలగించే రుద్రుడు: మానసిక ఒత్తిడి మరియు నిలిచిపోయిన పనుల విముక్తి.'
+      }
+    },
+    {
+      id: 'RAJAYAKSHMA',
+      name: 'Rājayakṣmā / Rudrajaya (राजयक्ष्मा)',
+      shortName: 'Rājayakṣmā',
+      startDeg: 315,
+      endDeg: 337.5,
+      padas: 2,
+      ring: 'Kona-Sutra (Inner NNW)',
+      effect: {
+        en: 'Structural Support & Velocity: Accelerates dispatch, institutional backing, and disciplined order.',
+        hi: 'संरचनात्मक सहयोग एवं गति: तीव्र व्यापारिक संचलन, संस्थागत समर्थन और अनुशासन।',
+        kn: 'ಬೆಂಬಲ ಮತ್ತು ವೇಗವರ್ধಕ: ವೇಗದ ವ್ಯಾಪಾರ ಚಲನೆ ಮತ್ತು ಸಾಂಸ್ಥಿಕ ಬೆಂಬಲ.',
+        ta: 'கட்டமைப்பு ஆதரவு மற்றும் வேகம்: விரைவான வணிக சுழற்சி மற்றும் நிறுவன ஆதரவு.',
+        te: 'నిర్మాణ మద్దతు మరియు వేగం: వేగవంతమైన వ్యాపార చలనం మరియు సంస్థాగత సహకారం.'
+      }
+    }
+  ],
+
+  // Classical Vishwakarma Prakash Field Diagnostics (Bhumi-Plava, Dvara-Vedha & Vithi-Shula)
+  SHASTRA_DIAGNOSTICS: {
+    BHUMI_PLAVA: {
+      NE_SLOPE: {
+        id: 'NE_SLOPE',
+        label: 'Uttara / Pūrva / Īśānya Plava (Slopes Down to N / E / NE)',
+        status: 'auspicious',
+        badge: '✅ ŚUBHA PLAVA',
+        verdict: 'Supreme Shastric slope (Gomukha / Īśānya Plava). Rainwater and floor wash flowing toward North, East, or North-East bestows continuous wealth, progeny, and vibrant health (Vishwakarma Prakash Ch. 1).'
+      },
+      LEVEL_NE: {
+        id: 'LEVEL_NE',
+        label: 'Sama-Bhūmi (Flat Level Floor with NE Drainage)',
+        status: 'auspicious',
+        badge: '✅ SAMA-BHŪMI',
+        verdict: 'Balanced equilibrium. Ensure all rainwater pipes and bathroom/floor outlets drain toward North or North-East.'
+      },
+      SW_SLOPE: {
+        id: 'SW_SLOPE',
+        label: 'Dakṣiṇa / Paścima / Nairṛtya Plava (Slopes Down to S / W / SW)',
+        status: 'dosha',
+        badge: '❌ PLAVA DOṢA',
+        verdict: 'Classical Bhūmi-Plava Doṣa! Land or floor sloping down toward South, West, or South-West drains wealth and causes health setbacks. Remedy: Raise South-West floor/compound level using solid stone/earth and route all water drainage strictly toward North-East.'
+      },
+      CENTER_LOW: {
+        id: 'CENTER_LOW',
+        label: 'Kūrma-Garta (Depressed Center / Low Brahmasthāna)',
+        status: 'dosha',
+        badge: '❌ BRAHMA-GARTA DOṢA',
+        verdict: 'Depressed or sunken Brahmasthāna stagnates central Prāṇa. Remedy: Level the central hall/courtyard floor and install an energized copper Vastu Purusha Yantra.'
+      }
+    },
+    DVARA_VEDHA: {
+      NONE: {
+        id: 'NONE',
+        label: 'Śuddha-Dvāra — Clear Unobstructed Threshold (2× Door Height)',
+        status: 'auspicious',
+        badge: '✅ ŚUDDHA-DVĀRA',
+        verdict: 'No Vedha obstruction within twice the height of the main entrance door. Auspicious cosmic energy enters freely.'
+      },
+      VRIKSHA: {
+        id: 'VRIKSHA',
+        label: 'Vṛkṣa-Vedha — Large Tree Directly in Front of Main Door',
+        status: 'dosha',
+        badge: '❌ VṚKṢA-VEDHA',
+        verdict: 'Vishwakarma Prakash Ch. 2: A tree trunk directly piercing the main threshold blocks solar Prāṇa and affects children/health. Remedy: Mount brass Swastika & Om emblems on both door jambs, place a convex Surya mirror above the lintel, and keep the entrance brightly lit.'
+      },
+      STAMBHA: {
+        id: 'STAMBHA',
+        label: 'Stambha-Vedha — Electric Pole / Pillar Piercing Main Door',
+        status: 'dosha',
+        badge: '❌ STAMBHA-VEDHA',
+        verdict: 'A pillar, transformer, or pole directly facing the main door splits incoming energy, causing domestic discord or career blocks. Remedy: Install an energized Panchamukhi Hanuman or Ashtamangala brass plaque above the door and place twin Tulsi/Jade plants flanking the entrance.'
+      },
+      KONA: {
+        id: 'KONA',
+        label: 'Koṇa-Vedha — Sharp Corner Edge of Opposite Building',
+        status: 'dosha',
+        badge: '❌ KOṆA-VEDHA',
+        verdict: 'A sharp building corner pointing directly at the main door projects Śūla (spear) energy. Remedy: Place a copper Surya Yantra or convex mirror on the lintel facing the corner and install a solid wooden/marble threshold (Umbartha).'
+      },
+      KUPA_NALA: {
+        id: 'KUPA_NALA',
+        label: 'Kūpa / Nālā-Vedha — Open Pit, Borewell or Drain Before Door',
+        status: 'dosha',
+        badge: '❌ KŪPA/NĀLĀ-VEDHA',
+        verdict: 'An open pit, manhole, or gutter directly in front of the main door causes financial leakage. Remedy: Seal or cover with a heavy stone slab and embed a silver/copper wire under the door threshold.'
+      },
+      CHHAYA: {
+        id: 'CHHAYA',
+        label: 'Chhāyā-Vedha — Temple Spire / Flag Shadow Falling on Property',
+        status: 'dosha',
+        badge: '❌ CHHĀYĀ-VEDHA',
+        verdict: 'Classical Chhāyā-Vedha (shadow of a temple Shikhara/Dhwaja falling on the house between 9 AM and 3 PM). Remedy: Worship a Sphatik (Crystal) Shiva Linga or Sudarshana Yantra in the NE Mandir and maintain daily evening Ghee Deepam at the entrance.'
+      }
+    },
+    VITHI_SHULA: {
+      NONE: {
+        id: 'NONE',
+        label: 'Normal Parallel Road (No T-Junction Spear)',
+        status: 'auspicious',
+        badge: '✅ NORMAL STREET',
+        verdict: 'Calm, balanced road flow along the boundary without direct T-junction spear.'
+      },
+      NE_SHULA: {
+        id: 'NE_SHULA',
+        label: 'Īśānya Vīthi-Śūla — Road Thrust Entering at North-East (N4/E3)',
+        status: 'auspicious',
+        badge: '🌟 ŚUBHA VĪTHI-ŚŪLA',
+        verdict: 'Auspicious Road Thrust! A streetspear entering at North-East (N4 Bhallāṭa / N5 Soma) or East (E3 Jayanta / E4 Indra) brings high prestige, customer footfall, and prosperity.'
+      },
+      SW_SHULA: {
+        id: 'SW_SHULA',
+        label: 'Nairṛtya Vīthi-Śūla — Road Thrust Hitting South-West (S8/W1)',
+        status: 'dosha',
+        badge: '❌ NAIRṚTYA VĪTHI-ŚŪLA',
+        verdict: 'Severe Vīthi-Śūla Doṣa! Road spear striking South-West destabilizes the Earth anchor. Remedy: Erect a thick, solid boundary wall facing the road (never put the main gate directly facing the SW road thrust) and install a brass Bhauma/Mangal Yantra.'
+      },
+      SE_NW_SHULA: {
+        id: 'SE_NW_SHULA',
+        label: 'Āgneya / Vāyavya Vīthi-Śūla — Road Thrust Hitting SE or NW',
+        status: 'warning',
+        badge: '⚠️ MODERATE VĪTHI-ŚŪLA',
+        verdict: 'Moderate road thrust causing fire/expense volatility (SE) or restlessness (NW). Remedy: Install a 9-Pyramid Brass Vastu Strip on the outer compound wall facing the oncoming road.'
+      }
+    }
+  },
+
   // Common Rooms Directory for Room-to-Direction Finder
   ROOMS: [
     {

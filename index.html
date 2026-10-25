@@ -364,6 +364,12 @@
           </div>
         </div>
 
+        <!-- Vishwakarma Shastric Lineage & Mandala Tradition Pill -->
+        <div class="shastra-lineage-bar">
+          <span class="shastra-lineage-pill" id="shastraLineageBadge">📜 Vishwakarma Prakash • Ashta-Dikpala (Classical 8-Zone)</span>
+          <span class="shastra-mandala-pill" id="shastraAntarPill">🕉️ Antar-Devatā: Āpa (आप)</span>
+        </div>
+
         <!-- Deity & Classical Summary -->
         <div class="inspector-deity-row">
           <div class="deity-item">
@@ -375,7 +381,7 @@
           </div>
         </div>
 
-        <!-- 32-Pada Entrance Auspiciousness Box (Visible in 32-Pada mode) -->
+        <!-- 45-Devata Mandala & 32-Pada Entrance Box (Visible in 32-Pada / 81-Grid mode) -->
         <div class="pada-entrance-card hidden" id="padaEntranceCard">
           <div class="pada-header">
             <span class="pada-badge" id="padaIdBadge">E3</span>
@@ -383,6 +389,14 @@
             <span class="pada-grade-pill grade-a" id="padaGradePill">🌟 Highly Auspicious</span>
           </div>
           <p class="pada-effect-text" id="padaEffectText">Tremendous wealth, victory, great success</p>
+          <div class="antar-devata-subbox" id="antarDevataSubbox">
+            <div class="antar-header-row">
+              <span class="antar-tag">45-DEVATA INNER RING</span>
+              <strong class="antar-name" id="antarDevataName">Aryamā (अर्यमा)</strong>
+              <span class="antar-padas-badge" id="antarDevataPadas">3 Padas • Paridhi</span>
+            </div>
+            <p class="antar-effect-text" id="antarDevataEffect">Lord of Nobility & Alliances: Bestows elite social patronage and fruitful partnerships.</p>
+          </div>
         </div>
 
         <!-- Commercial Business Suitability & Impact (Shown in Commercial Mode) -->
@@ -796,8 +810,16 @@
               <span class="report-val" id="reportGps">--</span>
             </div>
             <div class="report-row" id="reportDoorRow">
-              <span class="report-label">Door Pada (32):</span>
+              <span class="report-label">Outer Door Pada (32):</span>
               <span class="report-val" id="reportDoor">--</span>
+            </div>
+            <div class="report-row" id="reportAntarRow">
+              <span class="report-label">Inner Deity (45-Chakra):</span>
+              <span class="report-val" id="reportAntarDevata">Āpa / Āpavatsa</span>
+            </div>
+            <div class="report-row" id="reportShastraRow">
+              <span class="report-label">Plava & Dvāra-Vedha:</span>
+              <span class="report-val" id="reportShastraDiagnostics">Uttara/Īśānya Plava • Śuddha-Dvāra ✅</span>
             </div>
             <div class="report-row">
               <span class="report-label">Plot Alignment:</span>
@@ -829,6 +851,51 @@
             <div class="walkthrough-actions-row">
               <button id="btnClearSiteWalkthrough" class="btn-walkthrough-clear">Clear All Logged Rooms</button>
               <button id="btnQuickLogCurrent" class="btn-walkthrough-add">+ Log Current</button>
+            </div>
+          </div>
+
+          <!-- Vishwakarma Prakash Field Diagnostics (Bhumi-Plava, Dvara-Vedha & Vithi-Shula) -->
+          <div class="vishwakarma-diagnostics-box" id="vishwakarmaDiagnosticsBox">
+            <div class="vk-diag-header">
+              <span class="vk-diag-icon">📜</span>
+              <div>
+                <strong>Vishwakarma Prakash Field Diagnostics</strong>
+                <span class="vk-diag-sub">Bhūmi-Plava (Slope), Dvāra-Vedha (Obstructions) & Vīthi-Śūla</span>
+              </div>
+            </div>
+            <div class="vk-diag-grid">
+              <div class="vk-field">
+                <label for="selectBhumiPlava">1. Bhūmi-Plava (Land & Floor Slope):</label>
+                <select id="selectBhumiPlava" class="vk-select">
+                  <option value="NE_SLOPE">✅ Slopes Down to North / East / NE (Śubha Plava)</option>
+                  <option value="LEVEL_NE">✅ Flat Level Floor with NE Drainage (Sama-Bhūmi)</option>
+                  <option value="SW_SLOPE">❌ Slopes Down to South / West / SW (Plava Doṣa)</option>
+                  <option value="CENTER_LOW">❌ Depressed Center / Low Brahmasthāna (Garta Doṣa)</option>
+                </select>
+              </div>
+              <div class="vk-field">
+                <label for="selectDvaraVedha">2. Dvāra-Vedha (Main Door Obstruction):</label>
+                <select id="selectDvaraVedha" class="vk-select">
+                  <option value="NONE">✅ None — Clear Unobstructed Threshold (Śuddha-Dvāra)</option>
+                  <option value="VRIKSHA">❌ Vṛkṣa-Vedha — Large Tree Directly in Front of Door</option>
+                  <option value="STAMBHA">❌ Stambha-Vedha — Pole / Pillar Piercing Door</option>
+                  <option value="KONA">❌ Koṇa-Vedha — Sharp Building Corner Pointing at Door</option>
+                  <option value="KUPA_NALA">❌ Kūpa/Nālā-Vedha — Open Pit or Drain Before Door</option>
+                  <option value="CHHAYA">❌ Chhāyā-Vedha — Temple Spire Shadow on Home</option>
+                </select>
+              </div>
+              <div class="vk-field">
+                <label for="selectVithiShula">3. Vīthi-Śūla (T-Junction Road Thrust):</label>
+                <select id="selectVithiShula" class="vk-select">
+                  <option value="NONE">✅ Normal Parallel Street (No Road Spear)</option>
+                  <option value="NE_SHULA">🌟 Īśānya Road Thrust — North-East / East (Auspicious)</option>
+                  <option value="SW_SHULA">❌ Nairṛtya Road Thrust — South-West (Severe Doṣa)</option>
+                  <option value="SE_NW_SHULA">⚠️ Āgneya / Vāyavya Road Thrust — SE or NW (Moderate)</option>
+                </select>
+              </div>
+            </div>
+            <div class="vk-verdict-banner" id="shastraDiagnosticVerdict">
+              ✅ <strong>Śuddha Vāstu Lakṣaṇa:</strong> Favorable North-East slope (Uttara/Īśānya Plava) and clear unobstructed entrance threshold (Śuddha-Dvāra).
             </div>
           </div>
 
@@ -1172,7 +1239,7 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v5.5.2 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v5.6.0 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
@@ -1188,13 +1255,20 @@
           <span class="modal-icon">📐</span>
           <div>
             <h3 id="ayadiModalTitle">Ayadi Shadvarga Calculator</h3>
-            <span class="modal-brand-sub">Manasara Shilpa Shastra Cosmic Dimensions</span>
+            <span class="modal-brand-sub">Vishwakarma Prakash & Manasara Cosmic Proportions</span>
           </div>
         </div>
         <button id="btnCloseAyadiModal" class="btn-modal-close" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <p class="modal-intro-text">Calculate the architectural dimensions (Aaya, Vyaya, Yoni) of your plot or building to ensure resonance with cosmic energy.</p>
+        <p class="modal-intro-text">Calculate the classical Shadvarga & Gṛha-Āyu (building lifespan) proportions of your plot or room in Sacred Hastas (1 Hasta = 18 inches).</p>
+        <div class="ayadi-tradition-bar">
+          <label for="ayadiTraditionSelect" class="input-label">Classical Shastra Tradition:</label>
+          <select id="ayadiTraditionSelect" class="vk-select">
+            <option value="vishwakarma">📜 Vishwakarma Prakash (Area / Kṣetraphala + Gṛha-Āyu Lifespan)</option>
+            <option value="manasara">🏛️ Manasara & Mayamatam (Perimeter / Paridhi Standard)</option>
+          </select>
+        </div>
 
         <div class="ayadi-stepper-grid">
           <div class="ayadi-input-group">

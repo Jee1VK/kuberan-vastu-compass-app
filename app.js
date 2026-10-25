@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.5.2
+ * KUBERAN VASTU COMPASS APP v5.6.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -615,6 +615,19 @@ const stabilizer = new CompassStabilizer({
     return VASTU_DATA.PADAS_32[0];
   }
 
+  function getActiveAntarDevata(heading) {
+    const h = normalizeAngle(heading);
+    if (!VASTU_DATA.ANTAR_DEVATAS_12) return null;
+    for (const d of VASTU_DATA.ANTAR_DEVATAS_12) {
+      if (d.startDeg > d.endDeg) {
+        if (h >= d.startDeg || h < d.endDeg) return d;
+      } else {
+        if (h >= d.startDeg && h < d.endDeg) return d;
+      }
+    }
+    return VASTU_DATA.ANTAR_DEVATAS_12[0];
+  }
+
   // --- Build Dial Vector SVG ---
   function buildDialSvg() {
     const cx = 250;
@@ -855,6 +868,30 @@ const stabilizer = new CompassStabilizer({
           const devataShort = pada.devata.split(' ')[0];
           svgContent += `<text x="${dx.toFixed(1)}" y="${dy.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="600" fill="currentColor" opacity="0.75" transform="rotate(${centerDeg}, ${dx.toFixed(1)}, ${dy.toFixed(1)})">${devataShort}</text>`;
         });
+
+        // --- 12 ANTAR-DEVATA INNER RING (Completing the 45-Devata Vishwakarma Mandala) ---
+        if (VASTU_DATA.ANTAR_DEVATAS_12) {
+          const rAntarOuter = 132;
+          svgContent += `<circle cx="${cx}" cy="${cy}" r="${rAntarOuter}" fill="none" stroke="var(--kuberan-gold)" stroke-opacity="0.45" stroke-width="1.2" stroke-dasharray="3,2"/>`;
+          VASTU_DATA.ANTAR_DEVATAS_12.forEach((antar) => {
+            const sRad = (antar.startDeg - 90) * (Math.PI / 180);
+            let span = antar.endDeg - antar.startDeg;
+            if (span < 0) span += 360;
+            const cDeg = (antar.startDeg + span / 2) % 360;
+            const cRad = (cDeg - 90) * (Math.PI / 180);
+
+            const sx = cx + rAntarOuter * Math.cos(sRad);
+            const sy = cy + rAntarOuter * Math.sin(sRad);
+            const ex = cx + rInnerVastu * Math.cos(sRad);
+            const ey = cy + rInnerVastu * Math.sin(sRad);
+            svgContent += `<line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${sx.toFixed(1)}" y2="${sy.toFixed(1)}" stroke="var(--kuberan-gold)" stroke-opacity="0.35" stroke-width="1"/>`;
+
+            const rLabel = (rAntarOuter + rInnerVastu) / 2;
+            const lx = cx + rLabel * Math.cos(cRad);
+            const ly = cy + rLabel * Math.sin(cRad);
+            svgContent += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="6.8" font-weight="700" fill="var(--kuberan-gold)" opacity="0.9" transform="rotate(${cDeg}, ${lx.toFixed(1)}, ${ly.toFixed(1)})">${antar.shortName}</text>`;
+          });
+        }
       }
 
       // Room-to-Direction Finder Target Highlight Arc Overlay
@@ -926,7 +963,12 @@ const stabilizer = new CompassStabilizer({
       // Highlight Brahmasthan (Center 3x3 = 9 squares)
       const bStart = startX + 3 * cell;
       svgContent += `<rect x="${bStart}" y="${bStart}" width="${3*cell}" height="${3*cell}" fill="var(--kuberan-gold)" fill-opacity="0.1" stroke="var(--kuberan-gold)" stroke-width="2"/>`;
-      svgContent += `<text x="${cx}" y="${cy}" fill="var(--kuberan-gold)" font-size="12" font-weight="bold" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle" opacity="0.9">BRAHMASTHAN</text>`;
+      svgContent += `<text x="${cx}" y="${cy}" fill="var(--kuberan-gold)" font-size="11" font-weight="bold" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle" opacity="0.95">BRAHMASTHAN</text>`;
+      // 4 Paridhi Inner Deities around Brahmasthana (Vishwakarma Prakash 81-Pada Mandala)
+      svgContent += `<text x="${cx}" y="${bStart - cell * 0.5}" fill="#fde68a" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" opacity="0.85">Pṛthvīdhara</text>`;
+      svgContent += `<text x="${bStart + 3 * cell + cell * 0.5}" y="${cy}" fill="#fde68a" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" opacity="0.85" transform="rotate(90, ${bStart + 3 * cell + cell * 0.5}, ${cy})">Aryamā</text>`;
+      svgContent += `<text x="${cx}" y="${bStart + 3 * cell + cell * 0.5}" fill="#fde68a" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" opacity="0.85">Vivasvān</text>`;
+      svgContent += `<text x="${bStart - cell * 0.5}" y="${cy}" fill="#fde68a" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" opacity="0.85" transform="rotate(-90, ${bStart - cell * 0.5}, ${cy})">Mitra</text>`;
       
       // Maha Marmas (Critical Energy Diagonals: NE-SW Spine & NW-SE)
       // NW to SE diagonal
@@ -968,24 +1010,53 @@ const stabilizer = new CompassStabilizer({
     if (compassMode !== 'vastu') return;
 
     const activeZone8 = getActiveZone8(heading);
+    const activeZone16 = getActiveZone16(heading);
+    const activeAntar = getActiveAntarDevata(heading);
     const elem = VASTU_DATA.ELEMENTS[activeZone8.element];
     const dict = VASTU_DATA.UI[currentLang] || VASTU_DATA.UI.en;
+    const toggleGridEl = document.getElementById('toggle-vastu-grid');
+    const isGridActive = !!(toggleGridEl && toggleGridEl.checked);
 
-    const isZoneChanged = activeZone8.code !== cachedInspectorZone ||
+    // Update Shastric Lineage & Antar-Devata Header Pills
+    const shastraLineageBadge = document.getElementById('shastraLineageBadge');
+    const shastraAntarPill = document.getElementById('shastraAntarPill');
+    if (shastraLineageBadge) {
+      if (zoneSystem === '32' || isGridActive) {
+        shastraLineageBadge.textContent = '📜 Vishwakarma Prakash • 45-Devata Mandala (Classical)';
+      } else if (zoneSystem === '16') {
+        shastraLineageBadge.textContent = '🧭 MahaVastu • 16-Zone Angular System (Modern)';
+      } else {
+        shastraLineageBadge.textContent = '📜 Vishwakarma Prakash • Ashta-Dikpala (Classical 8-Zone)';
+      }
+    }
+    if (shastraAntarPill && activeAntar) {
+      shastraAntarPill.textContent = `🕉️ Antar-Devatā: ${activeAntar.name}`;
+    }
+
+    const effectiveZoneCode = zoneSystem === '16' ? activeZone16.id : activeZone8.code;
+    const isZoneChanged = effectiveZoneCode !== cachedInspectorZone ||
                           currentLang !== cachedInspectorLang ||
                           propertyType !== cachedInspectorPropType ||
                           retailProfile !== cachedInspectorRetail;
 
     if (isZoneChanged) {
-      cachedInspectorZone = activeZone8.code;
+      cachedInspectorZone = effectiveZoneCode;
       cachedInspectorLang = currentLang;
       cachedInspectorPropType = propertyType;
       cachedInspectorRetail = retailProfile;
 
-      // Header Zone Badge & Name
-      if (inspZoneBadge) inspZoneBadge.textContent = activeZone8.code;
-      if (inspZoneName) inspZoneName.textContent = activeZone8.names[currentLang] || activeZone8.names.en;
-      if (inspSanskrit) inspSanskrit.textContent = activeZone8.sanskrit;
+      // Header Zone Badge & Name (Supports both 8-Zone Classical & 16-Zone Sub-Sectors)
+      if (zoneSystem === '16' && activeZone16) {
+        if (inspZoneBadge) inspZoneBadge.textContent = activeZone16.id;
+        if (inspZoneName) inspZoneName.textContent = activeZone16.label;
+        const attrKey = currentLang === 'en' ? 'attribute' : ('attribute' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1));
+        const attrVal = activeZone16[attrKey] || activeZone16.attribute;
+        if (inspSanskrit) inspSanskrit.textContent = `${activeZone16.sanskrit} • ${attrVal}`;
+      } else {
+        if (inspZoneBadge) inspZoneBadge.textContent = activeZone8.code;
+        if (inspZoneName) inspZoneName.textContent = activeZone8.names[currentLang] || activeZone8.names.en;
+        if (inspSanskrit) inspSanskrit.textContent = activeZone8.sanskrit;
+      }
 
       // Element Badge
       if (inspElementDot) {
@@ -1052,8 +1123,8 @@ const stabilizer = new CompassStabilizer({
       }
     }
 
-    // 32-Pada Entrance Card
-    if (zoneSystem === '32') {
+    // 45-Devata Mandala & 32-Pada Entrance Card (Active in 32-Pada mode or 81-Grid mode)
+    if (zoneSystem === '32' || isGridActive) {
       if (padaEntranceCard) padaEntranceCard.classList.remove('hidden');
       const activePada = getActivePada32(heading);
       if (activePada.id !== cachedInspectorPada || currentLang !== cachedInspectorLang) {
@@ -1077,6 +1148,16 @@ const stabilizer = new CompassStabilizer({
 
         const effectProp = 'effect' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
         if (padaEffectText) padaEffectText.textContent = activePada[effectProp] || activePada.effectEn;
+
+        // Populate 12 Antar-Devata (Inner 45-Devata Mandala Ring)
+        if (activeAntar) {
+          const antarNameEl = document.getElementById('antarDevataName');
+          const antarPadasEl = document.getElementById('antarDevataPadas');
+          const antarEffectEl = document.getElementById('antarDevataEffect');
+          if (antarNameEl) antarNameEl.textContent = activeAntar.name;
+          if (antarPadasEl) antarPadasEl.textContent = `${activeAntar.padas} Padas • ${activeAntar.ring}`;
+          if (antarEffectEl) antarEffectEl.textContent = activeAntar.effect[currentLang] || activeAntar.effect.en;
+        }
       }
 
       if (hapticsEnabled && activePada.grade === 'A' && lastVibratedPada !== activePada.id) {
@@ -2312,6 +2393,46 @@ const stabilizer = new CompassStabilizer({
     showToast('Room Finder cleared');
   }
 
+  // --- Vishwakarma Prakash Field Diagnostics Evaluator (Bhumi-Plava, Dvara-Vedha & Vithi-Shula) ---
+  function updateShastraDiagnosticsUI() {
+    const diagData = VASTU_DATA.SHASTRA_DIAGNOSTICS;
+    if (!diagData) return;
+
+    const selPlava = document.getElementById('selectBhumiPlava');
+    const selVedha = document.getElementById('selectDvaraVedha');
+    const selShula = document.getElementById('selectVithiShula');
+    const verdictEl = document.getElementById('shastraDiagnosticVerdict');
+    const reportDiagEl = document.getElementById('reportShastraDiagnostics');
+
+    const plavaKey = (selPlava && selPlava.value) || 'NE_SLOPE';
+    const vedhaKey = (selVedha && selVedha.value) || 'NONE';
+    const shulaKey = (selShula && selShula.value) || 'NONE';
+
+    const plavaObj = diagData.BHUMI_PLAVA[plavaKey] || diagData.BHUMI_PLAVA.NE_SLOPE;
+    const vedhaObj = diagData.DVARA_VEDHA[vedhaKey] || diagData.DVARA_VEDHA.NONE;
+    const shulaObj = diagData.VITHI_SHULA[shulaKey] || diagData.VITHI_SHULA.NONE;
+
+    if (reportDiagEl) {
+      reportDiagEl.textContent = `${plavaObj.badge} • ${vedhaObj.badge} • ${shulaObj.badge}`;
+    }
+
+    const hasDosha = plavaObj.status === 'dosha' || vedhaObj.status === 'dosha' || shulaObj.status === 'dosha' || shulaObj.status === 'warning';
+    if (verdictEl) {
+      verdictEl.classList.toggle('has-dosha', hasDosha);
+      let notes = [];
+      notes.push(`<div><strong>1. Slope (${plavaObj.badge}):</strong> ${plavaObj.verdict}</div>`);
+      if (vedhaKey !== 'NONE') {
+        notes.push(`<div style="margin-top:4px;"><strong>2. Door Vedha (${vedhaObj.badge}):</strong> ${vedhaObj.verdict}</div>`);
+      } else {
+        notes.push(`<div style="margin-top:4px;"><strong>2. Door Threshold (${vedhaObj.badge}):</strong> Clear unobstructed entrance.</div>`);
+      }
+      if (shulaKey !== 'NONE') {
+        notes.push(`<div style="margin-top:4px;"><strong>3. Road Thrust (${shulaObj.badge}):</strong> ${shulaObj.verdict}</div>`);
+      }
+      verdictEl.innerHTML = notes.join('');
+    }
+  }
+
   // --- Vastu Inspection Audit Report Generator ---
   function openAuditModal() {
     renderSiteWalkthroughUI();
@@ -2329,12 +2450,16 @@ const stabilizer = new CompassStabilizer({
     const lng = gpsLng.textContent;
     reportGps.textContent = `${lat}, ${lng}`;
 
-    if (zoneSystem === '32') {
-      const activePada = getActivePada32(currentHeading);
-      reportDoor.textContent = `${activePada.id} ${activePada.devata} (${activePada.grade === 'A' ? 'Auspicious' : 'Neutral/Avoid'})`;
-    } else {
-      reportDoor.textContent = 'Switch to 32-Pada mode for door analysis';
+    const activePada = getActivePada32(currentHeading);
+    const activeAntar = getActiveAntarDevata(currentHeading);
+    if (reportDoor) {
+      reportDoor.textContent = `${activePada.id} ${activePada.devata} (Grade ${activePada.grade} — ${activePada.grade === 'A' ? 'Auspicious' : (activePada.grade === 'B' ? 'Neutral' : 'Avoid')})`;
     }
+    const reportAntarDevata = document.getElementById('reportAntarDevata');
+    if (reportAntarDevata && activeAntar) {
+      reportAntarDevata.textContent = `${activeAntar.name} (${activeAntar.ring})`;
+    }
+    updateShastraDiagnosticsUI();
 
     const currentRoomObj = activeRoom;
     const dirName = activeZone8.names[currentLang] || activeZone8.names.en;
@@ -2409,7 +2534,9 @@ Presented by KUBERAN Silks (https://kuberansilks.com/)
 🕉️ Vastu Zone: ${activeZone8.names[currentLang] || activeZone8.names.en} (${activeZone8.sanskrit})
 🌊 Element: ${elem.names[currentLang] || elem.names.en}
 👑 Ruling Deity: ${activeZone8.deityNames[currentLang] || activeZone8.deityNames.en}
-🚪 32-Pada Devata: ${activePada.id} - ${activePada.devata} [Grade ${activePada.grade}]
+🚪 32-Pada Outer Door Deity: ${activePada.id} - ${activePada.devata} [Grade ${activePada.grade}]
+🕉️ 45-Chakra Inner Deity: ${getActiveAntarDevata(currentHeading) ? getActiveAntarDevata(currentHeading).name : 'Aryamā'}
+📜 Shastra Diagnostics (Plava/Vedha): ${document.getElementById('reportShastraDiagnostics') ? document.getElementById('reportShastraDiagnostics').textContent : 'Śubha Plava • Śuddha-Dvāra'}
 📍 GPS Coordinates: ${gpsLat.textContent}, ${gpsLng.textContent}
 ⛰️ Altitude: ${gpsAlt.textContent}${commercialText}
 
@@ -2455,95 +2582,176 @@ https://kuberansilks.com/`;
     });
   }
 
-  if (btnCalculateAyadi) {
-    btnCalculateAyadi.addEventListener('click', () => {
-      const l = parseFloat(ayadiLength.value);
-      const w = parseFloat(ayadiWidth.value);
-      
-      if (isNaN(l) || isNaN(w) || l <= 0 || w <= 0) {
-        showToast('Please enter valid length and width');
-        return;
+  function runAyadiCalculation() {
+    const l = parseFloat(ayadiLength.value);
+    const w = parseFloat(ayadiWidth.value);
+
+    if (isNaN(l) || isNaN(w) || l <= 0 || w <= 0) {
+      showToast('Please enter valid length and width');
+      return;
+    }
+
+    const traditionSelect = document.getElementById('ayadiTraditionSelect');
+    const tradition = (traditionSelect && traditionSelect.value) || 'vishwakarma';
+
+    // Convert feet to Hastas (1 Hasta = 18 inches = 1.5 feet per Vishwakarma Prakash & Manasara)
+    const hastaL = l / 1.5;
+    const hastaW = w / 1.5;
+    const perimeter = Math.round(2 * (hastaL + hastaW));
+    const area = Math.round(hastaL * hastaW);
+
+    if (perimeter <= 0 || area <= 0) {
+      showToast('Dimensions too small to calculate');
+      return;
+    }
+
+    // Pinda (Base Measure): Kshetraphala (Area) in Vishwakarma Prakash vs Paridhi (Perimeter) in Manasara
+    const pinda = (tradition === 'vishwakarma') ? area : perimeter;
+    const pindaLabel = (tradition === 'vishwakarma')
+      ? `Kṣetraphala (Area = ${area} sq. Hastas)`
+      : `Paridhi (Perimeter = ${perimeter} Hastas)`;
+
+    // Classical Ayadi Saptavarga / Shadvarga Formulas
+    const aaya = ((pinda * 8) % 12) || 12;          // 1. Aaya (Income / Gain)
+    const vyaya = ((pinda * 9) % 10) || 10;         // 2. Vyaya (Expenditure / Loss)
+    let yoni = ((pinda * 3) % 8);                   // 3. Yoni (Cosmic Orientation)
+    if (yoni === 0) yoni = 8;
+    const grihaAyu = ((area * 8) % 120) || 120;     // 4. Griha-Ayu (Building Lifespan in Years per Vishwakarma Prakash)
+    const nakshatra = ((pinda * 8) % 27) || 27;     // 5. Nakshatra (Lunar Mansion)
+    const vaara = ((pinda * 9) % 7) || 7;           // 6. Vaara (Solar Day)
+    const tithi = ((pinda * 8) % 30) || 30;         // 7. Tithi (Lunar Day)
+
+    const yoniNames = {
+      1: 'Dhvaja (Flag - East)',
+      2: 'Dhūma (Smoke - SE)',
+      3: 'Siṃha (Lion - South)',
+      4: 'Śvā (Dog - SW)',
+      5: 'Vṛṣabha (Bull - West)',
+      6: 'Khara (Donkey - NW)',
+      7: 'Gaja (Elephant - North)',
+      8: 'Kāka (Crow - NE)'
+    };
+    const yoniAuspicious = {1: true, 3: true, 5: true, 7: true, 2: false, 4: false, 6: false, 8: false};
+    const isDirghayu = grihaAyu >= 60;
+
+    const nakshatraNames = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','P.Phalguni','U.Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','P.Ashadha','U.Ashadha','Shravana','Dhanishta','Shatabhisha','P.Bhadrapada','U.Bhadrapada','Revati'];
+    const vaaraNames = ['', 'Sunday (Ravi)', 'Monday (Soma)', 'Tuesday (Mangal)', 'Wednesday (Budha)', 'Thursday (Guru)', 'Friday (Shukra)', 'Saturday (Shani)'];
+
+    let html = '';
+
+    // Input & Tradition Summary
+    html += `<p style="opacity:0.85; font-size:0.82rem; margin-bottom:10px; padding:6px 8px; background:rgba(212,163,89,0.1); border-radius:6px;">
+      <strong>Tradition:</strong> ${tradition === 'vishwakarma' ? '📜 Vishwakarma Prakash (Kṣetraphala)' : '🏛️ Manasara Shilpa Shastra (Paridhi)'}<br>
+      <strong>Dimensions:</strong> ${l}ft × ${w}ft → ${hastaL.toFixed(1)} × ${hastaW.toFixed(1)} Hastas (1 Hasta = 18")<br>
+      <strong>Base Piṇḍa:</strong> ${pindaLabel}
+    </p>`;
+
+    // 1. Aaya vs Vyaya
+    html += `<p><strong>1. Āya (Income):</strong> ${aaya}/12 &nbsp;|&nbsp; <strong>2. Vyaya (Expense):</strong> ${vyaya}/10</p>`;
+    if (aaya > vyaya) {
+      html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ <strong>Dhana-Vṛddhi (Net Positive Gain):</strong> Āya exceeds Vyaya (+ ${aaya - vyaya} surplus).</p>`;
+    } else if (aaya === vyaya) {
+      html += `<p style="color:#fde68a; margin-bottom:10px;">⚠️ <strong>Sama (Neutral):</strong> Income equals Expense.</p>`;
+    } else {
+      html += `<p style="color:#fca5a5; margin-bottom:10px;">❌ <strong>Vyaya-Adhikya (Loss):</strong> Expense exceeds Income. Adjust length/width by ±0.5 ft.</p>`;
+    }
+
+    // 2. Yoni
+    html += `<p><strong>3. Yoni (Cosmic Direction):</strong> ${yoni} — ${yoniNames[yoni]}</p>`;
+    if (yoniAuspicious[yoni]) {
+      html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ <strong>Śubha Yoni:</strong> Odd-numbered Yoni brings stability and prosperity.</p>`;
+    } else {
+      html += `<p style="color:#fca5a5; margin-bottom:10px;">❌ <strong>Ugra/Asura Yoni:</strong> Even-numbered Yoni causes friction and obstacles.</p>`;
+    }
+
+    // 3. Griha-Ayu (Building Lifespan per Vishwakarma Prakash)
+    html += `<p><strong>4. Gṛha-Āyu (Building Lifespan):</strong> ${grihaAyu} / 120 Years</p>`;
+    if (isDirghayu) {
+      html += `<p style="color:#a7f3d0; margin-bottom:10px;">✅ <strong>Dīrghāyu (Long-Lived ≥ 60 yrs):</strong> Enduring multi-generational prosperity.</p>`;
+    } else {
+      html += `<p style="color:#fde68a; margin-bottom:10px;">⚠️ <strong>Alpāyu (< 60 yrs):</strong> Moderate longevity; slight dimension adjustment recommended.</p>`;
+    }
+
+    // 4. Nakshatra, Vaara, Tithi
+    html += `<p><strong>5. Nakṣatra:</strong> ${nakshatra} — ${nakshatraNames[(nakshatra - 1) % 27]} &nbsp;|&nbsp; <strong>6. Vāra:</strong> ${vaaraNames[vaara]} &nbsp;|&nbsp; <strong>7. Tithi:</strong> ${tithi}</p>`;
+
+    // Overall Verdict & Badge Sync
+    const score = (aaya > vyaya ? 1 : 0) + (yoniAuspicious[yoni] ? 1 : 0) + (isDirghayu ? 1 : 0);
+    const overallBadge = document.getElementById('ayadiOverallBadge');
+    if (score === 3) {
+      if (overallBadge) {
+        overallBadge.textContent = '🕉️ SUPREME SHASTRA ALIGNMENT (3/3)';
+        overallBadge.style.color = '#a7f3d0';
       }
-
-      // Convert feet to Hastas (1 Hasta = 18 inches = 1.5 feet per Manasara/Mayamatam)
-      const hastaL = l / 1.5;
-      const hastaW = w / 1.5;
-      const perimeter = Math.round(2 * (hastaL + hastaW));
-      const area = Math.round(hastaL * hastaW);
-
-      if (perimeter <= 0 || area <= 0) {
-        showToast('Dimensions too small to calculate');
-        return;
+      html += `<div style="margin-top:12px; padding:10px; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:8px;"><strong style="color:#a7f3d0;">🕉️ OVERALL: HIGHLY AUSPICIOUS (3/3)</strong><br><span style="font-size:0.82rem;">Āya > Vyaya, Auspicious Odd Yoni, and Dīrghāyu (${grihaAyu} yrs) are all fulfilled per Vishwakarma Prakash.</span></div>`;
+    } else if (score === 2) {
+      if (overallBadge) {
+        overallBadge.textContent = '✅ AUSPICIOUS (2/3)';
+        overallBadge.style.color = '#fde68a';
       }
-
-      // Ayadi Shadvarga Formulas (Perimeter-based per Manasara Shilpa Shastra)
-      // Using perimeter (Paridhi) which is the primary input in classical texts
-      const aaya = ((perimeter * 8) % 12) || 12;     // Aaya (Income/Growth)
-      const vyaya = ((perimeter * 9) % 10) || 10;    // Vyaya (Expenditure/Loss)
-      let yoni = ((perimeter * 3) % 8);               // Yoni (Cosmic Orientation)
-      if (yoni === 0) yoni = 8;
-      const nakshatra = ((perimeter * 8) % 27) || 27; // Nakshatra (Lunar Mansion)
-      const vaara = ((perimeter * 9) % 7) || 7;       // Vaara (Day of the Week)
-      const tithi = ((perimeter * 8) % 30) || 30;     // Tithi (Lunar Day)
-
-      const yoniNames = {
-        1: 'Dhvaja (Flag - East)',
-        2: 'Dhuma (Smoke - SE)',
-        3: 'Simha (Lion - South)',
-        4: 'Shva (Dog - SW)',
-        5: 'Vrshabha (Bull - West)',
-        6: 'Khara (Donkey - NW)',
-        7: 'Gaja (Elephant - North)',
-        8: 'Kaka (Crow - NE)'
-      };
-      const yoniAuspicious = {1: true, 3: true, 5: true, 7: true, 2: false, 4: false, 6: false, 8: false};
-
-      const nakshatraNames = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','P.Phalguni','U.Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','P.Ashadha','U.Ashadha','Shravana','Dhanishta','Shatabhisha','P.Bhadrapada','U.Bhadrapada','Revati'];
-      const vaaraNames = ['', 'Sunday (Ravi)', 'Monday (Soma)', 'Tuesday (Mangal)', 'Wednesday (Budha)', 'Thursday (Guru)', 'Friday (Shukra)', 'Saturday (Shani)'];
-
-      let html = '';
-
-      // Input Summary
-      html += `<p style="opacity:0.7; font-size:0.85rem; margin-bottom:10px;">Dimensions: ${l}ft × ${w}ft → ${hastaL.toFixed(1)} × ${hastaW.toFixed(1)} Hastas (1 Hasta = 18")<br>Perimeter: ${perimeter} Hastas · Area: ${area} sq. Hastas</p>`;
-
-      // Aaya vs Vyaya
-      html += `<p><strong>Aaya (Income):</strong> ${aaya} &nbsp;|&nbsp; <strong>Vyaya (Expense):</strong> ${vyaya}</p>`;
-      if (aaya > vyaya) {
-        html += `<p style="color:#a7f3d0; margin-bottom:12px;">✅ <strong>Auspicious</strong> — Income exceeds Expense (Prosperity indicated)</p>`;
-      } else if (aaya === vyaya) {
-        html += `<p style="color:#fde68a; margin-bottom:12px;">⚠️ <strong>Neutral</strong> — Income equals Expense (No net gain or loss)</p>`;
-      } else {
-        html += `<p style="color:#fca5a5; margin-bottom:12px;">❌ <strong>Inauspicious</strong> — Expense exceeds Income. Adjust dimensions by ±6 inches and recalculate.</p>`;
+      html += `<div style="margin-top:12px; padding:10px; background:rgba(253,230,138,0.15); border:1px solid #fde68a; border-radius:8px;"><strong style="color:#fde68a;">✅ OVERALL: FAVORABLE (2/3 PARAMETERS MET)</strong><br><span style="font-size:0.82rem;">Two of three primary proportions are auspicious. Adjust by ±0.5 ft if you wish to achieve 3/3 perfection.</span></div>`;
+    } else {
+      if (overallBadge) {
+        overallBadge.textContent = '❌ ADJUSTMENT NEEDED';
+        overallBadge.style.color = '#fca5a5';
       }
+      html += `<div style="margin-top:12px; padding:10px; background:rgba(252,165,165,0.15); border:1px solid #fca5a5; border-radius:8px;"><strong style="color:#fca5a5;">❌ OVERALL: INAUSPICIOUS PROPORTIONS</strong><br><span style="font-size:0.82rem;">Use the + / - steppers above to adjust Length or Width by 0.5 ft until Āya > Vyaya and Yoni is Odd (1, 3, 5, or 7).</span></div>`;
+    }
 
-      // Yoni
-      html += `<p><strong>Yoni:</strong> ${yoni} — ${yoniNames[yoni]}</p>`;
-      if (yoniAuspicious[yoni]) {
-        html += `<p style="color:#a7f3d0; margin-bottom:12px;">✅ Auspicious Yoni (Odd-numbered Yonis bring prosperity)</p>`;
-      } else {
-        html += `<p style="color:#fca5a5; margin-bottom:12px;">❌ Inauspicious Yoni (Even-numbered Yonis bring hardship)</p>`;
+    // If score < 3, automatically search nearby dimensions (±0.5ft to ±3.0ft) for a 3/3 Supreme Shastric match
+    if (score < 3) {
+      let bestMatch = null;
+      let minDelta = 999;
+      for (let dl = -3; dl <= 3; dl += 0.5) {
+        for (let dw = -3; dw <= 3; dw += 0.5) {
+          const candL = l + dl;
+          const candW = w + dw;
+          if (candL <= 3 || candW <= 3) continue;
+          const hL = candL / 1.5;
+          const hW = candW / 1.5;
+          const cPerim = Math.round(2 * (hL + hW));
+          const cArea = Math.round(hL * hW);
+          const cPinda = (tradition === 'vishwakarma') ? cArea : cPerim;
+          const cAaya = ((cPinda * 8) % 12) || 12;
+          const cVyaya = ((cPinda * 9) % 10) || 10;
+          const cYoni = ((cPinda * 3) % 8) || 8;
+          const cAyu = ((cArea * 8) % 120) || 120;
+          if (cAaya > cVyaya && yoniAuspicious[cYoni] && cAyu >= 60) {
+            const dist = Math.abs(dl) + Math.abs(dw);
+            if (dist > 0 && dist < minDelta) {
+              minDelta = dist;
+              bestMatch = { l: candL, w: candW, aaya: cAaya, vyaya: cVyaya, yoni: cYoni, ayu: cAyu };
+            }
+          }
+        }
       }
-
-      // Nakshatra, Vaara, Tithi
-      html += `<p><strong>Nakshatra:</strong> ${nakshatra} — ${nakshatraNames[(nakshatra - 1) % 27]}</p>`;
-      html += `<p><strong>Vaara (Day):</strong> ${vaaraNames[vaara]}</p>`;
-      html += `<p><strong>Tithi:</strong> ${tithi}</p>`;
-
-      // Overall Verdict
-      const score = (aaya > vyaya ? 1 : 0) + (yoniAuspicious[yoni] ? 1 : 0);
-      if (score === 2) {
-        html += `<div style="margin-top:15px; padding:10px; background:rgba(167,243,208,0.15); border:1px solid #a7f3d0; border-radius:8px;"><strong style="color:#a7f3d0;">🕉️ OVERALL: HIGHLY AUSPICIOUS</strong><br><span style="font-size:0.85rem;">These dimensions are cosmically aligned. Proceed with construction.</span></div>`;
-      } else if (score === 1) {
-        html += `<div style="margin-top:15px; padding:10px; background:rgba(253,230,138,0.15); border:1px solid #fde68a; border-radius:8px;"><strong style="color:#fde68a;">⚠️ OVERALL: PARTIALLY AUSPICIOUS</strong><br><span style="font-size:0.85rem;">One parameter is unfavorable. Consider adjusting dimensions by small increments.</span></div>`;
-      } else {
-        html += `<div style="margin-top:15px; padding:10px; background:rgba(252,165,165,0.15); border:1px solid #fca5a5; border-radius:8px;"><strong style="color:#fca5a5;">❌ OVERALL: INAUSPICIOUS</strong><br><span style="font-size:0.85rem;">Both Aaya and Yoni are unfavorable. Strongly recommended to adjust the building dimensions.</span></div>`;
+      if (bestMatch) {
+        html += `<div style="margin-top:8px; padding:8px 10px; background:rgba(212,163,89,0.14); border:1px dashed var(--kuberan-gold); border-radius:8px; font-size:0.78rem;">
+          💡 <strong>Vishwakarma Shastra Suggestion:</strong> Adjusting to <strong>${bestMatch.l.toFixed(1)} ft × ${bestMatch.w.toFixed(1)} ft</strong> achieves <strong>3/3 Supreme Alignment</strong> (Āya ${bestMatch.aaya} > Vyaya ${bestMatch.vyaya}, ${yoniNames[bestMatch.yoni]}, Gṛha-Āyu ${bestMatch.ayu} yrs).
+          <button type="button" id="btnApplyBestAyadi" data-l="${bestMatch.l}" data-w="${bestMatch.w}" style="margin-left:6px; padding:2px 8px; border-radius:6px; border:1px solid var(--kuberan-gold); background:rgba(212,163,89,0.25); color:#fff; font-weight:700; cursor:pointer; font-size:0.72rem;">Apply ${bestMatch.l}×${bestMatch.w}ft</button>
+        </div>`;
       }
+    }
 
-      ayadiReportContent.innerHTML = html;
-      ayadiResults.classList.remove('hidden');
-    });
+    ayadiReportContent.innerHTML = html;
+    ayadiResults.classList.remove('hidden');
+    const btnApplyBest = document.getElementById('btnApplyBestAyadi');
+    if (btnApplyBest) {
+      btnApplyBest.addEventListener('click', () => {
+        ayadiLength.value = btnApplyBest.dataset.l;
+        ayadiWidth.value = btnApplyBest.dataset.w;
+        runAyadiCalculation();
+      });
+    }
   }
 
+  if (btnCalculateAyadi) {
+    btnCalculateAyadi.addEventListener('click', runAyadiCalculation);
+  }
+  const ayadiTraditionSelectEl = document.getElementById('ayadiTraditionSelect');
+  if (ayadiTraditionSelectEl) {
+    ayadiTraditionSelectEl.addEventListener('change', runAyadiCalculation);
+  }
 
   // ═══ §14 EVENTS ═══════════════════════════════════════════════
   // All event listener bindings.
@@ -2590,8 +2798,11 @@ https://kuberansilks.com/`;
         btnQuickGrid.classList.toggle('active', isNowOn);
         if (toggleGridListener) toggleGridListener.checked = isNowOn;
         localStorage.setItem('kuberan_vastu_grid', isNowOn);
-        requestAnimationFrame(() => buildDialSvg());
-        showToast(isNowOn ? 'Vastu Purusha Mandala Grid Active' : 'Grid Overlay Hidden');
+        requestAnimationFrame(() => {
+          buildDialSvg();
+          updateVastuInspector(currentHeading);
+        });
+        showToast(isNowOn ? '81-Pada & 45-Devata Mandala Grid Active' : 'Grid Overlay Hidden');
       });
     }
 
@@ -2966,8 +3177,10 @@ https://kuberansilks.com/`;
           inspectorExpandContent.classList.add('hidden');
           btnToggleInspectorDetails.classList.remove('open');
         } else {
-          // Populate Drawer with remedies & commercial details
+          // Populate Drawer with remedies, 45-Devata Antar-Devata & Bhumi-Plava rules
           const activeZ = getActiveZone8(currentHeading);
+          const activeAntar = getActiveAntarDevata(currentHeading);
+          const activePada = getActivePada32(currentHeading);
           const elem = VASTU_DATA.ELEMENTS[activeZ.element];
           let drawerHtml = `
             <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
@@ -2975,6 +3188,16 @@ https://kuberansilks.com/`;
               Keep this sector balanced with ${elem.names.en} attributes. Avoid clutter and incompatible elemental conflicts.
             </div>
           `;
+          if (activeAntar && activePada) {
+            drawerHtml += `
+              <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(212,163,89,0.2); font-size:0.74rem; color:#e2e8f0; line-height:1.4;">
+                <strong style="color:var(--kuberan-gold); display:block; margin-bottom:2px;">📜 Vishwakarma 45-Devata Mandala & Slope Rule</strong>
+                • <strong>Outer Door Pada (32):</strong> ${activePada.id} ${activePada.devata} (Grade ${activePada.grade})<br>
+                • <strong>Inner Deity (12-Antar):</strong> ${activeAntar.name} — ${activeAntar.effect[currentLang] || activeAntar.effect.en}<br>
+                • <strong>Bhūmi-Plava (Slope):</strong> Floor/water must slope down toward North/East (Īśānya) and remain elevated in South-West (Nairṛtya).
+              </div>
+            `;
+          }
           if (inspectorDrawerInner) inspectorDrawerInner.innerHTML = drawerHtml;
           inspectorExpandContent.classList.remove('hidden');
           btnToggleInspectorDetails.classList.add('open');
@@ -2993,27 +3216,38 @@ https://kuberansilks.com/`;
     if (btnStepLengthMinus && ayadiLengthInput) {
       btnStepLengthMinus.addEventListener('click', () => {
         let val = parseFloat(ayadiLengthInput.value) || 0;
-        if (val > 1) { ayadiLengthInput.value = (val - 0.5).toFixed(1); }
+        if (val > 1) { ayadiLengthInput.value = (val - 0.5).toFixed(1); if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation(); }
       });
     }
     if (btnStepLengthPlus && ayadiLengthInput) {
       btnStepLengthPlus.addEventListener('click', () => {
         let val = parseFloat(ayadiLengthInput.value) || 0;
-        ayadiLengthInput.value = (val + 0.5).toFixed(1);
+        ayadiLengthInput.value = (val + 0.5).toFixed(1); if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation();
       });
     }
     if (btnStepWidthMinus && ayadiWidthInput) {
       btnStepWidthMinus.addEventListener('click', () => {
         let val = parseFloat(ayadiWidthInput.value) || 0;
-        if (val > 1) { ayadiWidthInput.value = (val - 0.5).toFixed(1); }
+        if (val > 1) { ayadiWidthInput.value = (val - 0.5).toFixed(1); if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation(); }
       });
     }
     if (btnStepWidthPlus && ayadiWidthInput) {
       btnStepWidthPlus.addEventListener('click', () => {
         let val = parseFloat(ayadiWidthInput.value) || 0;
         ayadiWidthInput.value = (val + 0.5).toFixed(1);
+        if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation();
       });
     }
+
+    // Vishwakarma Prakash Field Diagnostics Listeners (Bhumi-Plava, Dvara-Vedha, Vithi-Shula)
+    ['selectBhumiPlava', 'selectDvaraVedha', 'selectVithiShula'].forEach(selId => {
+      const selEl = document.getElementById(selId);
+      if (selEl) {
+        selEl.addEventListener('change', () => {
+          updateShastraDiagnosticsUI();
+        });
+      }
+    });
 
     // Print Certificate Button in Audit Modal
     const btnPrintCertificate = document.getElementById('btnPrintCertificate');
