@@ -6,7 +6,7 @@
   <title>KUBERAN Vastu Compass - Vedic Architecture & Precision Compass</title>
 
   <!-- PWA Settings -->
-  <link rel="manifest" href="manifest.webmanifest?v=5.5.0">
+  <link rel="manifest" href="manifest.webmanifest?v=5.7.0">
   <meta name="theme-color" content="#08111e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,19 +16,19 @@
   <!-- Social & Preview Cards -->
   <meta property="og:title" content="KUBERAN Vastu Compass">
   <meta property="og:description" content="Vedic Vastu Shastra & Precision Mobile Compass by Kuberan Silks">
-  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.5.0">
+  <meta property="og:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.7.0">
   <meta property="og:url" content="https://jee1vk.github.io/kuberan-vastu-compass-app/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.5.0">
+  <meta name="twitter:image" content="https://jee1vk.github.io/kuberan-vastu-compass-app/icon-512.png?v=5.7.0">
 
   <!-- Icons & Favicon -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.6.2">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.6.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5.6.2">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=5.6.2">
-  <link rel="shortcut icon" href="icon-192.png?v=5.6.2">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5.7.0">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5.7.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5.7.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=5.7.0">
+  <link rel="shortcut icon" href="icon-192.png?v=5.7.0">
 
-  <link rel="stylesheet" href="style.css?v=5.6.2">
+  <link rel="stylesheet" href="style.css?v=5.7.0">
 </head>
 <body class="theme-marine theme-elemental">
   <!-- Status / Safe Area Bar -->
@@ -57,6 +57,10 @@
         </div>
 
         <div class="ar-top-right-actions">
+          <button id="btnArFreezeFs" class="ar-icon-pill" title="Freeze AR Compass Reading" aria-label="Freeze AR Reading">
+            <span class="ar-icon">❄️</span>
+            <span id="arFreezeFsText" class="ar-pill-label">Freeze</span>
+          </button>
           <button id="btnArTorchFs" class="ar-icon-pill" title="Toggle Flashlight Torch" aria-label="Toggle Torch">
             <span class="ar-icon">🔦</span>
             <span id="arTorchFsText" class="ar-pill-label">Torch</span>
@@ -228,6 +232,11 @@
           <span id="freezePillText" class="freeze-text">FREEZE</span>
         </button>
 
+        <button id="btnPrecisionSample" class="readout-aux-pill btn-precision-pill" title="5-Second Circular Mean Survey Lock (eliminates hand jitter & spikes)" aria-label="5-Second Survey Lock">
+          <span class="precision-icon">🎯</span>
+          <span id="precisionPillText" class="precision-text">5s LOCK</span>
+        </button>
+
         <div class="readout-aux-pill level-hud-badge" id="levelHudBadge" title="Surface Level Tilt Status">
           <span class="level-hud-dot"></span>
           <span id="levelHudText">0.0° LEVEL</span>
@@ -316,7 +325,7 @@
         <div id="cameraScrim" class="camera-scrim hidden"></div>
 
         <!-- Target Marker Flag (stays on target heading) -->
-        <div class="target-marker-ring" id="targetMarkerRing">
+        <div class="target-marker-ring hidden" id="targetMarkerRing">
           <div class="target-marker-flag" id="targetFlag"></div>
         </div>
 
@@ -1051,6 +1060,10 @@
           <button class="btn-set-north" id="btnZeroToNorth">
             🎯 <span id="lblBtnZeroToNorth">Set Current Heading as True Reference</span>
           </button>
+
+          <button class="btn-set-north btn-solar-cal" id="btnCalibrateToSun" style="margin-top:8px;">
+            ☀️ <span id="lblBtnCalibrateToSun">Śaṅku-Chāyā: Calibrate to Sun Azimuth (0.2° Astronomical True North)</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1242,7 +1255,7 @@
         </div>
 
         <div class="app-version">
-          <span>KUBERAN Vastu Compass v5.6.2 • Vedic Edition</span>
+          <span>KUBERAN Vastu Compass v5.7.0 • Vedic Edition</span>
           <a id="githubRepoLink" href="https://github.com/Jee1VK/kuberan-vastu-compass-app" target="_blank" rel="noopener noreferrer">Download on GitHub</a>
         </div>
       </div>
@@ -1304,14 +1317,12 @@
       </div>
     </div>
   </div>
-    </div>
-  </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js"></script>
-  <script src="vastu-data.js?v=5.6.2"></script>
-  <script src="qrcode.min.js?v=5.6.2"></script>
-  <script src="app.js?v=5.6.2"></script>
+  <script src="vastu-data.js?v=5.7.0"></script>
+  <script src="qrcode.min.js?v=5.7.0"></script>
+  <script src="app.js?v=5.7.0"></script>
 </body>
 </html>
 

@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.6.2
+ * KUBERAN VASTU COMPASS APP v5.7.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -77,6 +77,11 @@
   // v5.5.0 Field Powerhouse States
   let isHeadingFrozen = false;
   let frozenHeadingVal = null;
+  let isPrecisionSampling = false;
+  let precisionSamples = [];
+  let precisionSampleTimer = null;
+  let precisionSampleCountdown = null;
+  let precisionConfidenceDeg = null;
   let isArTorchOn = false;
   let isArExpanded = false;
   let siteWalkthroughLogs = [];
@@ -405,8 +410,18 @@ class CompassStabilizer {
             return;
         }
 
-        // Accumulate angle to prevent CSS backward spinning
-        this.currentHeading = this.currentHeading + delta * this.alpha;
+        // Accumulate angle to prevent CSS backward spinning (Tilt-Aware Weighting: dampen when tilted)
+        const arOverlayEl = document.getElementById('arFullscreenOverlay');
+        const isArMode = arOverlayEl && !arOverlayEl.classList.contains('hidden');
+        const flatTilt = Math.max(Math.abs(pitch || 0), Math.abs(roll || 0));
+        let effectiveAlpha = this.alpha;
+        if (!isArMode) {
+            if (flatTilt <= 3) effectiveAlpha = 0.16;       // Crisp response when held flat & level
+            else if (flatTilt <= 10) effectiveAlpha = 0.12; // Normal hand-held damping
+            else if (flatTilt <= 20) effectiveAlpha = 0.06; // Heavy damping against Z-axis rebar leakage
+            else effectiveAlpha = 0.035;                    // Maximum protection when steeply tilted
+        }
+        this.currentHeading = this.currentHeading + delta * effectiveAlpha;
 
         if (Math.abs(this.currentHeading - this.lastRenderedHeading) >= 0.1) {
             this.lastRenderedHeading = this.currentHeading;
@@ -1291,8 +1306,10 @@ const stabilizer = new CompassStabilizer({
     }
 
 
-    // Update Vastu Inspector Card
-    updateVastuInspector(displayHeading);
+    // Update Vastu Inspector Card (Preserve Tap-to-Inspect Sector Preview if active)
+    if (!previewZoneSector) {
+      updateVastuInspector(displayHeading);
+    }
 
     // If Plot Tilt Modal is open, update its real-time angle
     if (!plotTiltModal.classList.contains('hidden')) {
@@ -1348,9 +1365,14 @@ const stabilizer = new CompassStabilizer({
     if (levelHudBadge && levelHudText) {
       if (isLevel) {
         levelHudBadge.classList.add('level-locked');
+        levelHudBadge.classList.remove('tilt-warning');
         levelHudText.textContent = '0.0° LEVEL';
-      } else {
+      } else if (tiltDeg > 10) {
         levelHudBadge.classList.remove('level-locked');
+        levelHudBadge.classList.add('tilt-warning');
+        levelHudText.textContent = `⚠️ ${tiltDeg.toFixed(1)}° TILT`;
+      } else {
+        levelHudBadge.classList.remove('level-locked', 'tilt-warning');
         levelHudText.textContent = `${tiltDeg.toFixed(1)}° TILT`;
       }
     }
@@ -1373,10 +1395,25 @@ const stabilizer = new CompassStabilizer({
   }
 
   // --- Update Compass Orientation via RAF Stabilizer Engine ---
-  function updateHeading(rawHeading) {
+  function computeTrueHeadingFromRaw(rawDeg) {
+    let calibrated = rawDeg + calibrationOffset;
+    if (isTrueNorth) calibrated += magneticDeclination;
+    return ((calibrated % 360) + 360) % 360;
+  }
+
+  function updateHeading(rawHeading, forceImmediateUI = false) {
     if (typeof rawHeading === 'number' && !isNaN(rawHeading)) {
       rawMagneticHeading = ((rawHeading % 360) + 360) % 360;
+      if (isPrecisionSampling) {
+        const flatTilt = Math.max(Math.abs(pitch || 0), Math.abs(roll || 0));
+        const weight = flatTilt <= 3 ? 2.0 : (flatTilt <= 10 ? 1.0 : 0.35);
+        precisionSamples.push({ angle: computeTrueHeadingFromRaw(rawMagneticHeading), weight });
+      }
       stabilizer.updateRawHeading(rawMagneticHeading);
+      if (forceImmediateUI && !isHeadingFrozen) {
+        const base = smoothedHeading !== null ? smoothedHeading : rawMagneticHeading;
+        updateHeadingUI(computeTrueHeadingFromRaw(base));
+      }
     }
   }
 
@@ -1615,7 +1652,7 @@ const stabilizer = new CompassStabilizer({
       localStorage.setItem('kuberan-vastu-compass-offset', calibrationOffset.toString());
     } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
     updateCalibrationUI();
-    updateHeading(rawMagneticHeading);
+    updateHeading(rawMagneticHeading, true);
     showToast(`Offset: ${calibrationOffset >= 0 ? '+' : ''}${calibrationOffset.toFixed(1)}°`);
   }
 
@@ -1730,11 +1767,11 @@ const stabilizer = new CompassStabilizer({
     if (absDev <= 3.0) {
       if (plotStatusBanner) plotStatusBanner.className = 'plot-status-banner aligned';
       if (plotStatusTitle) plotStatusTitle.textContent = alignedTitle;
-      if (plotStatusDesc) plotStatusDesc.textContent = dict.plotTiltHelp || 'The property is naturally aligned with the cardinal magnetic axis (within ±3°). Highly auspicious and energetically balanced.';
+      if (plotStatusDesc) plotStatusDesc.textContent = dict.vidishaAlignedDesc || 'The property is naturally aligned with the cardinal geomagnetic axis (within ±3°). Highly auspicious and energetically balanced.';
     } else {
       if (plotStatusBanner) plotStatusBanner.className = 'plot-status-banner tilted';
       if (plotStatusTitle) plotStatusTitle.textContent = `${tiltedTitleBase} (${absDev}°)`;
-      if (plotStatusDesc) plotStatusDesc.textContent = dict.plotTiltHelp || 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, mandir, and bed axes towards Cardinal North.';
+      if (plotStatusDesc) plotStatusDesc.textContent = dict.vidishaTiltedDesc || 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, Mandir, and bed axes towards Cardinal North.';
     }
 
     // Commercial Plot Shape geometry status
@@ -1742,7 +1779,7 @@ const stabilizer = new CompassStabilizer({
     if (shapeObj && plotShapeBadge && plotShapeAdviceText) {
       plotShapeBadge.className = `shape-badge ${shapeObj.badgeClass}`;
       plotShapeBadge.textContent = shapeObj.statusLabel;
-      plotShapeAdviceText.textContent = shapeObj.commercialEffect;
+      plotShapeAdviceText.textContent = (shapeObj.descriptions && shapeObj.descriptions[currentLang]) || shapeObj.commercialEffect;
     }
   }
 
@@ -1842,18 +1879,6 @@ const stabilizer = new CompassStabilizer({
           console.warn('arVideoFull play error:', playErr);
         }
       }
-      if (cameraFeed) {
-        cameraFeed.setAttribute('playsinline', '');
-        cameraFeed.setAttribute('webkit-playsinline', '');
-        cameraFeed.muted = true;
-        cameraFeed.volume = 0;
-        cameraFeed.srcObject = stream;
-        try {
-          await cameraFeed.play();
-        } catch (playErr) {
-          console.warn('cameraFeed play error:', playErr);
-        }
-      }
 
       if (arOverlay) arOverlay.classList.remove('hidden');
       if (btnQuickAR) btnQuickAR.classList.add('active');
@@ -1882,29 +1907,34 @@ const stabilizer = new CompassStabilizer({
     const deityEl = document.getElementById('arFsDeityText');
     const adviceEl = document.getElementById('arFsAdviceText');
 
+    const dict = (VASTU_DATA && VASTU_DATA.UI && VASTU_DATA.UI[currentLang]) || VASTU_DATA.UI.en;
+    const zoneLocalName = activeZone.names[currentLang] || activeZone.names.en;
+    const elemLocalName = elem ? (elem.names[currentLang] || elem.names.en) : activeZone.element;
+
     if (degNum) degNum.textContent = Math.round(heading);
     if (cardEl) cardEl.textContent = activeZone.code;
-    if (elemEl) elemEl.textContent = (elem ? (elem.names.en + ' (' + elem.sanskrit + ')') : activeZone.element).toUpperCase();
-    if (brandSub) brandSub.textContent = activeZone.names.en + ' • ' + activeZone.sanskrit;
+    if (elemEl) elemEl.textContent = (elemLocalName + ' (' + (elem ? elem.sanskrit : '') + ')').toUpperCase();
+    if (brandSub) brandSub.textContent = zoneLocalName + ' • ' + activeZone.sanskrit;
     if (deityEl) deityEl.textContent = activeZone.deityNames[currentLang] || activeZone.deityNames.en;
 
     // Check favorability
     if (activeRoom) {
+      const rName = activeRoom.names[currentLang] || activeRoom.names.en;
       if (activeRoom.idealZones.includes(activeZone.code)) {
         if (badgeEl) {
-          badgeEl.textContent = 'AUSPICIOUS ✅ (' + (activeRoom.names[currentLang] || activeRoom.names.en) + ')';
+          badgeEl.textContent = (dict.entranceGradeA || 'AUSPICIOUS ✅') + ' (' + rName + ')';
           badgeEl.style.borderColor = '#22c55e';
           badgeEl.style.color = '#4ade80';
         }
       } else if (activeRoom.avoidZones.includes(activeZone.code)) {
         if (badgeEl) {
-          badgeEl.textContent = 'DOSHA DEFECT ❌ (' + (activeRoom.names[currentLang] || activeRoom.names.en) + ')';
+          badgeEl.textContent = (dict.entranceGradeC || 'DOSHA DEFECT ❌') + ' (' + rName + ')';
           badgeEl.style.borderColor = '#ef4444';
           badgeEl.style.color = '#fca5a5';
         }
       } else {
         if (badgeEl) {
-          badgeEl.textContent = 'NEUTRAL ⚖️';
+          badgeEl.textContent = dict.entranceGradeB || 'NEUTRAL ⚖️';
           badgeEl.style.borderColor = '#eab308';
           badgeEl.style.color = '#fde047';
         }
@@ -1912,7 +1942,7 @@ const stabilizer = new CompassStabilizer({
     } else {
       const isFav = ['NE', 'N', 'E'].includes(activeZone.code);
       if (badgeEl) {
-        badgeEl.textContent = isFav ? 'AUSPICIOUS ✅' : (activeZone.code === 'SW' ? 'HEAVY MASTER ⚖️' : 'FAVORABLE ✨');
+        badgeEl.textContent = isFav ? (dict.entranceGradeA || 'AUSPICIOUS ✅') : (activeZone.code === 'SW' ? 'NAIRṚTYA MASTER ⚖️' : (dict.favorableRooms || 'FAVORABLE ✨'));
         badgeEl.style.borderColor = isFav ? '#22c55e' : '#eab308';
         badgeEl.style.color = isFav ? '#4ade80' : '#fde047';
       }
@@ -2331,6 +2361,13 @@ const stabilizer = new CompassStabilizer({
     if (lblCheckFire) lblCheckFire.textContent = dict.fireElectricalCheck || 'Electrical Safety:';
 
     // Re-render Dial and Inspector
+    const selLangEl = document.getElementById('setting-lang');
+    if (selLangEl) selLangEl.value = langCode;
+    const lblBtnCopy = document.getElementById('lblBtnCopyReport');
+    if (lblBtnCopy && dict.copyReport) lblBtnCopy.textContent = dict.copyReport;
+    const lblBtnShare = document.getElementById('lblBtnShareReport');
+    if (lblBtnShare && dict.shareReport) lblBtnShare.textContent = dict.shareReport;
+
     buildDialSvg();
     updateVastuInspector(currentHeading);
     renderRoomsGrid();
@@ -2391,13 +2428,15 @@ const stabilizer = new CompassStabilizer({
     if (!room) return;
 
     activeRoom = room;
-    btnToolRoomFinder.classList.add('active');
-    roomGuidanceBanner.classList.remove('hidden');
+    if (btnToolRoomFinder) btnToolRoomFinder.classList.add('active');
+    const btnDockRoom = document.getElementById('btnDockRoomFinder');
+    if (btnDockRoom) btnDockRoom.classList.add('active');
+    if (roomGuidanceBanner) roomGuidanceBanner.classList.remove('hidden');
 
-    guideRoomIcon.textContent = room.icon;
-    guideRoomName.textContent = room.names[currentLang] || room.names.en;
-    guideTargetBadge.textContent = `Ideal: ${room.idealZones.join(', ')}`;
-    guideStatusText.textContent = 'Rotate device toward auspicious zone';
+    if (guideRoomIcon) guideRoomIcon.textContent = room.icon;
+    if (guideRoomName) guideRoomName.textContent = room.names[currentLang] || room.names.en;
+    if (guideTargetBadge) guideTargetBadge.textContent = `Ideal: ${room.idealZones.join(', ')}`;
+    if (guideStatusText) guideStatusText.textContent = 'Rotate device toward auspicious zone';
 
     buildDialSvg();
     updateVastuInspector(currentHeading);
@@ -2406,9 +2445,12 @@ const stabilizer = new CompassStabilizer({
 
   function clearActiveRoom() {
     activeRoom = null;
-    btnToolRoomFinder.classList.remove('active');
-    roomGuidanceBanner.classList.add('hidden');
+    if (btnToolRoomFinder) btnToolRoomFinder.classList.remove('active');
+    const btnDockRoom = document.getElementById('btnDockRoomFinder');
+    if (btnDockRoom) btnDockRoom.classList.remove('active');
+    if (roomGuidanceBanner) roomGuidanceBanner.classList.add('hidden');
     buildDialSvg();
+    updateVastuInspector(currentHeading);
     showToast('Room Finder cleared');
   }
 
@@ -2543,6 +2585,33 @@ const stabilizer = new CompassStabilizer({
 `;
     }
 
+    let walkthroughText = '';
+    if (siteWalkthroughLogs && siteWalkthroughLogs.length > 0) {
+      let auspCount = 0;
+      const lines = siteWalkthroughLogs.map((item, idx) => {
+        if (item.grade === 'auspicious') auspCount += 1;
+        else if (item.grade === 'neutral') auspCount += 0.5;
+        return `  #${idx + 1}. ${item.roomName}: ${item.heading}° ${item.zoneCode} (${item.zoneName}) — ${item.gradeLabel}`;
+      });
+      const scorePct = Math.round((auspCount / siteWalkthroughLogs.length) * 100);
+      walkthroughText = `\n🏛️ Property Site Walkthrough Scorecard (${scorePct}% Auspicious):\n${lines.join('\n')}\n`;
+    }
+
+    let remediesText = '';
+    if (activeRoom) {
+      const analysis = generateLocalVastuAnalysis(activeZone8.names[currentLang] || activeZone8.names.en, activeRoom, activeZone8.code);
+      if (analysis && !analysis.isCompliant && analysis.remedies) {
+        const allCures = [
+          ...(analysis.remedies.simple_fixes || []),
+          ...(analysis.remedies.elemental_cures || []),
+          ...(analysis.remedies.vastu_instruments || [])
+        ];
+        if (allCures.length > 0) {
+          remediesText = `\n⚡ Vastu Dosha Remedies (${analysis.room} in ${activeZone8.code}):\n• ${allCures.slice(0, 5).join('\n• ')}\n`;
+        }
+      }
+    }
+
     return `🏛️ KUBERAN VASTU COMPASS AUDIT REPORT
 -----------------------------------------
 Official Vedic Architecture Report
@@ -2557,7 +2626,7 @@ Presented by KUBERAN Silks (https://kuberansilks.com/)
 🕉️ 45-Chakra Inner Deity: ${getActiveAntarDevata(currentHeading) ? getActiveAntarDevata(currentHeading).name : 'Aryamā'}
 📜 Shastra Diagnostics (Plava/Vedha): ${document.getElementById('reportShastraDiagnostics') ? document.getElementById('reportShastraDiagnostics').textContent : 'Śubha Plava • Śuddha-Dvāra'}
 📍 GPS Coordinates: ${gpsLat.textContent}, ${gpsLng.textContent}
-⛰️ Altitude: ${gpsAlt.textContent}${commercialText}
+⛰️ Altitude: ${gpsAlt.textContent}${commercialText}${walkthroughText}${remediesText}
 
 💡 Vedic Recommendation:
 ${inspTipText.textContent || activeZone8.tips[currentLang] || activeZone8.tips.en}
@@ -2842,8 +2911,9 @@ https://kuberansilks.com/`;
         if (northPill) northPill.textContent = isTrueNorth ? 'TRU' : 'MAG';
         const radiosRef = document.getElementsByName('compass-ref');
         radiosRef.forEach(r => { if (r.value === (isTrueNorth ? 'true' : 'magnetic')) r.checked = true; });
+        if (sensorStatus) sensorStatus.textContent = isTrueNorth ? 'True North calibrated' : 'Magnetic active';
         showToast(isTrueNorth ? 'True North mode active' : 'Magnetic North mode active');
-        updateHeading(rawMagneticHeading);
+        updateHeading(rawMagneticHeading, true);
       });
     }
 
@@ -2855,6 +2925,8 @@ https://kuberansilks.com/`;
         dialTheme = DIAL_THEMES[currentDialThemeIndex];
         document.body.classList.remove('theme-elemental', 'theme-chakra', 'theme-gold');
         document.body.classList.add(`theme-${dialTheme}`);
+        const selDialEl = document.getElementById('setting-dial-style');
+        if (selDialEl) selDialEl.value = dialTheme;
         buildDialSvg();
         const themeNames = { elemental: 'Pancha Bhoota Elemental', chakra: 'Vastu Chakra Wheel', gold: 'Royal Gold' };
         showToast(`Dial Style: ${themeNames[dialTheme]}`);
@@ -2928,7 +3000,10 @@ https://kuberansilks.com/`;
     });
 
     if (btnDockAyadi) btnDockAyadi.addEventListener('click', () => {
-      if (ayadiModal) ayadiModal.classList.remove('hidden');
+      if (ayadiModal) {
+        ayadiModal.classList.remove('hidden');
+        runAyadiCalculation();
+      }
     });
 
     if (btnDockAudit) btnDockAudit.addEventListener('click', openAuditModal);
@@ -2943,27 +3018,158 @@ https://kuberansilks.com/`;
     // Sector Preview Reset Button
     
     // ─── v5.5.0 Powerhouse Event Listeners ───
-    // 1. Freeze Compass Reading Button
+    // 1. Freeze Compass Reading Button + AR Freeze Button + 5-Second Precision Survey Lock
     const btnFreezeHeading = document.getElementById('btnFreezeHeading');
     const freezePillText = document.getElementById('freezePillText');
+    const btnArFreezeFs = document.getElementById('btnArFreezeFs');
+    const arFreezeFsText = document.getElementById('arFreezeFsText');
+    const btnPrecisionSample = document.getElementById('btnPrecisionSample');
+    const precisionPillText = document.getElementById('precisionPillText');
+
+    function syncFreezeButtons() {
+      if (btnFreezeHeading) btnFreezeHeading.classList.toggle('active', isHeadingFrozen);
+      if (freezePillText) {
+        freezePillText.textContent = isHeadingFrozen
+          ? (precisionConfidenceDeg !== null ? `LOCKED ±${precisionConfidenceDeg}°` : 'FROZEN')
+          : 'FREEZE';
+      }
+      if (btnArFreezeFs) btnArFreezeFs.classList.toggle('active', isHeadingFrozen);
+      if (arFreezeFsText) arFreezeFsText.textContent = isHeadingFrozen ? 'Frozen' : 'Freeze';
+      if (!isHeadingFrozen && btnPrecisionSample) {
+        btnPrecisionSample.classList.remove('locked', 'sampling');
+        if (precisionPillText) precisionPillText.textContent = '5s LOCK';
+      }
+    }
+
+    function toggleHeadingFreeze() {
+      if (isPrecisionSampling) {
+        clearInterval(precisionSampleCountdown);
+        clearTimeout(precisionSampleTimer);
+        isPrecisionSampling = false;
+      }
+      isHeadingFrozen = !isHeadingFrozen;
+      precisionConfidenceDeg = null;
+      if (isHeadingFrozen) {
+        frozenHeadingVal = currentHeading;
+        syncFreezeButtons();
+        triggerHapticTick(50);
+        showToast('❄️ Reading Frozen at ' + Math.round(frozenHeadingVal) + '°. Step freely to inspect without drift!');
+      } else {
+        frozenHeadingVal = null;
+        syncFreezeButtons();
+        triggerHapticTick(25);
+        showToast('Live tracking resumed');
+        updateHeading(rawMagneticHeading, true);
+      }
+    }
+
     if (btnFreezeHeading) {
       btnFreezeHeading.addEventListener('click', (e) => {
         e.stopPropagation();
-        isHeadingFrozen = !isHeadingFrozen;
-        if (isHeadingFrozen) {
-          frozenHeadingVal = currentHeading;
-          btnFreezeHeading.classList.add('active');
-          if (freezePillText) freezePillText.textContent = 'FROZEN';
-          triggerHapticTick(50);
-          showToast('❄️ Reading Frozen at ' + Math.round(frozenHeadingVal) + '°. Step freely to inspect without drift!');
-        } else {
-          frozenHeadingVal = null;
-          btnFreezeHeading.classList.remove('active');
-          if (freezePillText) freezePillText.textContent = 'FREEZE';
-          triggerHapticTick(25);
-          showToast('Live tracking resumed');
-          updateHeading(rawMagneticHeading);
+        toggleHeadingFreeze();
+      });
+    }
+    if (btnArFreezeFs) {
+      btnArFreezeFs.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleHeadingFreeze();
+      });
+    }
+
+    // 5-Second Circular Mean Survey Lock (Safe Precision Pack #1)
+    if (btnPrecisionSample) {
+      btnPrecisionSample.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isPrecisionSampling) {
+          clearInterval(precisionSampleCountdown);
+          clearTimeout(precisionSampleTimer);
+          isPrecisionSampling = false;
+          btnPrecisionSample.classList.remove('sampling');
+          if (precisionPillText) precisionPillText.textContent = '5s LOCK';
+          showToast('Precision survey cancelled');
+          return;
         }
+        if (isHeadingFrozen) {
+          // Unfreeze first if already locked
+          isHeadingFrozen = false;
+          frozenHeadingVal = null;
+          precisionConfidenceDeg = null;
+          syncFreezeButtons();
+        }
+        isPrecisionSampling = true;
+        precisionSamples = [{ angle: currentHeading, weight: 1.0 }];
+        btnPrecisionSample.classList.remove('locked');
+        btnPrecisionSample.classList.add('sampling');
+        let remainingSec = 5;
+        if (precisionPillText) precisionPillText.textContent = `HOLD ${remainingSec}s`;
+        showToast('🎯 Hold phone steady & level for 5s Circular Mean Survey...');
+
+        precisionSampleCountdown = setInterval(() => {
+          remainingSec -= 1;
+          if (remainingSec > 0 && precisionPillText) {
+            precisionPillText.textContent = `HOLD ${remainingSec}s`;
+          }
+        }, 1000);
+
+        precisionSampleTimer = setTimeout(() => {
+          clearInterval(precisionSampleCountdown);
+          isPrecisionSampling = false;
+          btnPrecisionSample.classList.remove('sampling');
+
+          if (precisionSamples.length === 0) {
+            precisionSamples.push({ angle: currentHeading, weight: 1.0 });
+          }
+
+          // 1. Weighted Trigonometric Circular Mean: atan2(sum(w*sin), sum(w*cos))
+          const D = Math.PI / 180;
+          let sumSin = 0, sumCos = 0, totalW = 0;
+          precisionSamples.forEach(s => {
+            sumSin += s.weight * Math.sin(s.angle * D);
+            sumCos += s.weight * Math.cos(s.angle * D);
+            totalW += s.weight;
+          });
+          let meanDeg = Math.atan2(sumSin / totalW, sumCos / totalW) / D;
+          if (meanDeg < 0) meanDeg += 360;
+
+          // 2. Outlier Rejection (Filter out spikes > 2x circular deviation if > 8 samples)
+          if (precisionSamples.length >= 8) {
+            let sqDiffSum = 0;
+            const deltas = precisionSamples.map(s => {
+              let diff = ((s.angle - meanDeg + 540) % 360) - 180;
+              sqDiffSum += diff * diff;
+              return { ...s, diff: Math.abs(diff) };
+            });
+            const stdDev = Math.sqrt(sqDiffSum / precisionSamples.length);
+            const cutoff = Math.max(1.5, 2.0 * stdDev);
+            const inliers = deltas.filter(s => s.diff <= cutoff);
+            if (inliers.length >= 4) {
+              let iSin = 0, iCos = 0, iW = 0;
+              inliers.forEach(s => {
+                iSin += s.weight * Math.sin(s.angle * D);
+                iCos += s.weight * Math.cos(s.angle * D);
+                iW += s.weight;
+              });
+              meanDeg = Math.atan2(iSin / iW, iCos / iW) / D;
+              if (meanDeg < 0) meanDeg += 360;
+            }
+          }
+
+          // 3. Compute Circular Standard Error / Confidence Radius
+          let R = Math.hypot(sumSin / totalW, sumCos / totalW);
+          R = Math.min(0.99999, Math.max(0.0001, R));
+          const circStdRad = Math.sqrt(-2 * Math.log(R));
+          const confDeg = Math.max(0.2, Math.min(5.0, (circStdRad / D))).toFixed(1);
+
+          precisionConfidenceDeg = confDeg;
+          isHeadingFrozen = true;
+          frozenHeadingVal = meanDeg;
+          btnPrecisionSample.classList.add('locked');
+          if (precisionPillText) precisionPillText.textContent = `±${confDeg}° LOCK`;
+          syncFreezeButtons();
+          updateHeadingUI(frozenHeadingVal);
+          triggerHapticTick(60);
+          showToast(`🎯 Survey Locked: ${meanDeg.toFixed(1)}° (±${confDeg}° over ${precisionSamples.length} samples)`);
+        }, 5000);
       });
     }
 
@@ -3150,19 +3356,29 @@ https://kuberansilks.com/`;
         if (sectorEl) {
           const zCode = sectorEl.dataset.zoneCode;
           const pId = sectorEl.dataset.padaId;
-          const targetZone = VASTU_DATA.ZONES_8.find(z => z.code === zCode) ||
-                             VASTU_DATA.ZONES_16.find(z => z.id === zCode);
+          const targetZone8 = zCode && VASTU_DATA.ZONES_8.find(z => z.code === zCode);
+          const targetZone16 = zCode && VASTU_DATA.ZONES_16.find(z => z.id === zCode);
+          const targetPada32 = pId && VASTU_DATA.PADAS_32.find(p => p.id === pId);
+          const targetZone = targetZone8 || targetZone16 || targetPada32;
+
           if (targetZone) {
             previewZoneSector = targetZone;
+            const centerDeg = targetZone.centerDeg !== undefined
+              ? targetZone.centerDeg
+              : ((targetZone.startDeg + targetZone.endDeg) / 2);
+            const labelText = targetZone.names
+              ? (targetZone.names[currentLang] || targetZone.names.en)
+              : (targetZone.label ? `${targetZone.id} (${targetZone.label})` : `${targetZone.id} • ${targetZone.devata}`);
+
             const sectorPreviewBar = document.getElementById('sectorPreviewBar');
             const previewZoneTitle = document.getElementById('previewZoneTitle');
             if (sectorPreviewBar && previewZoneTitle) {
-              previewZoneTitle.textContent = targetZone.names ? (targetZone.names[currentLang] || targetZone.names.en) : targetZone.code;
+              previewZoneTitle.textContent = labelText;
               sectorPreviewBar.classList.remove('hidden');
             }
-            updateVastuInspector(targetZone.centerDeg);
+            updateVastuInspector(centerDeg);
             triggerHapticTick(25);
-            showToast(`Previewing ${previewZoneTitle ? previewZoneTitle.textContent : zCode}`);
+            showToast(`Previewing ${labelText}`);
           }
         }
       });
@@ -3173,12 +3389,12 @@ https://kuberansilks.com/`;
       favorableTags.addEventListener('click', (e) => {
         const tag = e.target.closest('.room-tag');
         if (tag) {
-          const text = tag.textContent.trim().replace(/^[^a-zA-Z0-9]+/, '').trim();
-          const found = VASTU_DATA.ROOMS.find(r => (r.names.en && text.toLowerCase().includes(r.names.en.toLowerCase())) ||
-                                                   (r.names[currentLang] && text.toLowerCase().includes(r.names[currentLang].toLowerCase())));
+          const text = tag.textContent.trim().replace(/^[^a-zA-Z0-9\u0900-\u0DFF]+/, '').trim();
+          const allRooms = [...(VASTU_DATA.ROOMS || []), ...(VASTU_DATA.COMMERCIAL_ROOMS || [])];
+          const found = allRooms.find(r => (r.names && r.names.en && text.toLowerCase().includes(r.names.en.toLowerCase())) ||
+                                           (r.names && r.names[currentLang] && text.toLowerCase().includes(r.names[currentLang].toLowerCase())));
           if (found) {
-            selectActiveRoom(found);
-            showToast(`Room Target Set: ${found.names[currentLang] || found.names.en}`);
+            selectRoom(found.id);
           }
         }
       });
@@ -3235,26 +3451,26 @@ https://kuberansilks.com/`;
     if (btnStepLengthMinus && ayadiLengthInput) {
       btnStepLengthMinus.addEventListener('click', () => {
         let val = parseFloat(ayadiLengthInput.value) || 0;
-        if (val > 1) { ayadiLengthInput.value = (val - 0.5).toFixed(1); if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation(); }
+        if (val > 1) { ayadiLengthInput.value = (val - 0.5).toFixed(1); runAyadiCalculation(); }
       });
     }
     if (btnStepLengthPlus && ayadiLengthInput) {
       btnStepLengthPlus.addEventListener('click', () => {
         let val = parseFloat(ayadiLengthInput.value) || 0;
-        ayadiLengthInput.value = (val + 0.5).toFixed(1); if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation();
+        ayadiLengthInput.value = (val + 0.5).toFixed(1); runAyadiCalculation();
       });
     }
     if (btnStepWidthMinus && ayadiWidthInput) {
       btnStepWidthMinus.addEventListener('click', () => {
         let val = parseFloat(ayadiWidthInput.value) || 0;
-        if (val > 1) { ayadiWidthInput.value = (val - 0.5).toFixed(1); if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation(); }
+        if (val > 1) { ayadiWidthInput.value = (val - 0.5).toFixed(1); runAyadiCalculation(); }
       });
     }
     if (btnStepWidthPlus && ayadiWidthInput) {
       btnStepWidthPlus.addEventListener('click', () => {
         let val = parseFloat(ayadiWidthInput.value) || 0;
         ayadiWidthInput.value = (val + 0.5).toFixed(1);
-        if (ayadiResults && !ayadiResults.classList.contains('hidden')) runAyadiCalculation();
+        runAyadiCalculation();
       });
     }
 
@@ -3449,9 +3665,11 @@ https://kuberansilks.com/`;
     if (btnClearTarget) btnClearTarget.addEventListener('click', () => {
       targetHeading = null;
       targetValue.textContent = '--';
-      btnBearingLock.classList.remove('active');
+      if (btnBearingLock) btnBearingLock.classList.remove('active');
       targetMarkerRing.classList.add('hidden');
       targetDeviationBar.classList.add('hidden');
+      updateHeadingUI(currentHeading);
+      showToast('Target bearing cleared');
     });
 
     // Vastu Tool: Room Finder
@@ -3491,8 +3709,10 @@ https://kuberansilks.com/`;
       const hapticSaved = localStorage.getItem('kuberan_haptics');
       if (hapticSaved !== null) {
         toggleHaptics.checked = hapticSaved === 'true';
+        hapticsEnabled = toggleHaptics.checked;
       }
       toggleHaptics.addEventListener('change', (e) => {
+        hapticsEnabled = e.target.checked;
         localStorage.setItem('kuberan_haptics', e.target.checked);
         showToast(e.target.checked ? 'Haptic feedback enabled' : 'Haptic feedback disabled');
       });
@@ -3511,10 +3731,15 @@ https://kuberansilks.com/`;
     if (toggleGridListener) {
       const gridSaved = localStorage.getItem('kuberan_vastu_grid') === 'true';
       toggleGridListener.checked = gridSaved;
+      if (btnQuickGrid) btnQuickGrid.classList.toggle('active', gridSaved);
       toggleGridListener.addEventListener('change', (e) => {
         localStorage.setItem('kuberan_vastu_grid', e.target.checked);
+        if (btnQuickGrid) btnQuickGrid.classList.toggle('active', e.target.checked);
         // Defer SVG rebuild to RAF so CSS toggle animation slides smoothly with zero lag
-        requestAnimationFrame(() => buildDialSvg());
+        requestAnimationFrame(() => {
+          buildDialSvg();
+          updateVastuInspector(currentHeading);
+        });
       });
     }
 
@@ -3605,6 +3830,41 @@ https://kuberansilks.com/`;
         showToast('Zeroed to Current Heading');
       });
     }
+
+    // 1-Tap Solar Calibration (Śaṅku-Chāyā Method — Astronomical Sun Azimuth)
+    const btnCalibrateToSun = document.getElementById('btnCalibrateToSun');
+    if (btnCalibrateToSun) {
+      btnCalibrateToSun.addEventListener('click', () => {
+        const lat = window.lastKnownLat || 12.9716;
+        const lng = window.lastKnownLng || 77.5946;
+        const sun = calculateSunPosition(lat, lng);
+        if (sun.elevation < 2) {
+          if (!window.confirm(`Sun is currently low or below the horizon (Elevation: ${sun.elevation}°). Point your phone horizontally toward the calculated Sun Azimuth (${sun.azimuth}°) to proceed anyway?`)) return;
+        } else {
+          if (!window.confirm(`Point the top of your phone horizontally toward the Sun (or align it parallel to a vertical object's shadow toward the Sun). Calibrate compass to Astronomical Sun Azimuth (${sun.azimuth}°)?`)) return;
+        }
+        const base = (smoothedHeading !== null ? normalizeAngle(smoothedHeading) : rawMagneticHeading)
+                   + (isTrueNorth ? magneticDeclination : 0);
+        let neededOffset = normalizeAngle(sun.azimuth - base);
+        if (neededOffset > 180) neededOffset -= 360;
+        setCalibrationOffset(neededOffset);
+        showToast(`☀️ Śaṅku-Chāyā Calibrated to Sun Azimuth (${sun.azimuth}°)`);
+      });
+    }
+
+    // Universal Backdrop Click-to-Close & Escape Key Handler for all Modals
+    document.querySelectorAll('.modal-backdrop').forEach((modal) => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+      });
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach((modal) => {
+          modal.classList.add('hidden');
+        });
+      }
+    });
 
     // Copy Coordinates Button
     if (btnCopyCoords) btnCopyCoords.addEventListener('click', async () => {
@@ -3698,14 +3958,15 @@ https://kuberansilks.com/`;
               showToast('⚠️ HIGH MAGNETIC INTERFERENCE: Step away from metal/electronics for accurate Vastu reading');
               if (sensorStatus) sensorStatus.textContent = '⚠️ High Interference Detected (' + Math.round(fieldStrength) + ' µT)';
               if (sensorStatus) sensorStatus.style.color = '#fca5a5';
-              document.querySelector('.compass-container').style.boxShadow = '0 0 20px rgba(252, 165, 165, 0.4)';
+              if (compassViewport) compassViewport.style.boxShadow = '0 0 20px rgba(252, 165, 165, 0.4)';
             }
           } else {
+            if (magPill) magPill.classList.add('hidden');
             if (interferenceWarningActive) {
               interferenceWarningActive = false;
               if (sensorStatus) sensorStatus.textContent = 'North tracking active';
               if (sensorStatus) sensorStatus.style.color = 'var(--text-main)';
-              document.querySelector('.compass-container').style.boxShadow = 'none';
+              if (compassViewport) compassViewport.style.boxShadow = '';
             }
           }
         });
@@ -3900,7 +4161,7 @@ https://kuberansilks.com/`;
           remedyToast.innerHTML = `
             <div style="flex:1;">
               <strong style="color:#d4a359; font-size:1rem; display:block; margin-bottom:5px;">ℹ️ Vastu AI Engine</strong>
-              <span style="opacity:0.9;">Please use the <strong>Zone Finder (grid icon)</strong> to select a room... Then open this report to generate an AI Vastu Dosha analysis and view remedies.</span>
+              <span style="opacity:0.9;">Please use the <strong>Room Finder (in the bottom dock)</strong> to select a room... Then open this report to generate an AI Vastu Dosha analysis and view remedies.</span>
             </div>
             <button id="closeRemedyToast" style="background:none; border:none; color:#d4a359; font-size:1.8rem; cursor:pointer; padding:0; line-height:1; outline:none;">&times;</button>
           `;
@@ -4083,7 +4344,7 @@ https://kuberansilks.com/`;
         container.innerHTML = `
           <div class="vastu-success" style="padding:10px; text-align:left;">
             <h3 style="font-size:1.1rem;">ℹ️ Select a Room</h3>
-            <p style="font-size:0.9rem; opacity:0.9; margin:0;">Please use the <strong>Zone Finder</strong> (grid icon) to select a room (e.g. Kitchen, Master Bedroom). Then open this report to generate an AI Vastu Dosha analysis and view remedies.</p>
+            <p style="font-size:0.9rem; opacity:0.9; margin:0;">Please use the <strong>Room Finder</strong> (in the bottom dock) to select a room (e.g. Kitchen, Master Bedroom). Then open this report to generate an AI Vastu Dosha analysis and view remedies.</p>
           </div>
         `;
       } else {
@@ -4160,7 +4421,15 @@ https://kuberansilks.com/`;
   radiosRef.forEach(r => r.addEventListener('change', (e) => {
     if (e.target.checked) {
       isTrueNorth = (e.target.value === 'true');
-      updateHeading(currentHeading);
+      const btnQuickNorthEl = document.getElementById('btnQuickNorth');
+      const quickNorthLabelEl = document.getElementById('quickNorthLabel');
+      if (btnQuickNorthEl) btnQuickNorthEl.classList.toggle('active', isTrueNorth);
+      if (quickNorthLabelEl) quickNorthLabelEl.textContent = isTrueNorth ? 'TRUE' : 'MAG';
+      if (modeTrue && modeMagnetic) {
+        modeTrue.classList.toggle('active', isTrueNorth);
+        modeMagnetic.classList.toggle('active', !isTrueNorth);
+      }
+      updateHeading(rawMagneticHeading, true);
     }
   }));
 
@@ -4229,6 +4498,12 @@ https://kuberansilks.com/`;
   radiosZones.forEach(r => r.addEventListener('change', (e) => {
     if (e.target.checked) {
       zoneSystem = e.target.value;
+      const q8 = document.getElementById('btnQuickZone8');
+      const q16 = document.getElementById('btnQuickZone16');
+      const q32 = document.getElementById('btnQuickZone32');
+      if (q8) q8.classList.toggle('active', zoneSystem === '8');
+      if (q16) q16.classList.toggle('active', zoneSystem === '16');
+      if (q32) q32.classList.toggle('active', zoneSystem === '32');
       if (zoneSystem === '32') {
         if (padaEntranceCard) padaEntranceCard.classList.remove('hidden');
       } else {
