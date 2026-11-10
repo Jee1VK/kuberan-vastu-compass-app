@@ -1,0 +1,24 @@
+{
+  "name": "kuberan-vastu-compass-app",
+  "version": "5.7.0",
+  "description": "High-Precision Vedic Vastu Shastra Compass, 8/16/32 Zones, Dual-Axis Inclinometer, Room Finder, Plot Tilt Detector, Ayadi Calculator, and AR Wall Alignment. Presented by Kuberan Silks.",
+  "main": "app.js",
+  "scripts": {
+    "build": "node build.js",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jee1VK/kuberan-vastu-compass-app.git"
+  },
+  "author": "Kuberan Silks <apps@kuberansilks.in>",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0"
+  }
+}

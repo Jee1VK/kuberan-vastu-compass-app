@@ -2601,13 +2601,13 @@ const stabilizer = new CompassStabilizer({
     if (activeRoom) {
       const analysis = generateLocalVastuAnalysis(activeZone8.names[currentLang] || activeZone8.names.en, activeRoom, activeZone8.code);
       if (analysis && !analysis.isCompliant && analysis.remedies) {
-        const allCures = [
+        const allRemedies = [
           ...(analysis.remedies.simple_fixes || []),
           ...(analysis.remedies.elemental_cures || []),
           ...(analysis.remedies.vastu_instruments || [])
         ];
-        if (allCures.length > 0) {
-          remediesText = `\n⚡ Vastu Dosha Remedies (${analysis.room} in ${activeZone8.code}):\n• ${allCures.slice(0, 5).join('\n• ')}\n`;
+        if (allRemedies.length > 0) {
+          remediesText = `\n⚡ Vastu Dosha Remedies (${analysis.room} in ${activeZone8.code}):\n• ${allRemedies.slice(0, 5).join('\n• ')}\n`;
         }
       }
     }
@@ -4025,6 +4025,18 @@ https://kuberansilks.com/`;
     } else if (!('ondeviceorientation' in window) && !('ondeviceorientationabsolute' in window)) {
       sensorStatus.textContent = 'Device orientation not supported';
     }
+
+    // Graceful Hardware Detection (phones/tablets without hardware magnetometer/compass sensor)
+    setTimeout(() => {
+      if (!hasSensorData) {
+        if (sensorStatus) {
+          sensorStatus.textContent = 'Manual Azimuth Mode (Touch/Drag dial)';
+          sensorStatus.style.color = '#fbbf24';
+        }
+        const lblCal = document.getElementById('lblCalSensor');
+        if (lblCal) lblCal.textContent = 'MANUAL DIAL (NO SENSOR)';
+      }
+    }, 2500);
   }
 
   // ═══ §13 PWA ══════════════════════════════════════════════════
@@ -4092,6 +4104,22 @@ https://kuberansilks.com/`;
     updateCalibrationUI();
     updateHeading(0);
     updateInclinometer(0, 0);
+
+    // First Launch Vedic Architectural Disclaimer
+    try {
+      const disclaimerAccepted = localStorage.getItem('kuberan_shastra_disclaimer_accepted') === 'true';
+      const firstLaunchModal = document.getElementById('firstLaunchDisclaimerModal');
+      const btnAcceptDisclaimer = document.getElementById('btnAcceptDisclaimer');
+      if (!disclaimerAccepted && firstLaunchModal) {
+        firstLaunchModal.classList.remove('hidden');
+        if (btnAcceptDisclaimer) {
+          btnAcceptDisclaimer.addEventListener('click', () => {
+            try { localStorage.setItem('kuberan_shastra_disclaimer_accepted', 'true'); } catch (e) {}
+            firstLaunchModal.classList.add('hidden');
+          });
+        }
+      }
+    } catch (e) {}
 
     // Lifecycle Management: Pause background sensors & camera when tab is hidden
     document.addEventListener('visibilitychange', () => {
@@ -4217,6 +4245,7 @@ https://kuberansilks.com/`;
     const remedies = {
       simple_fixes: [],
       elemental_cures: [],
+      elemental_harmonizers: [],
       vastu_instruments: []
     };
 
@@ -4249,7 +4278,7 @@ https://kuberansilks.com/`;
 
       // --- WATER ELEMENT ZONES: N, NNE, NE, NNW ---
       if (zoneKey === 'N' || zoneKey === 'NNE' || zoneKey === 'NE' || zoneKey === 'NNW') {
-        conflict = 'Jala Tattva (Water Element) imbalance in ' + directionName + '. Governed by Lord Kubera (N) and Ishana/Shiva (NE). Disrupts wealth flow, mental clarity, and healing energy.';
+        conflict = 'Jala Tattva (Water Element) imbalance in ' + directionName + '. Governed by Lord Kubera (N) and Ishana/Shiva (NE). In classical Vastu, associated with reduced spatial harmony, focus, and natural vitality.';
         remedies.simple_fixes.push('Keep this zone absolutely clutter-free, clean, and well-lit at all times.');
         remedies.simple_fixes.push('Place a bowl of natural sea salt (uncrushed rock salt) in the corner — replace weekly.');
         remedies.simple_fixes.push('Use light blue or white color tones for walls and furnishings in this zone.');
@@ -4365,7 +4394,7 @@ https://kuberansilks.com/`;
         <p style="font-size:0.85rem; color:#fca5a5; margin:4px 0;"><em>${data.elementalConflict}</em></p>
 
         <div class="${remedyCardClass}">
-          <h4>⚡ Recommended Cures</h4>
+          <h4>⚡ Traditional Harmonizers & Vedic Balancers</h4>
           
           ${data.remedies.simple_fixes.length > 0 ? `
             <div class="remedy-section-title">Household Fixes</div>
@@ -4375,7 +4404,7 @@ https://kuberansilks.com/`;
           ` : ''}
 
           ${data.remedies.elemental_cures.length > 0 ? `
-            <div class="remedy-section-title">Elemental Cures</div>
+            <div class="remedy-section-title">Elemental Harmonizers</div>
             <ul class="remedy-list">
               ${data.remedies.elemental_cures.map(r => `<li>${r}</li>`).join('')}
             </ul>
