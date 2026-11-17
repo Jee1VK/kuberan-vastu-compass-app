@@ -3013,7 +3013,7 @@ https://kuberansilks.com/`;
         const isNowOn = !btnQuickGrid.classList.contains('active');
         btnQuickGrid.classList.toggle('active', isNowOn);
         if (toggleGridListener) toggleGridListener.checked = isNowOn;
-        localStorage.setItem('kuberan_vastu_grid', isNowOn);
+        try { localStorage.setItem('kuberan_vastu_grid', isNowOn); } catch(e) {}
         requestAnimationFrame(() => {
           buildDialSvg();
           updateVastuInspector(currentHeading);
@@ -3838,14 +3838,15 @@ https://kuberansilks.com/`;
     // Haptic Feedback Toggle
     const toggleHaptics = document.getElementById('toggle-haptics');
     if (toggleHaptics) {
-      const hapticSaved = localStorage.getItem('kuberan_haptics');
+      let hapticSaved = null;
+      try { hapticSaved = localStorage.getItem('kuberan_haptics'); } catch(e) {}
       if (hapticSaved !== null) {
         toggleHaptics.checked = hapticSaved === 'true';
         hapticsEnabled = toggleHaptics.checked;
       }
       toggleHaptics.addEventListener('change', (e) => {
         hapticsEnabled = e.target.checked;
-        localStorage.setItem('kuberan_haptics', e.target.checked);
+        try { localStorage.setItem('kuberan_haptics', e.target.checked); } catch(err) {}
         showToast(e.target.checked ? 'Haptic feedback enabled' : 'Haptic feedback disabled');
       });
     }
@@ -3861,11 +3862,12 @@ https://kuberansilks.com/`;
 
     const toggleGridListener = document.getElementById('toggle-vastu-grid');
     if (toggleGridListener) {
-      const gridSaved = localStorage.getItem('kuberan_vastu_grid') === 'true';
+      let gridSaved = false;
+      try { gridSaved = localStorage.getItem('kuberan_vastu_grid') === 'true'; } catch(e) {}
       toggleGridListener.checked = gridSaved;
       if (btnQuickGrid) btnQuickGrid.classList.toggle('active', gridSaved);
       toggleGridListener.addEventListener('change', (e) => {
-        localStorage.setItem('kuberan_vastu_grid', e.target.checked);
+        try { localStorage.setItem('kuberan_vastu_grid', e.target.checked); } catch(err) {}
         if (btnQuickGrid) btnQuickGrid.classList.toggle('active', e.target.checked);
         // Defer SVG rebuild to RAF so CSS toggle animation slides smoothly with zero lag
         requestAnimationFrame(() => {
@@ -4267,12 +4269,44 @@ https://kuberansilks.com/`;
   function onPageHide() { pauseSensors(); }
   function onPageShow(e) { if (e.persisted) resumeSensors(); }
 
+  let capBackListenerHandle = null;
+
+  function setupCapacitorBackButton() {
+    const capApp = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if (!capApp || typeof capApp.addListener !== 'function') return;
+    Promise.resolve(capApp.addListener('backButton', ({ canGoBack }) => {
+      // 1. Close any open modal (except mandatory first-launch disclaimer)
+      const openModal = document.querySelector('.modal-backdrop:not(.hidden):not(#firstLaunchDisclaimerModal)');
+      if (openModal) {
+        openModal.classList.add('hidden');
+        return;
+      }
+      // 2. Exit Fullscreen AR Camera mode if active
+      const arOverlay = document.getElementById('arFullscreenOverlay');
+      if (arOverlay && !arOverlay.classList.contains('hidden')) {
+        if (cameraStream) toggleCameraAR();
+        else arOverlay.classList.add('hidden');
+        return;
+      }
+      // 3. Otherwise minimize/exit cleanly on Android root view
+      if (canGoBack && window.history.length > 1) {
+        window.history.back();
+      } else if (typeof capApp.exitApp === 'function') {
+        capApp.exitApp();
+      }
+    })).then((handle) => { capBackListenerHandle = handle; }).catch(() => {});
+  }
+
   function destroyCompass() {
     pauseSensors();
     document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('pagehide', onPageHide);
     window.removeEventListener('pageshow', onPageShow);
     detachDesktopDragSimulation();
+    if (capBackListenerHandle && typeof capBackListenerHandle.remove === 'function') {
+      try { capBackListenerHandle.remove(); } catch(e) {}
+      capBackListenerHandle = null;
+    }
   }
 
   // Public handle for embedding shells (Capacitor / frameworks): call destroy() on unmount.
@@ -4308,6 +4342,7 @@ https://kuberansilks.com/`;
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', onPageHide);
     window.addEventListener('pageshow', onPageShow);
+    setupCapacitorBackButton();
 
     // A saved manual offset shifts EVERY reading. Never let it hide silently.
     if (Math.abs(calibrationOffset) >= 0.5) {
@@ -4325,11 +4360,12 @@ https://kuberansilks.com/`;
   const toggleRemedies = document.getElementById('toggle-remedies');
   
   if (toggleRemedies) {
-    const isRemedyEnabled = localStorage.getItem(REMEDY_SETTING_KEY) === 'true';
+    let isRemedyEnabled = false;
+    try { isRemedyEnabled = localStorage.getItem(REMEDY_SETTING_KEY) === 'true'; } catch(e) {}
     toggleRemedies.checked = isRemedyEnabled;
     
     toggleRemedies.addEventListener('change', (e) => {
-      localStorage.setItem(REMEDY_SETTING_KEY, e.target.checked);
+      try { localStorage.setItem(REMEDY_SETTING_KEY, e.target.checked); } catch(err) {}
       applyRemedyVisibility(e.target.checked);
       if (e.target.checked) {
         let remedyToast = document.getElementById('remedyToastAlert');
@@ -4535,7 +4571,8 @@ https://kuberansilks.com/`;
   function renderVastuResult(data) {
     const container = document.getElementById('vastu-analysis-container');
     if (!container) return;
-    const isRemedyEnabled = localStorage.getItem(REMEDY_SETTING_KEY) === 'true';
+    let isRemedyEnabled = false;
+    try { isRemedyEnabled = localStorage.getItem(REMEDY_SETTING_KEY) === 'true'; } catch(e) {}
     const remedyCardClass = isRemedyEnabled ? 'remedy-card' : 'remedy-card hidden';
 
     if (data.isCompliant) {

@@ -56,6 +56,6 @@ function copyDir(src, dest) {
   }
 }
 
-copyDir(path.join(rootDir, 'assets'), path.join(distDir, 'assets'));
-console.log('Copied assets/ directory recursively.');
+copyDir(path.join(rootDir, 'assets', 'images'), path.join(distDir, 'assets', 'images'));
+console.log('Copied assets/images/ runtime directory.');
 console.log('==> Dist build completed successfully!');
