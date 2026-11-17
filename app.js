@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.7.0
+ * KUBERAN VASTU COMPASS APP v5.8.0
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -77,6 +77,10 @@
   // v5.5.0 Field Powerhouse States
   let isHeadingFrozen = false;
   let frozenHeadingVal = null;
+  let frozenCssVal = null;      // unwrapped CSS rotation held while frozen (the dial has a CSS transition: never feed it a wrapped jump)
+  let lastCssHeading = 0;       // last rotation written to the dial (unwrapped, continuous)
+  let tiltWarningActive = false;
+  const SC = window.SensorCore; // sensor-core.js: CircularEMA, verified 32-Pada lookup, tilt hysteresis
   let isPrecisionSampling = false;
   let precisionSamples = [];
   let precisionSampleTimer = null;
@@ -326,6 +330,10 @@ class CompassStabilizer {
         this.deadzone = options.deadzone || 0.8;
         this.lockThreshold = options.lockThreshold || 1.2;
         this.lockDuration = options.lockDuration || 2000;
+        // Hold band: while locked, the display only stays put if the target is within this many degrees of it.
+        // Without it a slow steady turn (samples agree with each other) never released the lock and the
+        // display froze while the phone rotated: error grew without bound (measured 5° after 10 s at 0.5°/s).
+        this.lockRelease = options.lockRelease || 0.25;
         
         this.currentHeading = null;
         this.targetHeading = null;
@@ -371,6 +379,20 @@ class CompassStabilizer {
         return diff < -180 ? diff + 360 : diff;
     }
 
+    stop() {
+        if (this.animFrameId) { cancelAnimationFrame(this.animFrameId); this.animFrameId = null; }
+    }
+
+    // Forget all history so the next sample seeds the filter directly (first fix / resume from background)
+    reset() {
+        this.stop();
+        this.currentHeading = null;
+        this.targetHeading = null;
+        this.lastRenderedHeading = 0;
+        this.motionHistory = [];
+        this.isLocked = false;
+    }
+
     checkStationaryStatus(heading) {
         const now = Date.now();
         this.motionHistory.push({ heading, time: now });
@@ -387,14 +409,21 @@ class CompassStabilizer {
                 if (d > maxDelta) maxDelta = d;
             }
             const totalSpread = maxDelta - minDelta;
-            this.isLocked = totalSpread < this.lockThreshold;
+            const stale = this.currentHeading !== null
+                ? Math.abs(this.getShortestAngleDelta(this.currentHeading, heading))
+                : 0;
+            this.isLocked = totalSpread < this.lockThreshold && stale <= this.lockRelease;
         }
     }
 
         processLoop() {
         if (this.isLocked) {
-            this.animFrameId = null;
-            return;
+            const stale = Math.abs(this.getShortestAngleDelta(this.currentHeading, this.targetHeading));
+            if (stale <= this.lockRelease) {
+                this.animFrameId = null;
+                return;
+            }
+            this.isLocked = false; // display is stale beyond the hold band: follow the phone again
         }
 
         let delta = this.getShortestAngleDelta(this.currentHeading, this.targetHeading);
@@ -436,11 +465,12 @@ class CompassStabilizer {
 
 const stabilizer = new CompassStabilizer({
     alpha: 0.12,
-    deadzone: 0.7,
+    deadzone: 0.2,
     lockThreshold: 1.2,
     onHeadingChange: (smoothedH) => {
         smoothedHeading = smoothedH;
         if (isHeadingFrozen && frozenHeadingVal !== null) {
+          if (frozenCssVal !== null) { updateHeadingUI(frozenCssVal); return; }
           updateHeadingUI(frozenHeadingVal);
           return;
         }
@@ -455,6 +485,33 @@ const stabilizer = new CompassStabilizer({
 
   // ═══ §3 MATH ═══════════════════════════════════════════════════
   // Pure math functions. Future: extract to math.js utility module.
+  // ── v5.8.0: circular (sin/cos) EMA pre-filter ─────────────────────────
+  // Raw headings are averaged as unit vectors: s += a(sin θ − s), c += a(cos θ − c), θ = atan2(s, c).
+  // The output is wrapped to [0, 360); CompassStabilizer then accumulates the SHORTEST delta into an
+  // unwrapped angle, which is what drives the dial's CSS rotate() (it has a transition, so it must never wrap).
+  const headingFilter = new SC.CircularEMA({ alpha: 0.3 });
+
+  function isArFullscreenOpen() {
+    const el = document.getElementById('arFullscreenOverlay');
+    return !!(el && !el.classList.contains('hidden'));
+  }
+
+  // Heavier damping when tilted (cross-axis magnetometer leakage); responsive when upright in AR.
+  function headingFilterGain() {
+    if (isArFullscreenOpen()) return 0.4;
+    const t = Math.max(Math.abs(pitch || 0), Math.abs(roll || 0));
+    if (t <= 3) return 0.35;
+    if (t <= 10) return 0.28;
+    if (t <= SC.TILT_WARN_DEG) return 0.2;
+    return 0.12;
+  }
+
+  function resetHeadingFilters() {
+    headingFilter.reset();
+    stabilizer.reset();
+    smoothedHeading = null;
+  }
+
   // --- Angle Smoothing Helper (handles 0°/360° phase wrap-around) ---
   function smoothAngle(prev, target, factor) {
     if (prev === null) return target;
@@ -466,8 +523,8 @@ const stabilizer = new CompassStabilizer({
 
   // --- Helper: Degree Normalizer ---
   function normalizeAngle(angle) {
-    let a = angle % 360;
-    return a < 0 ? a + 360 : a;
+    const a = SC.normalizeDeg(angle);
+    return a;
   }
 
   // --- Helper: WGS84 Declination Estimator ---
@@ -618,8 +675,17 @@ const stabilizer = new CompassStabilizer({
     return VASTU_DATA.ZONES_16[0];
   }
 
+  // 32-Pada lookup: O(1) index, table verified once at startup (11.25° each, contiguous from 45°).
+  // If the table were ever corrupted we log loudly and fall back to the legacy linear scan.
+  const PADA32_VERIFIED = (function () {
+    const r = SC.verifyPadaTable(VASTU_DATA.PADAS_32);
+    if (!r.ok) console.error('PADAS_32 verification failed:', r.errors);
+    return r.ok;
+  })();
+
   function getActivePada32(heading) {
     const h = normalizeAngle(heading);
+    if (PADA32_VERIFIED) return VASTU_DATA.PADAS_32[SC.getPadaIndex(h)];
     for (const p of VASTU_DATA.PADAS_32) {
       if (p.startDeg > p.endDeg) {
         if (h >= p.startDeg || h < p.endDeg) return p;
@@ -1234,6 +1300,7 @@ const stabilizer = new CompassStabilizer({
 
   // --- Update Primary Orientation & Telemetry UI ---
   function updateHeadingUI(cssHeading) {
+    lastCssHeading = cssHeading;
     const displayHeading = ((cssHeading % 360) + 360) % 360;
     currentHeading = displayHeading; // Store clamped 0-359 value for external use
     const rounded = Math.round(displayHeading) === 360 ? 0 : Math.round(displayHeading);
@@ -1367,7 +1434,7 @@ const stabilizer = new CompassStabilizer({
         levelHudBadge.classList.add('level-locked');
         levelHudBadge.classList.remove('tilt-warning');
         levelHudText.textContent = '0.0° LEVEL';
-      } else if (tiltDeg > 10) {
+      } else if (tiltDeg > SC.TILT_WARN_DEG) {
         levelHudBadge.classList.remove('level-locked');
         levelHudBadge.classList.add('tilt-warning');
         levelHudText.textContent = `⚠️ ${tiltDeg.toFixed(1)}° TILT`;
@@ -1387,11 +1454,31 @@ const stabilizer = new CompassStabilizer({
       levelStatusText.textContent = `${Math.max(Math.abs(pitch), Math.abs(roll)).toFixed(1)}° TILT`;
     }
 
+    syncTiltWarning(pitch, roll);
+
     // Update AR Artificial Horizon Line if AR overlay is open
     const arHorizonLine = document.getElementById('arHorizonLine');
     if (arHorizonLine) {
       arHorizonLine.style.transform = `translateY(-50%) rotate(${-roll}deg)`;
     }
+  }
+
+  // Visual warning when pitch (beta) or roll (gamma) exceeds 15° (hysteresis: clears below 12°).
+  // Suppressed in fullscreen AR where an upright phone is expected. Text is set once on activation so
+  // the aria-live region announces it once instead of on every degree change.
+  function syncTiltWarning(p, r) {
+    const banner = document.getElementById('tiltWarningBanner');
+    if (!banner) return;
+    const ev = SC.evaluateTilt(p, r, tiltWarningActive);
+    const show = ev.warning && !isArFullscreenOpen();
+    if (show === tiltWarningActive) return;
+    tiltWarningActive = show;
+    if (show) {
+      const textEl = document.getElementById('tiltWarningText');
+      const ui = (VASTU_DATA.UI && (VASTU_DATA.UI[currentLang] || VASTU_DATA.UI.en)) || {};
+      if (textEl) textEl.textContent = ui.tiltWarningMsg || (VASTU_DATA.UI && VASTU_DATA.UI.en.tiltWarningMsg) || 'Phone tilted more than 15°. Hold it flat: excessive tilt degrades magnetometer accuracy.';
+    }
+    banner.classList.toggle('hidden', !show);
   }
 
   // --- Update Compass Orientation via RAF Stabilizer Engine ---
@@ -1409,10 +1496,15 @@ const stabilizer = new CompassStabilizer({
         const weight = flatTilt <= 3 ? 2.0 : (flatTilt <= 10 ? 1.0 : 0.35);
         precisionSamples.push({ angle: computeTrueHeadingFromRaw(rawMagneticHeading), weight });
       }
-      stabilizer.updateRawHeading(rawMagneticHeading);
+      stabilizer.updateRawHeading(headingFilter.update(rawMagneticHeading, headingFilterGain()));
       if (forceImmediateUI && !isHeadingFrozen) {
-        const base = smoothedHeading !== null ? smoothedHeading : rawMagneticHeading;
-        updateHeadingUI(computeTrueHeadingFromRaw(base));
+        // Same unwrapped angle the stabilizer would emit. computeTrueHeadingFromRaw() WRAPS to [0,360), and the dial
+        // has a CSS transition, so feeding it directly made the dial spin ~200-360° on unfreeze / True↔Magnetic.
+        if (smoothedHeading !== null) {
+          updateHeadingUI(smoothedHeading + calibrationOffset + (isTrueNorth ? magneticDeclination : 0));
+        } else {
+          updateHeadingUI(SC.unwrapToward(lastCssHeading, computeTrueHeadingFromRaw(rawMagneticHeading)));
+        }
       }
     }
   }
@@ -1430,17 +1522,36 @@ const stabilizer = new CompassStabilizer({
   let relativeWarningShown = false;
 
   let sensorsAttached = false;
+  let standardListenerAttached = false;
+  let absoluteFallbackTimer = null;
+  let hasAbsoluteSample = false;
+  const ABSOLUTE_FALLBACK_MS = 1500;
 
+  function attachStandardOrientationListener() {
+    if (standardListenerAttached) return;
+    standardListenerAttached = true;
+    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+  }
+
+  // Android/Chrome: bind to north-referenced 'deviceorientationabsolute' FIRST. Plain 'deviceorientation'
+  // is bound only if the browser has no absolute event (iOS Safari → webkitCompassHeading, Firefox →
+  // absolute:true) or the absolute stream never delivers a usable sample within ABSOLUTE_FALLBACK_MS.
   function attachSensorListeners() {
     if (sensorsAttached) return; // Prevent duplicate event listeners
     sensorsAttached = true;
     sensorAttachTs = performance.now();
+    lastAbsoluteEventTs = 0;
+    hasAbsoluteSample = false;
 
-    // 1. Android: Primary absolute orientation (Chrome, Samsung Internet & Android WebViews)
-    window.addEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, true);
-
-    // 2. Standard deviceorientation (iOS webkitCompassHeading, Firefox absolute, last-resort fallback)
-    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+    if (HAS_ABSOLUTE_EVENT) {
+      window.addEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, true);
+      absoluteFallbackTimer = setTimeout(() => {
+        absoluteFallbackTimer = null;
+        if (sensorsAttached && !hasAbsoluteSample) attachStandardOrientationListener();
+      }, ABSOLUTE_FALLBACK_MS);
+    } else {
+      attachStandardOrientationListener();
+    }
 
     // Fallback manual touch/mouse control if sensors aren't firing on desktop
     initDesktopDragSimulation();
@@ -1449,14 +1560,17 @@ const stabilizer = new CompassStabilizer({
   function detachSensorListeners() {
     if (!sensorsAttached) return;
     sensorsAttached = false;
+    if (absoluteFallbackTimer) { clearTimeout(absoluteFallbackTimer); absoluteFallbackTimer = null; }
     window.removeEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, true);
     window.removeEventListener('deviceorientation', handleDeviceOrientation, true);
+    standardListenerAttached = false;
   }
 
   function handleDeviceOrientationAbsolute(event) {
     if (event.alpha === null || event.alpha === undefined) return; // no north reference -> useless for a compass
     isAbsoluteOrientation = true;
     lastAbsoluteEventTs = performance.now();
+    hasAbsoluteSample = true;
     processOrientationData(event, true);
   }
 
@@ -1496,10 +1610,12 @@ const stabilizer = new CompassStabilizer({
     if (iosPermissionBanner && !iosPermissionBanner.classList.contains('hidden')) {
       iosPermissionBanner.classList.add('hidden');
     }
-    try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
-
-    // First real sensor sample: drop the placeholder 0° so the filter starts from the true heading
-    if (firstSample) smoothedHeading = null;
+    // First real sensor sample: persist the flag ONCE (it used to be written at 60 Hz) and re-seed every
+    // filter on the true heading so the dial does not sweep in from the 0° placeholder.
+    if (firstSample) {
+      try { localStorage.setItem('kuberan_compass_sensor_enabled', 'true'); } catch(e) { /* private browsing */ }
+      resetHeadingFilters();
+    }
 
     // Handle landscape/portrait orientation adjustments (modern standard + legacy fallback)
     const orientationAngle = (screen.orientation && typeof screen.orientation.angle === 'number')
@@ -1549,6 +1665,7 @@ const stabilizer = new CompassStabilizer({
 
   // --- Desktop / Fallback Drag Simulation ---
   let dragSimulationInitialized = false;
+  let detachDesktopDragSimulation = function () {};
   function initDesktopDragSimulation() {
     if (dragSimulationInitialized) return;
     dragSimulationInitialized = true;
@@ -1592,6 +1709,17 @@ const stabilizer = new CompassStabilizer({
     dialSection.addEventListener('touchstart', onStart, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onEnd);
+
+    detachDesktopDragSimulation = function () {
+      dialSection.removeEventListener('mousedown', onStart);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      dialSection.removeEventListener('touchstart', onStart);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+      dragSimulationInitialized = false;
+      detachDesktopDragSimulation = function () {};
+    };
   }
 
   // ═══ §8 CALIBRATION ═══════════════════════════════════════════
@@ -3027,13 +3155,13 @@ https://kuberansilks.com/`;
     const precisionPillText = document.getElementById('precisionPillText');
 
     function syncFreezeButtons() {
-      if (btnFreezeHeading) btnFreezeHeading.classList.toggle('active', isHeadingFrozen);
+      if (btnFreezeHeading) { btnFreezeHeading.classList.toggle('active', isHeadingFrozen); btnFreezeHeading.setAttribute('aria-pressed', String(isHeadingFrozen)); }
       if (freezePillText) {
         freezePillText.textContent = isHeadingFrozen
           ? (precisionConfidenceDeg !== null ? `LOCKED ±${precisionConfidenceDeg}°` : 'FROZEN')
           : 'FREEZE';
       }
-      if (btnArFreezeFs) btnArFreezeFs.classList.toggle('active', isHeadingFrozen);
+      if (btnArFreezeFs) { btnArFreezeFs.classList.toggle('active', isHeadingFrozen); btnArFreezeFs.setAttribute('aria-pressed', String(isHeadingFrozen)); }
       if (arFreezeFsText) arFreezeFsText.textContent = isHeadingFrozen ? 'Frozen' : 'Freeze';
       if (!isHeadingFrozen && btnPrecisionSample) {
         btnPrecisionSample.classList.remove('locked', 'sampling');
@@ -3051,11 +3179,14 @@ https://kuberansilks.com/`;
       precisionConfidenceDeg = null;
       if (isHeadingFrozen) {
         frozenHeadingVal = currentHeading;
+        frozenCssVal = lastCssHeading;
         syncFreezeButtons();
         triggerHapticTick(50);
-        showToast('❄️ Reading Frozen at ' + Math.round(frozenHeadingVal) + '°. Step freely to inspect without drift!');
+        showToast(tiltWarningActive
+          ? '❄️ Frozen at ' + Math.round(frozenHeadingVal) + '° — but the phone is tilted over 15°, so accuracy is reduced. Level it and freeze again.'
+          : '❄️ Reading Frozen at ' + Math.round(frozenHeadingVal) + '°. Step freely to inspect without drift!');
       } else {
-        frozenHeadingVal = null;
+        frozenHeadingVal = null; frozenCssVal = null;
         syncFreezeButtons();
         triggerHapticTick(25);
         showToast('Live tracking resumed');
@@ -3092,7 +3223,7 @@ https://kuberansilks.com/`;
         if (isHeadingFrozen) {
           // Unfreeze first if already locked
           isHeadingFrozen = false;
-          frozenHeadingVal = null;
+          frozenHeadingVal = null; frozenCssVal = null;
           precisionConfidenceDeg = null;
           syncFreezeButtons();
         }
@@ -3163,10 +3294,11 @@ https://kuberansilks.com/`;
           precisionConfidenceDeg = confDeg;
           isHeadingFrozen = true;
           frozenHeadingVal = meanDeg;
+          frozenCssVal = SC.unwrapToward(lastCssHeading, meanDeg);
           btnPrecisionSample.classList.add('locked');
           if (precisionPillText) precisionPillText.textContent = `±${confDeg}° LOCK`;
           syncFreezeButtons();
-          updateHeadingUI(frozenHeadingVal);
+          updateHeadingUI(frozenCssVal);
           triggerHapticTick(60);
           showToast(`🎯 Survey Locked: ${meanDeg.toFixed(1)}° (±${confDeg}° over ${precisionSamples.length} samples)`);
         }, 5000);
@@ -3997,38 +4129,37 @@ https://kuberansilks.com/`;
   }
 
   // --- Sensor Initialization ---
+  // iOS 13+: DeviceOrientationEvent.requestPermission() MUST run inside a user gesture. We never call it
+  // automatically: if no sensor data arrives we reveal a banner whose button (btnGrantSensor) calls it.
+  // A stored "already enabled" flag is NOT trusted: iOS re-asks per session / app launch, so only real
+  // data proves access (the old flag could hide the banner and leave a dead compass).
+  let sensorPermissionTimer = null;
+
+  function isIosPermissionApi() {
+    return typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
+  }
+
+  function scheduleSensorPermissionCheck() {
+    if (!isIosPermissionApi()) return;
+    clearTimeout(sensorPermissionTimer);
+    sensorPermissionTimer = setTimeout(() => {
+      sensorPermissionTimer = null;
+      if (!hasSensorData && iosPermissionBanner) iosPermissionBanner.classList.remove('hidden');
+    }, 1000);
+  }
+
   function initSensors() {
     initMagnetometer();
-    const isIOS = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
-    let isAlreadyEnabled = false;
-    try {
-      isAlreadyEnabled = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true';
-    } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
+    attachSensorListeners(); // harmless before iOS permission: events simply start after the user taps Enable
+    scheduleSensorPermissionCheck();
 
-    // Always attach available listeners immediately
-    attachSensorListeners();
-
-    if (isIOS) {
-      if (isAlreadyEnabled) {
-        // Already granted/enabled previously, never harass the user again!
-        iosPermissionBanner.classList.add('hidden');
-      } else {
-        // Only show if orientation data does not arrive automatically within 800ms
-        setTimeout(() => {
-          let enabledNow = false;
-          try { enabledNow = localStorage.getItem('kuberan_compass_sensor_enabled') === 'true'; } catch(e) { /* localStorage/vibrate may be blocked in private browsing */ }
-          if (!hasSensorData && !enabledNow) {
-            iosPermissionBanner.classList.remove('hidden');
-          }
-        }, 800);
-      }
-    } else if (!('ondeviceorientation' in window) && !('ondeviceorientationabsolute' in window)) {
-      sensorStatus.textContent = 'Device orientation not supported';
+    if (!isIosPermissionApi() && !('ondeviceorientation' in window) && !('ondeviceorientationabsolute' in window)) {
+      if (sensorStatus) sensorStatus.textContent = 'Device orientation not supported';
     }
 
-    // Graceful Hardware Detection (phones/tablets without hardware magnetometer/compass sensor)
+    // Graceful hardware detection (phones/tablets without a magnetometer): manual azimuth dial mode
     setTimeout(() => {
-      if (!hasSensorData) {
+      if (!hasSensorData && !isIosPermissionApi()) {
         if (sensorStatus) {
           sensorStatus.textContent = 'Manual Azimuth Mode (Touch/Drag dial)';
           sensorStatus.style.color = '#fbbf24';
@@ -4095,6 +4226,58 @@ https://kuberansilks.com/`;
 
   // ═══ §15 BOOTSTRAP ════════════════════════════════════════════
   // Application entry point.
+  // ═══ Sensor lifecycle ═════════════════════════════════════════
+  // pause: tab hidden / page hidden / app backgrounded   resume: visible again / bfcache restore
+  // destroy: page unload or embedding component unmount (removes EVERY listener, timer and RAF it created)
+  let sensorsPaused = false;
+
+  function pauseSensors() {
+    detachSensorListeners();
+    stopMagnetometer();
+    stopGPS();
+    stabilizer.stop();
+    if (inclinometerRafId) { cancelAnimationFrame(inclinometerRafId); inclinometerRafId = null; }
+    clearTimeout(sensorPermissionTimer);
+    if (isPrecisionSampling) { // a survey interrupted by backgrounding would average stale samples
+      clearInterval(precisionSampleCountdown);
+      clearTimeout(precisionSampleTimer);
+      isPrecisionSampling = false;
+      const pill = document.getElementById('btnPrecisionSample');
+      const pillText = document.getElementById('precisionPillText');
+      if (pill) pill.classList.remove('sampling');
+      if (pillText) pillText.textContent = '5s LOCK';
+    }
+    if (cameraStream) toggleCameraAR(); // release camera hardware cleanly
+    sensorsPaused = true;
+  }
+
+  function resumeSensors() {
+    if (!sensorsPaused) return;
+    sensorsPaused = false;
+    resetHeadingFilters(); // drop stale history so the dial does not sweep from the pre-background heading
+    attachSensorListeners();
+    startMagnetometer();
+    startGPS();
+    scheduleSensorPermissionCheck();
+  }
+
+  function onVisibilityChange() {
+    if (document.hidden) pauseSensors(); else resumeSensors();
+  }
+  function onPageHide() { pauseSensors(); }
+  function onPageShow(e) { if (e.persisted) resumeSensors(); }
+
+  function destroyCompass() {
+    pauseSensors();
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener('pageshow', onPageShow);
+    detachDesktopDragSimulation();
+  }
+
+  // Public handle for embedding shells (Capacitor / frameworks): call destroy() on unmount.
+  window.KuberanCompass = { pause: pauseSensors, resume: resumeSensors, destroy: destroyCompass };
+
   function init() {
     setupEventListeners();
     buildDialSvg();
@@ -4121,23 +4304,10 @@ https://kuberansilks.com/`;
       }
     } catch (e) {}
 
-    // Lifecycle Management: Pause background sensors & camera when tab is hidden
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        detachSensorListeners();
-        stopMagnetometer();
-        stopGPS();
-        if (cameraStream) {
-          toggleCameraAR(); // Release camera hardware cleanly
-        }
-      } else {
-        if (hasSensorData || localStorage.getItem('kuberan_compass_sensor_enabled') === 'true') {
-          attachSensorListeners();
-          startMagnetometer();
-          startGPS();
-        }
-      }
-    });
+    // Lifecycle: pause on hide / pagehide, resume on return, full cleanup via destroyCompass()
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pageshow', onPageShow);
 
     // A saved manual offset shifts EVERY reading. Never let it hide silently.
     if (Math.abs(calibrationOffset) >= 0.5) {

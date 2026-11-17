@@ -1,7 +1,7 @@
 # KUBERAN VASTU COMPASS • OFFICIAL APP STORE & GOOGLE PLAY STORE METADATA SPECIFICATION
 
 **Application Identifier:** `com.kuberansilks.vastucompass`  
-**Version:** `5.7.0` (Build `1`)  
+**Version:** `5.8.0` (Build `1`)  
 **Publisher:** Kuberan Silks Chickpet, Bengaluru  
 **Dedicated Support Email:** `apps@kuberansilks.in`  
 **Official Website:** `https://kuberansilks.com/`  

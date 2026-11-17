@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v5.7.0';
+const CACHE_NAME = 'kuberan-vastu-compass-v5.8.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
   './vastu-data.js',
   'https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js',
   './qrcode.min.js',
+  './sensor-core.js',
   './app.js',
   './manifest.webmanifest',
   './assets/images/kuberan_logo_white_bg.png',

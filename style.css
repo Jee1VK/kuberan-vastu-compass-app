@@ -4442,4 +4442,20 @@ input:checked + .slider:before {
   grid-column: 1 / -1;
 }
 
-
+/* v5.8.0 — Tilt warning banner (pitch/roll > 15°). Amber on navy: contrast > 10:1, 44px min height. */
+.tilt-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde68a;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.tilt-warning-banner.hidden { display: none; }
+.btn-freeze-pill[aria-pressed="true"] { outline: 2px solid #fde68a; outline-offset: 2px; }
