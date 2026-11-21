@@ -19,6 +19,7 @@ const filesToCopy = [
   '404.html',
   'style.css',
   'vastu-data.js',
+  'geomagnetism.min.js',
   'sensor-core.js',
   'app.js',
   'qrcode.min.js',

@@ -4,4 +4,8 @@ dist/
 Thumbs.db
 *.log
 antigravity-prompt*.md
+*.p12
+*.jks
+*.keystore
+keystore.properties
 

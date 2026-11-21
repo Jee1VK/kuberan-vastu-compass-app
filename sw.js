@@ -6,7 +6,7 @@ const ASSETS_TO_CACHE = [
   './404.html',
   './style.css',
   './vastu-data.js',
-  'https://cdn.jsdelivr.net/npm/geomagnetism@1.2.0/dist/geomagnetism.min.js',
+  './geomagnetism.min.js',
   './qrcode.min.js',
   './sensor-core.js',
   './app.js',
