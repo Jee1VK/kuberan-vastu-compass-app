@@ -16,6 +16,9 @@
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep custom Capacitor plugins & @PluginMethod reflective entrypoints under R8
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keep class com.kuberansilks.vastucompass.OtaUpdaterPlugin { *; }
+-keepclassmembers class com.kuberansilks.vastucompass.OtaUpdaterPlugin {
+    @com.getcapacitor.PluginMethod <methods>;
+}

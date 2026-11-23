@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kuberan-vastu-compass-v5.8.0';
+const CACHE_NAME = 'kuberan-vastu-compass-v5.9.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS_TO_CACHE = [
   './qrcode.min.js',
   './sensor-core.js',
   './app.js',
+  './ota-updater.js',
   './manifest.webmanifest',
   './assets/images/kuberan_logo_white_bg.png',
   './assets/images/kuberan_logo_transparent.png',

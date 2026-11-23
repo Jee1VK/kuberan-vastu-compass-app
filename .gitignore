@@ -8,4 +8,5 @@ antigravity-prompt*.md
 *.jks
 *.keystore
 keystore.properties
+releases/
 
