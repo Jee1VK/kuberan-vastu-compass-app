@@ -183,6 +183,20 @@
     var plugin = getNativePlugin();
     if (!plugin) return false;
     try {
+      if (reloadNow !== false && typeof window !== 'undefined') {
+        if ('serviceWorker' in navigator) {
+          try {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            for (var i = 0; i < regs.length; i++) await regs[i].unregister();
+          } catch (e) {}
+        }
+        if ('caches' in window) {
+          try {
+            var keys = await caches.keys();
+            for (var j = 0; j < keys.length; j++) await caches.delete(keys[j]);
+          } catch (e) {}
+        }
+      }
       await plugin.applyUpdate({ reloadNow: reloadNow !== false });
       hideUpdateBanner();
       if (reloadNow === false) {

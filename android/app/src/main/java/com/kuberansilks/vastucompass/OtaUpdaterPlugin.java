@@ -92,19 +92,21 @@ public class OtaUpdaterPlugin extends Plugin {
             otaPrefs.edit().putInt(KEY_BOOT_FAIL_COUNT, failCount).apply();
 
             if (failCount >= 2) {
-                Log.w(TAG, "New OTA bundle failed to boot on previous launch. Rolling back immediately.");
-                performRollback();
+                Log.w(TAG, "New OTA bundle failed to boot on previous launch. Rolling back before WebView load.");
+                performRollback(false);
                 return;
             }
+            armWatchdog();
+            return;
+        }
 
-            rollbackWatchdog = () -> {
-                SharedPreferences p = getContext().getSharedPreferences(OTA_PREFS, Activity.MODE_PRIVATE);
-                if (p.getBoolean(KEY_PENDING_VERIFY, false)) {
-                    Log.w(TAG, "OTA boot verification timed out after " + ROLLBACK_WATCHDOG_MS + "ms. Rolling back.");
-                    performRollback();
-                }
-            };
-            mainHandler.postDelayed(rollbackWatchdog, ROLLBACK_WATCHDOG_MS);
+        // If a staged update was deferred via "Later" (reloadNow=false), promote it cleanly on cold start
+        String pendingPath = otaPrefs.getString(KEY_PENDING_PATH, "");
+        String pendingVersion = otaPrefs.getString(KEY_PENDING_VERSION, "");
+        if (pendingPath != null && !pendingPath.isEmpty() && new File(pendingPath, "index.html").isFile()) {
+            Log.i(TAG, "Promoting deferred OTA bundle v" + pendingVersion + " on cold start.");
+            promotePendingBundle(ctx, otaPrefs, pendingVersion, pendingPath);
+            armWatchdog();
         }
     }
 
@@ -236,17 +238,35 @@ public class OtaUpdaterPlugin extends Plugin {
         boolean reloadNow = call.getBoolean("reloadNow", true);
         Context ctx = getContext();
         SharedPreferences otaPrefs = ctx.getSharedPreferences(OTA_PREFS, Activity.MODE_PRIVATE);
-        SharedPreferences capPrefs = ctx.getSharedPreferences(WebView.WEBVIEW_PREFS_NAME, Activity.MODE_PRIVATE);
 
         String pendingVersion = otaPrefs.getString(KEY_PENDING_VERSION, "");
         String pendingPath = otaPrefs.getString(KEY_PENDING_PATH, "");
 
-        if (pendingPath.isEmpty() || !new File(pendingPath, "index.html").isFile()) {
+        if (pendingPath == null || pendingPath.isEmpty() || !new File(pendingPath, "index.html").isFile()) {
             call.reject("No valid staged OTA bundle available to apply");
             return;
         }
 
-        // Preserve current active path as rollback target
+        JSObject res = new JSObject();
+        res.put("applied", true);
+        res.put("version", pendingVersion);
+        res.put("reloadNow", reloadNow);
+
+        // If deferred ("Later"), keep pendingVersion/pendingPath intact so load() promotes it on next cold boot
+        if (!reloadNow) {
+            call.resolve(res);
+            return;
+        }
+
+        promotePendingBundle(ctx, otaPrefs, pendingVersion, pendingPath);
+        call.resolve(res);
+
+        armWatchdog();
+        clearWebViewCacheAndSwitch(pendingPath, false);
+    }
+
+    private void promotePendingBundle(Context ctx, SharedPreferences otaPrefs, String pendingVersion, String pendingPath) {
+        SharedPreferences capPrefs = ctx.getSharedPreferences(WebView.WEBVIEW_PREFS_NAME, Activity.MODE_PRIVATE);
         String currentActivePath = capPrefs.getString(WebView.CAP_SERVER_PATH, "");
         String currentActiveVersion = otaPrefs.getString(KEY_ACTIVE_VERSION, "");
 
@@ -261,28 +281,35 @@ public class OtaUpdaterPlugin extends Plugin {
             .putInt(KEY_BOOT_FAIL_COUNT, 0)
             .apply();
 
-        // Persist into Capacitor's native CapWebViewSettings so cold boots load offline from this folder
         capPrefs.edit().putString(WebView.CAP_SERVER_PATH, pendingPath).apply();
+    }
 
-        JSObject res = new JSObject();
-        res.put("applied", true);
-        res.put("version", pendingVersion);
-        res.put("reloadNow", reloadNow);
-        call.resolve(res);
+    private void armWatchdog() {
+        cancelWatchdog();
+        rollbackWatchdog = () -> {
+            SharedPreferences p = getContext().getSharedPreferences(OTA_PREFS, Activity.MODE_PRIVATE);
+            if (p.getBoolean(KEY_PENDING_VERIFY, false)) {
+                Log.w(TAG, "OTA bundle failed to confirm notifyAppReady() within " + ROLLBACK_WATCHDOG_MS + "ms. Rolling back.");
+                performRollback(true);
+            }
+        };
+        mainHandler.postDelayed(rollbackWatchdog, ROLLBACK_WATCHDOG_MS);
+    }
 
-        if (reloadNow) {
-            // Arm watchdog for live reload as well
-            cancelWatchdog();
-            rollbackWatchdog = () -> {
-                SharedPreferences p = getContext().getSharedPreferences(OTA_PREFS, Activity.MODE_PRIVATE);
-                if (p.getBoolean(KEY_PENDING_VERIFY, false)) {
-                    Log.w(TAG, "Live-reloaded OTA bundle failed to confirm notifyAppReady(). Rolling back.");
-                    performRollback();
+    private void clearWebViewCacheAndSwitch(final String basePath, final boolean useAssetPublic) {
+        if (bridge == null) return;
+        mainHandler.post(() -> {
+            try {
+                if (bridge.getWebView() != null) {
+                    bridge.getWebView().clearCache(true);
                 }
-            };
-            mainHandler.postDelayed(rollbackWatchdog, ROLLBACK_WATCHDOG_MS);
-            bridge.setServerBasePath(pendingPath);
-        }
+            } catch (Exception ignored) {}
+            if (useAssetPublic) {
+                bridge.setServerAssetPath("public");
+            } else {
+                bridge.setServerBasePath(basePath);
+            }
+        });
     }
 
     @PluginMethod
@@ -316,7 +343,7 @@ public class OtaUpdaterPlugin extends Plugin {
         call.resolve(ret);
     }
 
-    private void performRollback() {
+    private void performRollback(boolean reloadWebView) {
         cancelWatchdog();
         Context ctx = getContext();
         SharedPreferences otaPrefs = ctx.getSharedPreferences(OTA_PREFS, Activity.MODE_PRIVATE);
@@ -337,10 +364,10 @@ public class OtaUpdaterPlugin extends Plugin {
 
         if (hasValidPrev) {
             capPrefs.edit().putString(WebView.CAP_SERVER_PATH, prevPath).apply();
-            bridge.setServerBasePath(prevPath);
+            if (reloadWebView) clearWebViewCacheAndSwitch(prevPath, false);
         } else {
             capPrefs.edit().remove(WebView.CAP_SERVER_PATH).apply();
-            bridge.setServerAssetPath("public");
+            if (reloadWebView) clearWebViewCacheAndSwitch("", true);
         }
 
         if (failedPath != null && !failedPath.isEmpty() && !failedPath.equals(prevPath)) {
@@ -365,8 +392,8 @@ public class OtaUpdaterPlugin extends Plugin {
             deleteRecursively(new File(ctx.getFilesDir(), "ota_tmp"));
         });
 
-        if (reloadBuiltIn && bridge != null) {
-            bridge.setServerAssetPath("public");
+        if (reloadBuiltIn) {
+            clearWebViewCacheAndSwitch("", true);
         }
     }
 

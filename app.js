@@ -4175,6 +4175,28 @@ https://kuberansilks.com/`;
   // ═══ §13 PWA ══════════════════════════════════════════════════
   // Service Worker registration, install prompt, update detection.
   function initPWA() {
+    const isNativeCap = Boolean(
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === 'function' &&
+      window.Capacitor.isNativePlatform()
+    );
+
+    // Inside native Capacitor APK/IPA, WebViewLocalServer & OtaUpdater serve files directly from disk.
+    // A Service Worker would cache https://localhost/* and shadow live OTA updates with stale JS/CSS.
+    if (isNativeCap) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.unregister().catch(() => {}));
+        }).catch(() => {});
+      }
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((k) => caches.delete(k).catch(() => {}));
+        }).catch(() => {});
+      }
+      return;
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
