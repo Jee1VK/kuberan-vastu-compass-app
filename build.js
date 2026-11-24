@@ -2,14 +2,35 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const crypto = require('crypto');
+const { execSync } = require('child_process');
 
+// Resolve javascript-obfuscator from local node_modules or global npm prefix
+function loadObfuscator() {
+  try {
+    return require('javascript-obfuscator');
+  } catch (_) {
+    const globalRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
+    return require(path.join(globalRoot, 'javascript-obfuscator'));
+  }
+}
+
+const JavaScriptObfuscator = loadObfuscator();
 const rootDir = __dirname;
 const distDir = path.join(rootDir, 'dist');
 const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+const obfConfig = JSON.parse(fs.readFileSync(path.join(rootDir, 'obfuscator.config.json'), 'utf8'));
 const appVersion = pkg.version || '5.9.0';
 const OTA_BASE_URL = 'https://jee1vk.github.io/kuberan-vastu-compass-app';
 
-console.log(`==> Building KUBERAN Vastu Compass Production Dist (v${appVersion})...`);
+// Proprietary JS files to obfuscate into dist/ (source files remain clean in root)
+const OBFUSCATE_PROFILES = {
+  'app.js': obfConfig.engine,
+  'sensor-core.js': obfConfig.engine,
+  'ota-updater.js': obfConfig.engine,
+  'vastu-data.js': obfConfig.data
+};
+
+console.log(`==> Building KUBERAN Vastu Compass Production Dist (v${appVersion}, Obfuscated)...`);
 
 // Clean or create dist directory
 if (fs.existsSync(distDir)) {
@@ -39,9 +60,18 @@ const filesToCopy = [
 
 filesToCopy.forEach(file => {
   const src = path.join(rootDir, file);
+  const dest = path.join(distDir, file);
   if (fs.existsSync(src)) {
-    fs.copyFileSync(src, path.join(distDir, file));
-    console.log(`Copied: ${file}`);
+    if (OBFUSCATE_PROFILES[file]) {
+      const sourceCode = fs.readFileSync(src, 'utf8');
+      const result = JavaScriptObfuscator.obfuscate(sourceCode, OBFUSCATE_PROFILES[file]);
+      const obfCode = result.getObfuscatedCode();
+      fs.writeFileSync(dest, obfCode, 'utf8');
+      console.log(`Obfuscated: ${file} (${(sourceCode.length / 1024).toFixed(1)} KB -> ${(obfCode.length / 1024).toFixed(1)} KB)`);
+    } else {
+      fs.copyFileSync(src, dest);
+      console.log(`Copied: ${file}`);
+    }
   } else {
     console.warn(`File not found: ${file}`);
   }
