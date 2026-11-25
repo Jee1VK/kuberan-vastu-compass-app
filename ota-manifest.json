@@ -1,9 +1,9 @@
 {
   "version": "5.9.1",
   "minNativeVersion": "5.9.0",
-  "buildTime": "2026-11-25T07:32:03.928Z",
+  "buildTime": "2026-11-25T07:36:01.415Z",
   "bundleUrl": "https://jee1vk.github.io/kuberan-vastu-compass-app/ota-bundle.zip",
-  "sha256": "173ad2844cdb248e104fa53944f840698d720f4ea7d4844ce605bca75e460cbc",
-  "sizeBytes": 1854295,
+  "sha256": "dcee183c3fa5323f6327a37b6ebac15fe9e1203781b629f55c7f7158f536f51a",
+  "sizeBytes": 1854412,
   "notes": "PWA-style Over-The-Air live updates, offline WMM-2025 geomagnetism, circular trigonometric sensor fusion."
 }

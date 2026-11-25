@@ -11,7 +11,7 @@
   'use strict';
 
   var MANIFEST_URL = 'https://jee1vk.github.io/kuberan-vastu-compass-app/ota-manifest.json';
-  var BUNDLED_VERSION = '5.9.0';
+  var BUNDLED_VERSION = '5.9.1';
   var AUTO_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes between background checks
   var LAST_CHECK_KEY = 'kuberan_ota_last_check_ts';
 
