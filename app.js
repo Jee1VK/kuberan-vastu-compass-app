@@ -1,5 +1,5 @@
 /**
- * KUBERAN VASTU COMPASS APP v5.9.0
+ * KUBERAN VASTU COMPASS APP v5.9.1
  * High Precision Vedic Architecture & Mobile Compass
  * 
  * ═══════════════════════════════════════════════════════════════════
@@ -618,7 +618,8 @@ const stabilizer = new CompassStabilizer({
     const rahuEnd = rahuStart + 1.5;
 
     const isRahuKalam = hour >= rahuStart && hour < rahuEnd;
-    const isAbhijit = hour >= 11.6 && hour <= 12.4; // Midday Solar Peak
+    // Classical Panchangam / Muhurtha Chintamani: Abhijit Muhurta is prohibited on Wednesdays (dayOfWeek === 3)
+    const isAbhijit = dayOfWeek !== 3 && hour >= 11.6 && hour <= 12.4; // Midday Solar Peak
 
     function fmt(h) {
       const hrs = Math.floor(h);
@@ -1288,6 +1289,7 @@ const stabilizer = new CompassStabilizer({
   // --- Haptic Feedback ---
   function triggerHapticTick(duration = 20) {
     if (hapticsEnabled && 'vibrate' in navigator) {
+      if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
       const now = Date.now();
       if (now - lastVibrateTime > 250) {
         lastVibrateTime = now;
@@ -1764,7 +1766,7 @@ const stabilizer = new CompassStabilizer({
     if (calSensorBadge) {
       calSensorBadge.textContent = (isAbsoluteOrientation || (sensorAccuracy !== null && sensorAccuracy >= 0))
         ? 'Magnetometer Active'
-        : 'Sensors Active';
+        : (hasSensorData ? 'Relative Sensor Active' : 'Sensors Inactive');
       calSensorBadge.className = `cal-badge ${badgeClass}`;
     }
     if (sensorAccuracyBadge) {
@@ -1902,12 +1904,26 @@ const stabilizer = new CompassStabilizer({
       if (plotStatusDesc) plotStatusDesc.textContent = dict.vidishaTiltedDesc || 'The property walls are tilted relative to cardinal North. Recommended: Align internal work desks, Mandir, and bed axes towards Cardinal North.';
     }
 
-    // Commercial Plot Shape geometry status
+    // Plot Shape geometry status (adapts to Commercial vs Residential mode)
     const shapeObj = VASTU_DATA.PLOT_SHAPES && VASTU_DATA.PLOT_SHAPES[selectedPlotShape];
     if (shapeObj && plotShapeBadge && plotShapeAdviceText) {
-      plotShapeBadge.className = `shape-badge ${shapeObj.badgeClass}`;
-      plotShapeBadge.textContent = shapeObj.statusLabel;
-      plotShapeAdviceText.textContent = (shapeObj.descriptions && shapeObj.descriptions[currentLang]) || shapeObj.commercialEffect;
+      const isCommercial = (appMode === 'commercial');
+      let badgeCls = shapeObj.badgeClass;
+      let statusLbl = shapeObj.statusLabel;
+      if (!isCommercial) {
+        if (selectedPlotShape === 'Gaumukhi') {
+          badgeCls = 'aligned';
+          statusLbl = '🌟 IDEAL FOR RESIDENTIAL';
+        } else if (selectedPlotShape === 'Shermukhi') {
+          badgeCls = 'tilted';
+          statusLbl = '⚠️ CAUTION FOR RESIDENTIAL';
+        }
+      }
+      plotShapeBadge.className = `shape-badge ${badgeCls}`;
+      plotShapeBadge.textContent = statusLbl;
+      plotShapeAdviceText.textContent = (shapeObj.descriptions && shapeObj.descriptions[currentLang])
+        || (isCommercial ? shapeObj.commercialEffect : shapeObj.residentialEffect)
+        || shapeObj.commercialEffect;
     }
   }
 
@@ -2828,11 +2844,12 @@ https://kuberansilks.com/`;
       : `Paridhi (Perimeter = ${perimeter} Hastas)`;
 
     // Classical Ayadi Saptavarga / Shadvarga Formulas
+    const traditionName = (tradition === 'vishwakarma') ? 'Vishwakarma Prakash' : 'Manasara Shilpa Shastra';
     const aaya = ((pinda * 8) % 12) || 12;          // 1. Aaya (Income / Gain)
     const vyaya = ((pinda * 9) % 10) || 10;         // 2. Vyaya (Expenditure / Loss)
     let yoni = ((pinda * 3) % 8);                   // 3. Yoni (Cosmic Orientation)
     if (yoni === 0) yoni = 8;
-    const grihaAyu = ((area * 8) % 120) || 120;     // 4. Griha-Ayu (Building Lifespan in Years per Vishwakarma Prakash)
+    const grihaAyu = ((pinda * 8) % 120) || 120;    // 4. Griha-Ayu (Building Lifespan in Years)
     const nakshatra = ((pinda * 8) % 27) || 27;     // 5. Nakshatra (Lunar Mansion)
     const vaara = ((pinda * 9) % 7) || 7;           // 6. Vaara (Solar Day)
     const tithi = ((pinda * 8) % 30) || 30;         // 7. Tithi (Lunar Day)
@@ -2899,7 +2916,7 @@ https://kuberansilks.com/`;
         overallBadge.textContent = '🕉️ SUPREME SHASTRA ALIGNMENT (3/3)';
         overallBadge.style.color = '#a7f3d0';
       }
-      html += `<div style="margin-top:12px; padding:10px; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:8px;"><strong style="color:#a7f3d0;">🕉️ OVERALL: HIGHLY AUSPICIOUS (3/3)</strong><br><span style="font-size:0.82rem;">Āya > Vyaya, Auspicious Odd Yoni, and Dīrghāyu (${grihaAyu} yrs) are all fulfilled per Vishwakarma Prakash.</span></div>`;
+      html += `<div style="margin-top:12px; padding:10px; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:8px;"><strong style="color:#a7f3d0;">🕉️ OVERALL: HIGHLY AUSPICIOUS (3/3)</strong><br><span style="font-size:0.82rem;">Āya > Vyaya, Auspicious Odd Yoni, and Dīrghāyu (${grihaAyu} yrs) are all fulfilled per ${traditionName}.</span></div>`;
     } else if (score === 2) {
       if (overallBadge) {
         overallBadge.textContent = '✅ AUSPICIOUS (2/3)';
@@ -2931,7 +2948,7 @@ https://kuberansilks.com/`;
           const cAaya = ((cPinda * 8) % 12) || 12;
           const cVyaya = ((cPinda * 9) % 10) || 10;
           const cYoni = ((cPinda * 3) % 8) || 8;
-          const cAyu = ((cArea * 8) % 120) || 120;
+          const cAyu = ((cPinda * 8) % 120) || 120;
           if (cAaya > cVyaya && yoniAuspicious[cYoni] && cAyu >= 60) {
             const dist = Math.abs(dl) + Math.abs(dw);
             if (dist > 0 && dist < minDelta) {
@@ -2943,7 +2960,7 @@ https://kuberansilks.com/`;
       }
       if (bestMatch) {
         html += `<div style="margin-top:8px; padding:8px 10px; background:rgba(212,163,89,0.14); border:1px dashed var(--kuberan-gold); border-radius:8px; font-size:0.78rem;">
-          💡 <strong>Vishwakarma Shastra Suggestion:</strong> Adjusting to <strong>${bestMatch.l.toFixed(1)} ft × ${bestMatch.w.toFixed(1)} ft</strong> achieves <strong>3/3 Supreme Alignment</strong> (Āya ${bestMatch.aaya} > Vyaya ${bestMatch.vyaya}, ${yoniNames[bestMatch.yoni]}, Gṛha-Āyu ${bestMatch.ayu} yrs).
+          💡 <strong>${traditionName} Suggestion:</strong> Adjusting to <strong>${bestMatch.l.toFixed(1)} ft × ${bestMatch.w.toFixed(1)} ft</strong> achieves <strong>3/3 Supreme Alignment</strong> (Āya ${bestMatch.aaya} > Vyaya ${bestMatch.vyaya}, ${yoniNames[bestMatch.yoni]}, Gṛha-Āyu ${bestMatch.ayu} yrs).
           <button type="button" id="btnApplyBestAyadi" data-l="${bestMatch.l}" data-w="${bestMatch.w}" style="margin-left:6px; padding:2px 8px; border-radius:6px; border:1px solid var(--kuberan-gold); background:rgba(212,163,89,0.25); color:#fff; font-weight:700; cursor:pointer; font-size:0.72rem;">Apply ${bestMatch.l}×${bestMatch.w}ft</button>
         </div>`;
       }

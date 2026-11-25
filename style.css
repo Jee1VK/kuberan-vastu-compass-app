@@ -863,9 +863,11 @@ body {
 /* ----------------- Toast Notification ----------------- */
 .toast {
   position: fixed;
-  bottom: calc(var(--safe-bottom) + 60px);
+  bottom: calc(var(--safe-bottom) + 104px);
   left: 50%;
   transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  text-align: center;
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid var(--accent-cyan);
   color: #fff;
@@ -4552,3 +4554,90 @@ input:checked + .slider:before {
   border-color: rgba(252, 165, 165, 0.35);
 }
 .btn-ota-reset.hidden { display: none; }
+
+/* ----------------- v5.9.1 Mobile & Visual QA Polish (390px+) ----------------- */
+.btn-modal-close {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 50% !important;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-modal-close:hover,
+.btn-modal-close:focus-visible {
+  background: rgba(212, 163, 89, 0.22) !important;
+  border-color: var(--kuberan-gold, #C5A059) !important;
+  outline: none;
+}
+
+/* Prevent Room Finder Commercial tab horizontal overflow at 390px */
+.segment-control,
+.room-cat-tabs {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.segment-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 8px;
+  font-size: 0.78rem;
+}
+
+/* Prevent Figure-8 text squeeze & modal horizontal overflow */
+.modal-card,
+.modal-content {
+  overflow-x: hidden;
+}
+
+.fig8-container,
+.cal-figure8-box,
+.cal-guide-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.fig8-text,
+#lblFig8Desc {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Keep top-bar solar pill & action pills crisp without awkward wrapping */
+.solar-muhurta-badge {
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 420px) {
+  .segment-btn {
+    font-size: 0.72rem;
+    padding: 8px 6px;
+  }
+  .zone-card-header,
+  .inspector-header,
+  .walkthrough-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
