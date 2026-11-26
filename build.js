@@ -42,6 +42,7 @@ fs.mkdirSync(distDir, { recursive: true });
 const filesToCopy = [
   'index.html',
   'privacy.html',
+  'terms.html',
   '404.html',
   'style.css',
   'vastu-data.js',

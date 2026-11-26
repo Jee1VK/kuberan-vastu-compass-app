@@ -4361,16 +4361,28 @@ https://kuberansilks.com/`;
     updateHeading(0);
     updateInclinometer(0, 0);
 
-    // First Launch Vedic Architectural Disclaimer
+    // First Launch Vedic Architectural Disclaimer (DPDP-auditable timestamped consent record)
     try {
-      const disclaimerAccepted = localStorage.getItem('kuberan_shastra_disclaimer_accepted') === 'true';
+      const rawDisclaimer = localStorage.getItem('kuberan_shastra_disclaimer_accepted');
+      let disclaimerAccepted = rawDisclaimer === 'true';
+      if (!disclaimerAccepted && rawDisclaimer) {
+        try {
+          const parsed = JSON.parse(rawDisclaimer);
+          disclaimerAccepted = Boolean(parsed && parsed.accepted === true);
+        } catch (e) {}
+      }
       const firstLaunchModal = document.getElementById('firstLaunchDisclaimerModal');
       const btnAcceptDisclaimer = document.getElementById('btnAcceptDisclaimer');
       if (!disclaimerAccepted && firstLaunchModal) {
         firstLaunchModal.classList.remove('hidden');
         if (btnAcceptDisclaimer) {
           btnAcceptDisclaimer.addEventListener('click', () => {
-            try { localStorage.setItem('kuberan_shastra_disclaimer_accepted', 'true'); } catch (e) {}
+            try {
+              localStorage.setItem(
+                'kuberan_shastra_disclaimer_accepted',
+                JSON.stringify({ accepted: true, version: '1.0', timestampISO: new Date().toISOString() })
+              );
+            } catch (e) {}
             firstLaunchModal.classList.add('hidden');
           });
         }

@@ -3,6 +3,7 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './privacy.html',
+  './terms.html',
   './404.html',
   './style.css',
   './vastu-data.js',
